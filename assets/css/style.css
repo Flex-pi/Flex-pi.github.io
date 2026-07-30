@@ -359,7 +359,8 @@ h3.sub__title {
 .plate--wide img { min-width: 620px; }
 .figcap {
   margin-top: 13px; font-size: 14.5px; line-height: 1.55; color: var(--fg-dim);
-  max-width: 78ch;
+  max-width: 78ch; margin-inline: auto; text-align: center;
+  text-wrap: pretty;
 }
 .figcap b, .figcap strong { color: var(--fg-muted); font-weight: 600; }
 .figcap .tag {
