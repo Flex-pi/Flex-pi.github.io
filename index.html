@@ -41,6 +41,8 @@
     <a class="nav__brand" href="#top">Flex-<em>π</em></a>
     <div class="nav__links">
       <a href="#abstract">Abstract</a>
+      <a href="#overview">Overview</a>
+      <a href="#streams">Streams</a>
       <a href="#real-robot">Dexterity</a>
       <a href="#precision">Precision</a>
       <a href="#generalization">Generalization</a>
@@ -165,6 +167,152 @@
 
 <hr class="rule">
 
+<!-- ====================== introductory video ====================== -->
+<section class="sec" id="overview">
+  <div class="wrap reveal">
+    <p class="eyebrow">Overview</p>
+    <h2 class="sec__title">Flex-π in action</h2>
+    <p class="sec__sub">One checkpoint, deployed on a bimanual YAM workcell across contact-rich, sub-millimetre and
+    long-horizon tasks — from teleoperated data collection through to self-repair.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal introvid" style="margin-top:30px">
+    <div class="player" data-player data-caption="Overview reel across the real-robot task suite. Placeholder footage — see the notice below.">
+      <span class="player__badge">placeholder footage</span>
+      <video src="assets/videos/intro.mp4" poster="assets/videos/intro.jpg"
+             loop muted playsinline preload="metadata" data-autoplay
+             aria-label="An overview reel cutting between teleoperated data collection, plate placement, utensil sorting, a bimanual handover, a fine insertion and screw driving"></video>
+      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+    </div>
+    <p class="placeholder-notice" style="margin-top:14px">
+      <b>Placeholder footage.</b> Clips on this page stand in for layout while our own recordings are prepared —
+      they come from public robotics project pages and do <b>not</b> show Flex-π rollouts. Every number quoted
+      alongside them is from the paper.
+    </p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ====================== dynamic architecture + streams ====================== -->
+<section class="sec" id="streams">
+  <div class="wrap reveal">
+    <p class="eyebrow">How it sees the world</p>
+    <h2 class="sec__title">Three views of one moment, in one latent space</h2>
+    <p class="sec__sub">Flex-π reads the same observation three ways — appearance, geometry and object semantics —
+    and generates all three futures alongside the action. Pick a stream to follow it through the model.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:30px">
+    <div class="archviz" id="archviz" data-active="rgb">
+
+      <!-- left: animated architecture -->
+      <div class="archviz__diagram">
+        <div class="archviz__label">Multi-stream world-action model</div>
+        <svg viewBox="0 0 400 300" role="img" id="av-svg"
+             aria-label="Architecture diagram: RGB and pointmap streams encoded by a shared frozen Wan-2.2 VAE and a DINO stream encoded by frozen DINOv3, all feeding a shared Multi-Stream Mixture-of-Transformers backbone, which emits future latents for all three streams and an action chunk.">
+
+          <!-- connector paths -->
+          <path id="av-p-rgb"  class="av-path av-path--s" style="--dot:var(--s-rgb)"  d="M92,60 C126,60 134,112 166,112"/>
+          <path id="av-p-p3d"  class="av-path av-path--s" style="--dot:var(--s-3d)"   d="M92,144 L166,148"/>
+          <path id="av-p-dino" class="av-path av-path--s" style="--dot:var(--s-dino)" d="M92,228 C126,228 134,188 166,186"/>
+          <path id="av-p-lat"  class="av-path" d="M270,112 C278,112 280,100 286,100"/>
+          <path id="av-p-act"  class="av-path" d="M270,190 C278,190 280,202 286,202"/>
+
+          <!-- shared backbone -->
+          <rect class="av-box av-box--core" x="166" y="62" width="104" height="176" rx="5"/>
+          <text class="av-t av-t--core" x="218" y="140" text-anchor="middle">Multi-Stream</text>
+          <text class="av-t av-t--core" x="218" y="154" text-anchor="middle">MoT</text>
+          <text class="av-t av-t--dim"  x="218" y="170" text-anchor="middle">5B shared trunk</text>
+          <text class="av-t av-t--dim"  x="218" y="80"  text-anchor="middle">init. Wan-2.2</text>
+
+          <!-- input streams -->
+          <g class="av-row" data-s="rgb" style="--dot:var(--s-rgb)">
+            <rect class="av-box av-box--stream" x="4" y="44" width="88" height="32" rx="4"/>
+            <text class="av-t av-t--s" x="48" y="59" text-anchor="middle">RGB</text>
+            <text class="av-t av-t--dim" x="48" y="70" text-anchor="middle">Wan VAE</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath href="#av-p-rgb" xlink:href="#av-p-rgb"/></animateMotion>
+            </rect>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.3s"><mpath href="#av-p-rgb" xlink:href="#av-p-rgb"/></animateMotion>
+            </rect>
+          </g>
+
+          <g class="av-row" data-s="p3d" style="--dot:var(--s-3d)">
+            <rect class="av-box av-box--stream" x="4" y="128" width="88" height="32" rx="4"/>
+            <text class="av-t av-t--s" x="48" y="143" text-anchor="middle">Pointmap</text>
+            <text class="av-t av-t--dim" x="48" y="154" text-anchor="middle">same VAE</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.45s"><mpath href="#av-p-p3d" xlink:href="#av-p-p3d"/></animateMotion>
+            </rect>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.75s"><mpath href="#av-p-p3d" xlink:href="#av-p-p3d"/></animateMotion>
+            </rect>
+          </g>
+
+          <g class="av-row" data-s="dino" style="--dot:var(--s-dino)">
+            <rect class="av-box av-box--stream" x="4" y="212" width="88" height="32" rx="4"/>
+            <text class="av-t av-t--s" x="48" y="227" text-anchor="middle">DINO</text>
+            <text class="av-t av-t--dim" x="48" y="238" text-anchor="middle">DINOv3</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.9s"><mpath href="#av-p-dino" xlink:href="#av-p-dino"/></animateMotion>
+            </rect>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="2.2s"><mpath href="#av-p-dino" xlink:href="#av-p-dino"/></animateMotion>
+            </rect>
+          </g>
+
+          <!-- outputs -->
+          <rect class="av-box" x="286" y="80" width="112" height="42" rx="4"/>
+          <text class="av-t" x="342" y="96"  text-anchor="middle">future latents</text>
+          <text class="av-t av-t--dim" x="342" y="110" text-anchor="middle">V &middot; P &middot; D</text>
+          <rect class="av-token av-token--out" width="6" height="6" rx="1" x="-3" y="-3">
+            <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.1s"><mpath href="#av-p-lat" xlink:href="#av-p-lat"/></animateMotion>
+          </rect>
+
+          <rect class="av-box av-box--act" x="286" y="182" width="112" height="42" rx="4"/>
+          <text class="av-t" x="342" y="198" text-anchor="middle">action chunk</text>
+          <text class="av-t av-t--dim" x="342" y="212" text-anchor="middle">1B expert</text>
+          <rect class="av-token av-token--act" width="6" height="6" rx="1" x="-3" y="-3">
+            <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.6s"><mpath href="#av-p-act" xlink:href="#av-p-act"/></animateMotion>
+          </rect>
+        </svg>
+      </div>
+
+      <!-- right: the selected stream -->
+      <div class="archviz__stage">
+        <div class="player" data-player data-caption="The same observation viewed as each of the three streams Flex-π consumes. Placeholder footage; the pointmap and DINO views are illustrative renderings, not model output.">
+          <span class="player__badge" id="av-badge">RGB &middot; appearance</span>
+          <video id="av-v-rgb" src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay
+                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
+          <video id="av-v-p3d" src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay hidden
+                 aria-label="The same scene rendered as a false-colour depth map, illustrating the 3D pointmap stream"></video>
+          <video id="av-v-dino" src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay hidden
+                 aria-label="The same scene rendered as smooth coloured regions, illustrating object-level semantic features"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+
+        <div class="archviz__chips" role="group" aria-label="Choose a visual stream">
+          <button class="streamchip" type="button" data-stream="rgb" style="--dot:var(--s-rgb)" aria-pressed="true"><span class="dot"></span>RGB</button>
+          <button class="streamchip" type="button" data-stream="p3d" style="--dot:var(--s-3d)" aria-pressed="false"><span class="dot"></span>Pointmap</button>
+          <button class="streamchip" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false"><span class="dot"></span>DINO</button>
+        </div>
+        <p class="archviz__note" id="av-note">Appearance. The observation image, encoded by a frozen Wan-2.2 VAE
+        into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</p>
+        <p class="archviz__note" style="color:var(--fg-faint);font-size:12px">The pointmap and DINO panels are
+        illustrative renderings of the same clip, shown to convey what each stream carries — they are not model
+        output. The paper's real VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
 <!-- ====================== real robot: dexterity ====================== -->
 <section class="sec" id="real-robot">
   <div class="wrap reveal">
@@ -173,14 +321,6 @@
     <p class="sec__sub">Three contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, 14
     commanded degrees of freedom, three calibrated stereo cameras. Each demands precise bimanual coordination and
     sustained contact. Rollouts are scored under a partial-credit rubric, averaged over 10 rollouts per task.</p>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:26px">
-    <p class="placeholder-notice">
-      <b>Placeholder footage.</b> The clips on this page stand in for layout while our own recordings are prepared —
-      they come from public robotics project pages and do <b>not</b> show Flex-π rollouts. Every number quoted
-      alongside them is from the paper.
-    </p>
   </div>
 
   <!-- task 1 -->

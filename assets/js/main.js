@@ -655,10 +655,11 @@
 
     document.querySelectorAll('[data-player]').forEach(function (p) {
       var btn = p.querySelector('.player__expand');
-      var v = p.querySelector('video');
-      if (!btn || !v) return;
+      if (!btn) return;
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
+        var v = p.querySelector('video:not([hidden])') || p.querySelector('video');
+        if (!v) return;
         open(v.currentSrc || v.src, v.getAttribute('poster'), p.getAttribute('data-caption'));
       });
     });
@@ -750,6 +751,83 @@
   }
 
   /* ---------------------------------------------------------------------
+     dynamic architecture + stream view
+     --------------------------------------------------------------------- */
+  var STREAM_INFO = {
+    rgb:  { badge: 'RGB · appearance',
+            note: 'Appearance. The observation image, encoded by a frozen Wan-2.2 VAE into latent tokens that ' +
+                  'inherit spatiotemporal priors from internet-scale video pre-training.' },
+    p3d:  { badge: 'Pointmap · 3D geometry',
+            note: 'Geometry. A 3D pointmap pushed through the same frozen VAE — an encoder trained only on RGB ' +
+                  'reconstructs pointmaps at 38 dB PSNR on the paper\'s example, so the latent space carries scene ' +
+                  'geometry directly.' },
+    dino: { badge: 'DINO · object semantics',
+            note: 'Semantics. Object-level tokens from a frozen DINOv3 encoder, folded 2×2 into the channel ' +
+                  'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' }
+  };
+
+  function initArchviz() {
+    var root = document.getElementById('archviz');
+    if (!root) return;
+    var chips  = Array.prototype.slice.call(root.querySelectorAll('.streamchip'));
+    var badge  = document.getElementById('av-badge');
+    var note   = document.getElementById('av-note');
+    var vids   = { rgb: document.getElementById('av-v-rgb'),
+                   p3d: document.getElementById('av-v-p3d'),
+                   dino: document.getElementById('av-v-dino') };
+    var order  = ['rgb', 'p3d', 'dino'];
+    var timer = null, touched = false;
+
+    function select(key) {
+      root.setAttribute('data-active', key);
+      chips.forEach(function (c) {
+        c.setAttribute('aria-pressed', c.getAttribute('data-stream') === key ? 'true' : 'false');
+      });
+      order.forEach(function (k) {
+        var v = vids[k];
+        if (!v) return;
+        if (k === key) { v.hidden = false; v.play().catch(function () {}); }
+        else { v.hidden = true; v.pause(); }
+      });
+      if (badge && STREAM_INFO[key]) badge.textContent = STREAM_INFO[key].badge;
+      if (note && STREAM_INFO[key]) note.textContent = STREAM_INFO[key].note;
+    }
+
+    chips.forEach(function (c) {
+      c.addEventListener('click', function () {
+        touched = true;
+        if (timer) { clearInterval(timer); timer = null; }
+        select(c.getAttribute('data-stream'));
+      });
+    });
+
+    /* cycle the streams until the reader takes over */
+    function startCycle() {
+      if (touched || reduceMotion || timer) return;
+      var i = 0;
+      timer = setInterval(function () {
+        i = (i + 1) % order.length;
+        select(order[i]);
+      }, 4200);
+    }
+    function stopCycle() { if (timer) { clearInterval(timer); timer = null; } }
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (e) { e.isIntersecting ? startCycle() : stopCycle(); });
+      }, { threshold: 0.3 }).observe(root);
+    } else { startCycle(); }
+
+    /* SMIL ignores prefers-reduced-motion, so stop the token flow by hand */
+    if (reduceMotion) {
+      var svg = document.getElementById('av-svg');
+      if (svg && svg.pauseAnimations) svg.pauseAnimations();
+    }
+
+    select('rgb');
+  }
+
+  /* ---------------------------------------------------------------------
      theme toggle — the page ships "day" (cream) like the ENPIRE anchor;
      both themes are fully authored, so this is a token swap. Charts read
      their colors from CSS custom properties, so they are re-rendered.
@@ -776,6 +854,7 @@
     initExplorer();
     initMaskDemo();
     initVideos();
+    initArchviz();
     initLightbox();
     initNav();
     initReveal();

@@ -133,6 +133,8 @@ p { margin: 0 0 1.05em; }
 p:last-child { margin-bottom: 0; }
 a { color: inherit; }
 img, video { max-width: 100%; display: block; }
+/* `display:block` above out-specifies the UA rule for [hidden], so restate it */
+[hidden] { display: none !important; }
 figure { margin: 0; }
 ul, ol { margin: 0 0 1.05em; padding-left: 1.35em; }
 li { margin: .3em 0; }
@@ -275,7 +277,9 @@ h3.sub__title {
 /* ==========================================================================
    title block
    ========================================================================== */
-.hero { padding-top: clamp(38px, 6vw, 72px); }
+.hero { padding-top: clamp(38px, 6vw, 72px); text-align: center; }
+.hero .links { justify-content: center; }
+.hero .affils { justify-content: center; }
 .hero__title {
   font-size: clamp(33px, 5.2vw, 58px);
   line-height: 1.08; letter-spacing: -.022em;
@@ -285,7 +289,7 @@ h3.sub__title {
 .hero__tagline {
   font-size: clamp(18px, 2.3vw, 23px);
   line-height: 1.45; color: var(--fg-muted);
-  max-width: 46ch; text-wrap: balance; margin-bottom: 1.5em;
+  max-width: 52ch; margin-inline: auto; text-wrap: balance; margin-bottom: 1.5em;
 }
 .authors { margin-bottom: 10px; font-size: 17px; line-height: 1.8; }
 .authors .sep { color: var(--fg-faint); }
@@ -345,6 +349,9 @@ h3.sub__title {
 .prose a { color: var(--primary-ink); text-decoration: none; border-bottom: 1px solid var(--border); }
 .prose a:hover { border-bottom-color: var(--primary); }
 .lede { font-size: clamp(19px, 2.1vw, 22px); line-height: 1.58; color: var(--fg); }
+
+/* ---------- introductory overview video ---------- */
+.introvid .player video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
 
 /* ==========================================================================
    figure plates
@@ -544,6 +551,68 @@ h3.sub__title {
 .stream__name { font-size: 19px; margin-bottom: 7px; letter-spacing: -.008em; }
 .stream__desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-muted); }
 .stream__src { margin-top: 12px; font-family: var(--ff-mono); font-size: 11.5px; color: var(--fg-faint); line-height: 1.5; }
+
+/* ==========================================================================
+   dynamic architecture + live stream view
+   ========================================================================== */
+.archviz {
+  display: grid; grid-template-columns: minmax(320px, 452px) minmax(0, 1fr);
+  gap: clamp(18px, 2.6vw, 34px); align-items: stretch;
+}
+@media (max-width: 900px) { .archviz { grid-template-columns: 1fr; } }
+
+.archviz__diagram {
+  border: 1px solid var(--border-soft); border-radius: var(--radius);
+  background: var(--surface); padding: 16px 16px 12px;
+  display: flex; flex-direction: column;
+}
+.archviz__label {
+  font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--fg-faint); margin-bottom: 10px;
+}
+.archviz__diagram svg { width: 100%; height: 100%; flex: 1 1 auto; min-height: 190px; }
+
+.archviz__stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.archviz__stage .player { flex: 1; }
+.archviz__stage .player video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+
+.archviz__chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.streamchip {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 8px 13px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-soft); background: var(--surface);
+  color: var(--fg-muted); font-family: var(--ff-mono); font-size: 11.5px;
+  letter-spacing: .05em; text-transform: uppercase;
+  transition: background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease);
+}
+.streamchip:hover { background: var(--surface-2); color: var(--fg); }
+.streamchip .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--dot); flex: none; }
+.streamchip[aria-pressed="true"] {
+  border-color: var(--dot); color: var(--dot);
+  background: color-mix(in srgb, var(--dot) 12%, transparent);
+}
+.archviz__note { font-size: 13px; line-height: 1.5; color: var(--fg-dim); margin: 0; }
+
+/* --- svg diagram parts --- */
+.av-box { fill: var(--surface-2); stroke: var(--border-soft); stroke-width: 1; }
+.av-box--stream { fill: color-mix(in srgb, var(--dot) 14%, transparent); stroke: var(--dot); }
+.av-box--core { fill: color-mix(in srgb, var(--primary) 13%, transparent); stroke: color-mix(in srgb, var(--primary) 55%, transparent); }
+.av-box--act  { fill: color-mix(in srgb, var(--s-action) 15%, transparent); stroke: color-mix(in srgb, var(--s-action) 60%, transparent); }
+.av-t     { fill: var(--fg-muted); font-family: var(--ff-mono); font-size: 12px; letter-spacing: .02em; }
+.av-t--s  { fill: var(--dot); }
+.av-t--core { fill: var(--fg); font-size: 13px; }
+.av-t--dim { fill: var(--fg-faint); font-size: 10.5px; }
+.av-path  { fill: none; stroke: var(--border); stroke-width: 1.2; }
+.av-path--s { stroke: color-mix(in srgb, var(--dot) 70%, transparent); }
+.av-token { fill: var(--dot); }
+.av-token--out { fill: var(--primary); }
+.av-token--act { fill: var(--s-action); }
+
+/* dim the streams that are not selected */
+.av-row { transition: opacity .3s var(--ease); }
+.archviz[data-active="rgb"]  .av-row:not([data-s="rgb"]),
+.archviz[data-active="p3d"]  .av-row:not([data-s="p3d"]),
+.archviz[data-active="dino"] .av-row:not([data-s="dino"]) { opacity: .26; }
 
 /* ==========================================================================
    compute-flexibility explorer
