@@ -751,7 +751,7 @@
   }
 
   /* ---------------------------------------------------------------------
-     dynamic architecture + stream view
+     dynamic architecture: mask state, regimes, and the stream panel
      --------------------------------------------------------------------- */
   var STREAM_INFO = {
     rgb:  { badge: 'RGB · appearance',
@@ -759,72 +759,172 @@
                   'inherit spatiotemporal priors from internet-scale video pre-training.' },
     p3d:  { badge: 'Pointmap · 3D geometry',
             note: 'Geometry. A 3D pointmap pushed through the same frozen VAE — an encoder trained only on RGB ' +
-                  'reconstructs pointmaps at 38 dB PSNR on the paper\'s example, so the latent space carries scene ' +
+                  'reconstructs pointmaps at 38 dB PSNR on the paper’s example, so the latent space carries scene ' +
                   'geometry directly.' },
     dino: { badge: 'DINO · object semantics',
             note: 'Semantics. Object-level tokens from a frozen DINOv3 encoder, folded 2×2 into the channel ' +
-                  'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' }
+                  'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' },
+    act:  { badge: 'Action · 32 steps × 14 DoF',
+            note: 'Action. The policy emits a chunk of 32 future steps across 14 commanded degrees of freedom — ' +
+                  'two 6-DoF arms plus a gripper each. The robot executes the whole chunk before re-planning, once ' +
+                  'every 1.07 s.' }
   };
+
+  /* the four rows of the paper’s Figure 4 */
+  var REGIMES = {
+    joint:  { min: { rgb: 1, p3d: 1, dino: 1 }, out: { rgb: 1, p3d: 1, dino: 1 },
+              note: 'All three futures are co-denoised with the action, and the action expert reads every one of them.' },
+    action: { min: { rgb: 1, p3d: 1, dino: 1 }, out: { rgb: 0, p3d: 0, dino: 0 },
+              note: 'The action-only fast path. No future visual stream is read, so none is computed — this is where ' +
+                    'the VLA-level latency comes from.' },
+    p3d:    { min: { rgb: 1, p3d: 1, dino: 1 }, out: { rgb: 0, p3d: 1, dino: 0 },
+              note: 'One of many intermediate regimes: only the 3D future is generated and read, buying geometric ' +
+                    'grounding without paying for the other two streams.' },
+    xmod:   { min: { rgb: 1, p3d: 0, dino: 1 }, out: { rgb: 0, p3d: 1, dino: 0 },
+              note: 'Cross-modality forcing. The pointmap is never observed, yet its future is generated from RGB and ' +
+                    'DINO alone and read by the action expert — which is what forces the three streams to stay ' +
+                    'mutually predictive.' }
+  };
+
+  /* --- schematic action chunk: 14 joint traces over 32 steps --- */
+  function buildActionViz(host) {
+    var W = 640, H = 360, padL = 52, padR = 18, padT = 30, padB = 34;
+    var DOF = 14, STEPS = 32;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var lane = plotH / DOF;
+
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'xMidYMid meet',
+                          role: 'img', 'aria-label': host.getAttribute('aria-label') || 'action chunk schematic' });
+
+    svg.appendChild(el('text', { 'class': 'ac-lab', x: padL, y: 18 }, 'action chunk'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: 18, 'text-anchor': 'end' },
+      '32 steps × 14 DoF · 30 Hz'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: H - 12 }, 't'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: H - 12, 'text-anchor': 'end' },
+      't + 32  (re-plan)'));
+
+    /* vertical step grid */
+    for (var s = 0; s <= STEPS; s += 8) {
+      var gx = padL + (s / STEPS) * plotW;
+      svg.appendChild(el('line', { 'class': 'ac-grid', x1: gx, y1: padT - 6, x2: gx, y2: padT + plotH + 4 }));
+    }
+
+    /* deterministic smooth traces: sum of a few sines per joint */
+    var names = ['L·j1','L·j2','L·j3','L·j4','L·j5','L·j6','L·grip',
+                 'R·j1','R·j2','R·j3','R·j4','R·j5','R·j6','R·grip'];
+    for (var d = 0; d < DOF; d++) {
+      var cy = padT + lane * (d + 0.5);
+      svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL - 8, y: cy + 3.5, 'text-anchor': 'end' }, names[d]));
+      var pts = [], amp = lane * 0.42;
+      for (var k = 0; k <= STEPS; k++) {
+        var u = k / STEPS;
+        var v = Math.sin(u * 3.1 + d * 0.9) * 0.55
+              + Math.sin(u * 6.7 + d * 2.3) * 0.28
+              + Math.sin(u * 11.3 + d * 1.7) * 0.14;
+        if (names[d].indexOf('grip') > -1) v = Math.tanh(Math.sin(u * 2.2 + d) * 3) * 0.85;  /* grippers step */
+        pts.push([padL + u * plotW, cy - v * amp]);
+      }
+      var dstr = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
+      var hue = d < 7 ? 'var(--s-action)' : 'var(--s-3d)';
+      svg.appendChild(el('path', { 'class': 'ac-trace', d: dstr, stroke: hue,
+                                   opacity: (0.55 + 0.35 * (1 - Math.abs(d - 6.5) / 7)).toFixed(2) }));
+    }
+
+    /* sweeping playhead */
+    var head = el('g', {});
+    head.appendChild(el('line', { 'class': 'ac-head', x1: 0, y1: padT - 6, x2: 0, y2: padT + plotH + 4 }));
+    head.appendChild(el('circle', { 'class': 'ac-headdot', cx: 0, cy: padT - 8, r: 3.5 }));
+    var anim = el('animateTransform', { attributeName: 'transform', type: 'translate',
+      from: padL + ',0', to: (padL + plotW) + ',0', dur: '4s', repeatCount: 'indefinite' });
+    head.appendChild(anim);
+    svg.appendChild(head);
+
+    host.innerHTML = '';
+    host.appendChild(svg);
+  }
 
   function initArchviz() {
     var root = document.getElementById('archviz');
     if (!root) return;
-    var chips  = Array.prototype.slice.call(root.querySelectorAll('.streamchip'));
-    var badge  = document.getElementById('av-badge');
-    var note   = document.getElementById('av-note');
-    var vids   = { rgb: document.getElementById('av-v-rgb'),
-                   p3d: document.getElementById('av-v-p3d'),
-                   dino: document.getElementById('av-v-dino') };
-    var order  = ['rgb', 'p3d', 'dino'];
-    var timer = null, touched = false;
+    var chips   = Array.prototype.slice.call(root.querySelectorAll('.streamchip'));
+    var rchips  = Array.prototype.slice.call(root.querySelectorAll('.regimechip'));
+    var badge   = document.getElementById('av-badge');
+    var note    = document.getElementById('av-note');
+    var rnote   = document.getElementById('av-regime-note');
+    var actHost = document.getElementById('av-v-act');
+    var panels  = { rgb: document.getElementById('av-v-rgb'), p3d: document.getElementById('av-v-p3d'),
+                    dino: document.getElementById('av-v-dino'), act: actHost };
+    var order   = ['rgb', 'p3d', 'dino', 'act'];
+    var timer = null, touched = false, current = 'rgb';
 
-    function select(key) {
+    if (actHost) buildActionViz(actHost);
+
+    function showStream(key) {
+      current = key;
       root.setAttribute('data-active', key);
       chips.forEach(function (c) {
         c.setAttribute('aria-pressed', c.getAttribute('data-stream') === key ? 'true' : 'false');
       });
       order.forEach(function (k) {
-        var v = vids[k];
-        if (!v) return;
-        if (k === key) { v.hidden = false; v.play().catch(function () {}); }
-        else { v.hidden = true; v.pause(); }
+        var el2 = panels[k];
+        if (!el2) return;
+        var on = (k === key);
+        el2.hidden = !on;
+        if (el2.tagName === 'VIDEO') { on ? el2.play().catch(function () {}) : el2.pause(); }
+      });
+      root.querySelectorAll('.av-row, .av-out').forEach(function (g) {
+        var s = g.getAttribute('data-s') || g.getAttribute('data-o');
+        g.classList.toggle('is-sel', s === key);
       });
       if (badge && STREAM_INFO[key]) badge.textContent = STREAM_INFO[key].badge;
       if (note && STREAM_INFO[key]) note.textContent = STREAM_INFO[key].note;
     }
 
+    function applyRegime(name) {
+      var r = REGIMES[name]; if (!r) return;
+      rchips.forEach(function (c) {
+        c.setAttribute('aria-pressed', c.getAttribute('data-regime') === name ? 'true' : 'false');
+      });
+      root.querySelectorAll('.av-row').forEach(function (g) {
+        g.setAttribute('data-on', r.min[g.getAttribute('data-s')] ? 'true' : 'false');
+      });
+      root.querySelectorAll('.av-out').forEach(function (g) {
+        var o = g.getAttribute('data-o');
+        g.setAttribute('data-on', (o === 'act' || r.out[o]) ? 'true' : 'false');
+      });
+      if (rnote) rnote.textContent = r.note;
+    }
+
     chips.forEach(function (c) {
       c.addEventListener('click', function () {
-        touched = true;
-        if (timer) { clearInterval(timer); timer = null; }
-        select(c.getAttribute('data-stream'));
+        touched = true; if (timer) { clearInterval(timer); timer = null; }
+        showStream(c.getAttribute('data-stream'));
       });
     });
+    rchips.forEach(function (c) {
+      c.addEventListener('click', function () { applyRegime(c.getAttribute('data-regime')); });
+    });
 
-    /* cycle the streams until the reader takes over */
     function startCycle() {
       if (touched || reduceMotion || timer) return;
-      var i = 0;
       timer = setInterval(function () {
-        i = (i + 1) % order.length;
-        select(order[i]);
+        showStream(order[(order.indexOf(current) + 1) % order.length]);
       }, 4200);
     }
     function stopCycle() { if (timer) { clearInterval(timer); timer = null; } }
-
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) {
         es.forEach(function (e) { e.isIntersecting ? startCycle() : stopCycle(); });
       }, { threshold: 0.3 }).observe(root);
     } else { startCycle(); }
 
-    /* SMIL ignores prefers-reduced-motion, so stop the token flow by hand */
     if (reduceMotion) {
       var svg = document.getElementById('av-svg');
       if (svg && svg.pauseAnimations) svg.pauseAnimations();
     }
 
-    select('rgb');
+    applyRegime('joint');
+    showStream('rgb');
   }
 
   /* ---------------------------------------------------------------------
