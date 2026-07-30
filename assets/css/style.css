@@ -409,6 +409,8 @@ h3.sub__title {
 
 /* grid cards: normalize wildly different source aspect ratios so rows align */
 .vgrid .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
+/* keep tall/panel source material whole instead of cropping it */
+.player--contain video { object-fit: contain !important; background: #0c0c0c; }
 
 .vcard__cap { margin-top: 11px; font-size: 14px; line-height: 1.5; color: var(--fg-muted); }
 .vcard__cap b { display: block; color: var(--fg); font-weight: 600; font-size: 15px; margin-bottom: 2px; }
@@ -444,6 +446,79 @@ h3.sub__title {
   font-family: var(--ff-mono); font-size: 11.5px; padding: 5px 11px;
 }
 .lb__close:hover { background: rgba(255,255,255,.18); }
+
+/* ---------- prominent placeholder disclosure (videos are the lead content) ---------- */
+.placeholder-notice {
+  margin: 0; padding: 13px 16px; border-radius: var(--radius);
+  border: 1px dashed var(--border); background: var(--surface);
+  font-size: 14px; line-height: 1.55; color: var(--fg-dim);
+}
+.placeholder-notice b { color: var(--fg-muted); }
+
+/* ---------- comparison section headings ---------- */
+.cmp__heading {
+  font-family: var(--ff-display); font-size: clamp(18px, 1.9vw, 22px);
+  font-weight: 600; letter-spacing: -.008em; margin-bottom: 8px;
+}
+.cmp__lede { font-size: 15.5px; line-height: 1.6; color: var(--fg-muted); max-width: 68ch; margin: 0; }
+
+/* ==========================================================================
+   featured real-world video  (large, video-first presentation)
+   ========================================================================== */
+.vfeature { margin-top: clamp(28px, 4vw, 44px); }
+.vfeature .player { border-radius: var(--radius); }
+.vfeature .player video { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+.vfeature__meta {
+  display: grid; grid-template-columns: minmax(0,1fr) auto;
+  gap: 14px clamp(20px, 4vw, 40px); align-items: start; margin-top: 16px;
+}
+@media (max-width: 720px) { .vfeature__meta { grid-template-columns: 1fr; } }
+.vfeature__name {
+  font-family: var(--ff-display); font-size: clamp(19px, 2.1vw, 24px);
+  font-weight: 600; letter-spacing: -.01em; line-height: 1.25; margin-bottom: 6px;
+}
+.vfeature__desc { font-size: 15.5px; line-height: 1.6; color: var(--fg-muted); max-width: 62ch; }
+.vfeature__desc .demos {
+  display: block; margin-top: 7px; font-family: var(--ff-mono);
+  font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--fg-faint);
+}
+.scoreboard { display: flex; gap: 22px; align-items: flex-start; }
+.score { text-align: right; min-width: 74px; }
+.score__v {
+  font-family: var(--ff-display); font-weight: 600; font-size: clamp(26px, 3.2vw, 34px);
+  line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.score__v .unit { font-size: .44em; color: var(--fg-dim); font-weight: 400; }
+.score--ours .score__v { color: var(--c-ours); }
+.score--base .score__v { color: var(--fg-faint); }
+.score__k {
+  margin-top: 6px; font-family: var(--ff-mono); font-size: 10px;
+  letter-spacing: .06em; color: var(--fg-faint); white-space: nowrap;
+}
+
+/* ==========================================================================
+   side-by-side comparison (baseline vs ours), synced playback
+   ========================================================================== */
+.vcompare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.6vw, 18px); }
+@media (max-width: 620px) { .vcompare { grid-template-columns: 1fr; } }
+.vcompare .player video { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+.vcompare__side--base .player { border-color: color-mix(in srgb, var(--c-base2) 34%, transparent); }
+.vcompare__side--ours .player { border-color: color-mix(in srgb, var(--c-ours) 42%, transparent); }
+.vcompare__tag {
+  display: flex; align-items: baseline; gap: 9px; margin-top: 10px; flex-wrap: wrap;
+}
+.vcompare__tag .who {
+  font-family: var(--ff-display); font-size: 15px; font-weight: 600; letter-spacing: -.005em;
+}
+.vcompare__side--base .vcompare__tag { color: var(--c-base2); }
+.vcompare__side--ours .vcompare__tag { color: var(--c-ours); }
+.vcompare__tag .what {
+  font-family: var(--ff-body); font-size: 13.5px; letter-spacing: 0; text-transform: none;
+  color: var(--fg-dim);
+}
+.vcompare__title {
+  font-size: 16px; font-weight: 600; margin-bottom: 4px;
+}
 
 /* ==========================================================================
    stream cards
