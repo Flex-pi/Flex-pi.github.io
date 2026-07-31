@@ -19,12 +19,40 @@ No build step and no dependencies — it is static HTML/CSS/JS. To preview:
 python3 -m http.server 8000    # then open http://localhost:8000
 ```
 
+## Structure
+
+The page is in three parts, each introduced by a `.part` divider and listed in
+the `.toc` block under the abstract:
+
+```
+I   · What Flex-π does    #overview #real-robot #precision #generalization
+II  · How it works        #streams #method #explorer
+III · How it compares     #simulation #limitations #bibtex
+```
+
+Three heading levels, and nothing else:
+
+| level | class            | tag  | column           |
+|-------|------------------|------|------------------|
+| part  | `.part__t`       | `h2` | `.wrap--wide`    |
+| section | `.sec__title` + `.sec__sub` | `h3` | `.wrap` (812px) |
+| point | `.sub__title` + `.sub__lede` | `h4` | `.wrap` (812px) |
+
+Every sub-heading sits in the 812px text column so it lines up under its
+section title; only the media it introduces (video grids, charts, tables,
+figure plates) widens to `.wrap--mid` / `.wrap--wide`. Task names inside a
+`.vfeature` are `h4.vfeature__name` and align with their video instead — they
+read as figure labels, not outline entries.
+
 ## Design
 
 The visual system follows NVIDIA GEAR's
 [ENPIRE](https://research.nvidia.com/labs/gear/enpire/) project page: a
 near-black cinematic hero, then a cream `#f6f6ef` article body set in Source
 Serif 4 with JetBrains Mono for metadata, a periwinkle accent and 4px radii.
+Mono is for metadata and numerals only — anything read as words (nav, buttons,
+chips, badges, diagram labels) is set in the body face. Uppercase mono labels
+all use `--fs-meta` / `--ls-meta`; a label with its own size is a bug.
 Both themes are fully authored — dark is the base token set and
 `[data-theme="day"]` overrides it — and the page ships `day`, with a toggle in
 the nav (persisted to `localStorage`). Accent colors for the three visual
