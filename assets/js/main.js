@@ -687,18 +687,19 @@
   /* ---------------------------------------------------------------------
      nav current-section highlight
      --------------------------------------------------------------------- */
-  /* The rail is fixed and the hero is full-bleed, so at the top of the page the
-     rail would sit on top of the video. Hold it back until the stage is gone. */
+  /* Two things key off "has the reader left the hero yet": the rail, which is
+     fixed and would otherwise sit on top of the full-bleed video, and the top
+     bar's condensed title, which is redundant while the real title is on
+     screen. One observer, both consumers. */
   function initRail() {
-    var rail = document.querySelector('.rail');
+    var targets = [document.querySelector('.rail'), document.querySelector('.nav')]
+      .filter(Boolean);
     var stage = document.querySelector('.stage');
-    if (!rail) return;
-    if (!stage || !('IntersectionObserver' in window)) {
-      rail.setAttribute('data-over-hero', 'false');
-      return;
-    }
+    if (!targets.length) return;
+    function set(v) { targets.forEach(function (t) { t.setAttribute('data-over-hero', v); }); }
+    if (!stage || !('IntersectionObserver' in window)) { set('false'); return; }
     new IntersectionObserver(function (es) {
-      rail.setAttribute('data-over-hero', es[0].isIntersecting ? 'true' : 'false');
+      set(es[0].isIntersecting ? 'true' : 'false');
     }, { threshold: 0, rootMargin: '-40% 0px 0px 0px' }).observe(stage);
   }
 

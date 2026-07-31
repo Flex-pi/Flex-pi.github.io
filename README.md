@@ -54,6 +54,12 @@ the whole document. Instead everything below the hero is pushed right by
 `--rail-shift` and the rail parks in the space that frees up, aligned to the
 left edge of `--col-wide` so it can never collide with a full-width figure.
 
+Above 1024px the top bar stops being a second outline and takes a job the rail
+cannot do: a condensed title that fades in once you leave the hero, plus the
+Paper / Code / BibTeX actions. Below 1024px it reverts to section links. Both
+key off one `IntersectionObserver` on `.stage`, which sets `data-over-hero` on
+`.rail` and `.nav`.
+
 The rail is the primary navigation and turns on at **1024px**, so a laptop
 window does not have to be maximised to get it; below that the top bar's links
 stand in, where a 176px column would cost more than it gives. **Exactly one

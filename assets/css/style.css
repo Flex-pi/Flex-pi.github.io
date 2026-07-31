@@ -315,6 +315,37 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .nav__links a:hover { color: var(--fg); background: var(--surface-2); }
 .nav__links a[aria-current="true"] { color: var(--fg); background: var(--surface-2); }
 @media (max-width: 900px) { .nav__links .nav-hide { display: none; } }
+
+/* Above the rail's breakpoint the bar stops being a second outline and takes a
+   job the rail cannot do: what you are reading, and how to cite it. */
+.nav__title, .nav__actions { display: none; }
+@media (min-width: 1024px) {
+  .nav__title {
+    display: block; flex: 1 1 auto; min-width: 0;
+    font-size: 14.5px; color: var(--fg-dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding-left: 14px; border-left: 1px solid var(--border-soft);
+    opacity: 0; transition: opacity .3s var(--ease);
+  }
+  /* while the hero fills the screen the title is still right there, in type */
+  .nav[data-over-hero="false"] .nav__title { opacity: 1; }
+  .nav__actions { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+}
+.navbtn {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  padding: 6px 10px; border-radius: var(--radius); text-decoration: none;
+  font-size: 14.5px; color: var(--fg-dim);
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.navbtn:hover { color: var(--fg); background: var(--surface-2); }
+.navbtn--off { color: var(--fg-faint); cursor: not-allowed; }
+.navbtn--off:hover { color: var(--fg-faint); background: none; }
+.navbtn em {
+  font-style: normal; font-family: var(--ff-mono); font-size: 10px;
+  letter-spacing: var(--ls-meta); text-transform: uppercase;
+  border: 1px solid var(--border-soft); border-radius: var(--radius-pill);
+  padding: 1px 5px; color: var(--fg-faint);
+}
 @media (max-width: 460px) { .nav__brand { font-size: 15px; } .nav__in { gap: 8px; } }
 
 .themebtn {
