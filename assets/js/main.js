@@ -687,24 +687,57 @@
   /* ---------------------------------------------------------------------
      nav current-section highlight
      --------------------------------------------------------------------- */
+  /* The rail is fixed and the hero is full-bleed, so at the top of the page the
+     rail would sit on top of the video. Hold it back until the stage is gone. */
+  function initRail() {
+    var rail = document.querySelector('.rail');
+    var stage = document.querySelector('.stage');
+    if (!rail) return;
+    if (!stage || !('IntersectionObserver' in window)) {
+      rail.setAttribute('data-over-hero', 'false');
+      return;
+    }
+    new IntersectionObserver(function (es) {
+      rail.setAttribute('data-over-hero', es[0].isIntersecting ? 'true' : 'false');
+    }, { threshold: 0, rootMargin: '-40% 0px 0px 0px' }).observe(stage);
+  }
+
   function initNav() {
-    var links = Array.prototype.slice.call(document.querySelectorAll('.nav__links a[href^="#"]'));
+    /* Two navigations point at the same sections -- the top bar below 1400px
+       and the left rail above it -- so an id maps to a LIST of links, not one. */
+    var links = Array.prototype.slice.call(
+      document.querySelectorAll('.nav__links a[href^="#"], .rail__links a[href^="#"]'));
     var map = {};
     links.forEach(function (a) {
       var id = a.getAttribute('href').slice(1);
-      var sec = document.getElementById(id);
-      if (sec) map[id] = a;
+      if (!document.getElementById(id)) return;
+      (map[id] = map[id] || []).push(a);
     });
     var ids = Object.keys(map);
     if (!ids.length || !('IntersectionObserver' in window)) return;
+
+    /* Part dividers are only a few pixels tall, so they would never win on
+       visible area. Light the part up from whichever section is current. */
+    var partOf = {};
+    links.forEach(function (a) {
+      var p = a.getAttribute('data-part');
+      if (p) partOf[a.getAttribute('href').slice(1)] = p;
+    });
 
     var visible = {};
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
       var best = null, bv = 0;
       ids.forEach(function (id) { if ((visible[id] || 0) > bv) { bv = visible[id]; best = id; } });
-      links.forEach(function (a) { a.removeAttribute('aria-current'); });
-      if (best) map[best].setAttribute('aria-current', 'true');
+      links.forEach(function (a) { a.removeAttribute('aria-current'); a.removeAttribute('data-in'); });
+      if (!best) return;
+      map[best].forEach(function (a) { a.setAttribute('aria-current', 'true'); });
+      var part = partOf[best];
+      if (part && map[part]) {
+        map[part].forEach(function (a) {
+          if (!a.hasAttribute('aria-current')) a.setAttribute('data-in', 'true');
+        });
+      }
     }, { threshold: [0, 0.15, 0.4, 0.75], rootMargin: '-70px 0px -40% 0px' });
 
     ids.forEach(function (id) { io.observe(document.getElementById(id)); });
@@ -1046,6 +1079,7 @@
     initArchviz();
     initLightbox();
     initNav();
+    initRail();
     initReveal();
     initCopy();
   }

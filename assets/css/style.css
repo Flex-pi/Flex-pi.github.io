@@ -158,7 +158,7 @@ code, kbd { font-family: var(--ff-mono); font-size: .86em; }
 .wrap--wide { max-width: var(--col-wide); }
 .wrap--full { max-width: var(--col-full); }
 
-section[id] { scroll-margin-top: 80px; }
+section[id], .part[id] { scroll-margin-top: 80px; }
 .sec { margin-block: var(--gap-sec); }
 
 .eyebrow {
@@ -207,28 +207,67 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ==========================================================================
-   contents -- what is on this page, in reading order
+   outline rail -- the in-page navigation, on the left, as on ENPIRE
+
+   The rail is fixed rather than a grid column, because every section on this
+   page is an independently centred .wrap and turning them all into grid cells
+   would mean re-wrapping the whole document. Instead everything below the
+   cinematic hero is pushed right by --rail-shift, and the rail parks in the
+   space that frees up, aligned to the LEFT EDGE OF THE WIDEST COLUMN
+   (--col-wide) so it can never collide with a full-width figure.
+
+   It needs ~1400px to earn its keep; below that the top nav's links do the
+   same job, so exactly one of the two is visible at any width.
    ========================================================================== */
-/* No bottom rule: the Part I divider directly below already draws one, and two
-   hairlines a hundred pixels apart read as an empty box rather than a list. */
-.toc {
-  border-top: 1px solid var(--border-soft);
-  padding-top: 24px; display: grid; gap: 24px clamp(20px, 3vw, 44px);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+:root { --rail-w: 176px; --rail-gap: 44px; --rail-shift: 0px; }
+
+.rail { display: none; }
+
+@media (min-width: 1400px) {
+  :root { --rail-shift: calc(var(--rail-w) + var(--rail-gap)); }
+
+  main > :not(.stage), .foot { padding-left: var(--rail-shift); }
+  main > hr.rule { padding-left: 0; margin-left: var(--rail-shift); }
+  /* one in-page navigation at a time: the rail replaces the top bar's links */
+  .nav .nav__links { display: none; }
+
+  .rail {
+    display: block; position: fixed; z-index: 50;
+    top: 108px; width: var(--rail-w);
+    left: max(20px, calc((100vw - var(--rail-shift) - var(--col-wide)) / 2));
+    max-height: calc(100vh - 150px); overflow-y: auto;
+    padding-left: 15px; border-left: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail[data-over-hero="true"] { opacity: 0; pointer-events: none; }
 }
-@media (max-width: 760px) { .toc { grid-template-columns: 1fr; gap: 20px; } }
-.toc__n {
-  font-family: var(--ff-mono); font-size: var(--fs-meta);
-  letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--fg-faint);
+.rail { transition: opacity .3s var(--ease); }
+
+.rail__links { display: grid; gap: 0; }
+.rail__links a {
+  display: block; position: relative; text-decoration: none;
+  padding: 9px 0; font-size: 14.5px; line-height: 1.28;
+  color: var(--fg-dim); transition: color .16s var(--ease);
 }
-.toc__t { font-size: 16.5px; font-weight: 600; margin: 5px 0 9px; letter-spacing: -.005em; }
-.toc ol { list-style: none; margin: 0; padding: 0; }
-.toc li { margin: 0 0 5px; }
-.toc a {
-  font-size: 15px; color: var(--fg-muted); text-decoration: none;
-  border-bottom: 1px solid transparent; transition: color .16s var(--ease);
+.rail__links a[data-level="2"] {
+  padding: 5px 0 5px 12px; font-size: 13px; color: var(--fg-faint);
 }
-.toc a:hover { color: var(--fg); border-bottom-color: var(--border); }
+/* A tick slides along the rail rather than a block of background moving.
+   It sits at -15px, flush inside the rail's padding box: the rail scrolls on
+   overflow-y, which clips anything further left, so it cannot straddle the
+   hairline the way ENPIRE's does. 2px wide so it still reads as a marker. */
+.rail__links a::before {
+  content: ""; position: absolute; left: -15px; top: 50%;
+  width: 2px; height: 0; transform: translateY(-50%);
+  background: var(--fg-dim); transition: height .16s var(--ease);
+}
+.rail__links a:hover, .rail__links a:focus-visible { color: var(--fg); }
+.rail__links a:hover::before, .rail__links a:focus-visible::before { height: 18px; }
+.rail__links a[aria-current="true"] { color: var(--fg); }
+.rail__links a[aria-current="true"]::before { height: 20px; background: var(--primary); }
+/* the part you are inside stays lit while you read through its sections */
+.rail__links a[data-in="true"] { color: var(--fg-muted); }
 
 /* ==========================================================================
    nav

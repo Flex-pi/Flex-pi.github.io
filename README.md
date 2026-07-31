@@ -22,7 +22,7 @@ python3 -m http.server 8000    # then open http://localhost:8000
 ## Structure
 
 The page is in three parts, each introduced by a `.part` divider and listed in
-the `.toc` block under the abstract:
+the left outline rail:
 
 ```
 I   · What Flex-π does    #overview #real-robot #precision #generalization
@@ -43,6 +43,22 @@ section title; only the media it introduces (video grids, charts, tables,
 figure plates) widens to `.wrap--mid` / `.wrap--wide`. Task names inside a
 `.vfeature` are `h4.vfeature__name` and align with their video instead — they
 read as figure labels, not outline entries.
+
+### The outline rail
+
+`aside.rail` is the in-page navigation, copied from ENPIRE: a hairline on the
+left, one entry per section, a tick that slides to the current one. It is
+`position: fixed` rather than a grid column, because every section here is an
+independently centred `.wrap` and making them grid cells would mean re-wrapping
+the whole document. Instead everything below the hero is pushed right by
+`--rail-shift` and the rail parks in the space that frees up, aligned to the
+left edge of `--col-wide` so it can never collide with a full-width figure.
+
+It needs ~1400px to earn its keep, so **exactly one in-page navigation is
+visible at any width**: below 1400px the top bar's links, above it the rail.
+Keep the two label sets in sync when renaming a section. The rail fades out
+while the hero is on screen (`initRail()` in `main.js`) because a fixed element
+would otherwise sit on top of the full-bleed video.
 
 ## Design
 
