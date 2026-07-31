@@ -216,14 +216,19 @@ section[id], .part[id] { scroll-margin-top: 80px; }
    space that frees up, aligned to the LEFT EDGE OF THE WIDEST COLUMN
    (--col-wide) so it can never collide with a full-width figure.
 
-   It needs ~1400px to earn its keep; below that the top nav's links do the
-   same job, so exactly one of the two is visible at any width.
+   The rail is the primary navigation: a horizontal bar can only show flat
+   labels, so it cannot express which section sits inside which part, and it
+   scrolls away as you read. The rail shows the whole structure at once and
+   marks where you are. It therefore turns on at 1024px -- a laptop window does
+   not have to be maximised to get it -- and the top bar's links only stand in
+   below that, where a 176px column costs more than it gives. Exactly one of
+   the two is ever visible.
    ========================================================================== */
 :root { --rail-w: 176px; --rail-gap: 44px; --rail-shift: 0px; }
 
 .rail { display: none; }
 
-@media (min-width: 1400px) {
+@media (min-width: 1024px) {
   :root { --rail-shift: calc(var(--rail-w) + var(--rail-gap)); }
 
   main > :not(.stage), .foot { padding-left: var(--rail-shift); }
@@ -242,6 +247,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   .rail::-webkit-scrollbar { display: none; }
   .rail[data-over-hero="true"] { opacity: 0; pointer-events: none; }
 }
+
 .rail { transition: opacity .3s var(--ease); }
 
 .rail__links { display: grid; gap: 0; }
@@ -1037,6 +1043,24 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
   .reveal { opacity: 1; transform: none; transition: none; }
   .stage__tick { animation: none; }
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+
+/* ==========================================================================
+   rail-aware layout guards
+
+   Component breakpoints below read the VIEWPORT, but the rail takes 220px of
+   it away, so each of these would hold its multi-column layout ~300px longer
+   than it should while the rail is on. Must stay at the end of the file: the
+   declarations being overridden come later and match at equal specificity.
+   ========================================================================== */
+@media (min-width: 1024px) and (max-width: 1339px) {
+  /* the diagram column is a fixed 452px, so the video takes the whole squeeze */
+  .archviz { grid-template-columns: 1fr; }
+}
+@media (min-width: 1024px) and (max-width: 1207px) {
+  .vgrid--3, .vgrid--4 { grid-template-columns: repeat(2, 1fr); }
+  .explorer__body { grid-template-columns: 1fr; }
 }
 
 @media print {

@@ -54,11 +54,19 @@ the whole document. Instead everything below the hero is pushed right by
 `--rail-shift` and the rail parks in the space that frees up, aligned to the
 left edge of `--col-wide` so it can never collide with a full-width figure.
 
-It needs ~1400px to earn its keep, so **exactly one in-page navigation is
-visible at any width**: below 1400px the top bar's links, above it the rail.
-Keep the two label sets in sync when renaming a section. The rail fades out
-while the hero is on screen (`initRail()` in `main.js`) because a fixed element
-would otherwise sit on top of the full-bleed video.
+The rail is the primary navigation and turns on at **1024px**, so a laptop
+window does not have to be maximised to get it; below that the top bar's links
+stand in, where a 176px column would cost more than it gives. **Exactly one
+in-page navigation is ever visible** — keep the two label sets in sync when
+renaming a section. The rail fades out while the hero is on screen
+(`initRail()` in `main.js`) because a fixed element would otherwise sit on top
+of the full-bleed video.
+
+The shift costs 220px of viewport, and the component breakpoints all read the
+*viewport*, so a few side-by-side layouts would hold their multi-column form
+~300px too long while the rail is on. The `rail-aware layout guards` block at
+the end of `style.css` folds them one step earlier. It has to stay last in the
+file: the declarations it overrides come later and match at equal specificity.
 
 ## Design
 
