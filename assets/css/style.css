@@ -59,10 +59,10 @@
   --ff-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* measure */
-  --col-text: 680px;
-  --col-mid:  880px;
-  --col-wide: 1100px;
-  --col-full: 1320px;
+  --col-text: 812px;   /* ~722px of text once padding is removed: ~76 chars at 19px */
+  --col-mid:  940px;
+  --col-wide: 1140px;
+  --col-full: 1340px;
   --pad:      clamp(18px, 4vw, 44px);
   --gap-sec:  clamp(60px, 7.5vw, 112px);
 
@@ -120,7 +120,7 @@ html {
 body {
   margin: 0; min-width: 320px;
   background: var(--bg); color: var(--fg);
-  font-size: 18px; line-height: 1.66;
+  font-size: 19px; line-height: 1.62;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   /* No transition here on purpose: when only the custom property behind
@@ -163,8 +163,8 @@ section[id] { scroll-margin-top: 80px; }
   margin-bottom: .5em; text-wrap: balance;
 }
 .sec__sub {
-  font-size: clamp(17px, 1.8vw, 20px);
-  color: var(--fg-muted); line-height: 1.6; max-width: 60ch;
+  font-size: clamp(17px, 1.8vw, 20.5px);
+  color: var(--fg-muted); line-height: 1.58; max-width: 70ch;
 }
 h3.sub__title {
   font-size: clamp(20px, 2vw, 25px);
@@ -344,7 +344,7 @@ h3.sub__title {
 /* ==========================================================================
    prose
    ========================================================================== */
-.prose { font-size: 18px; line-height: 1.72; color: var(--fg-muted); }
+.prose { font-size: 19px; line-height: 1.62; color: var(--fg-muted); }
 .prose strong { color: var(--fg); font-weight: 600; }
 .prose a { color: var(--primary-ink); text-decoration: none; border-bottom: 1px solid var(--border); }
 .prose a:hover { border-bottom-color: var(--primary); }
@@ -485,7 +485,7 @@ h3.sub__title {
   font-family: var(--ff-display); font-size: clamp(19px, 2.1vw, 24px);
   font-weight: 600; letter-spacing: -.01em; line-height: 1.25; margin-bottom: 6px;
 }
-.vfeature__desc { font-size: 15.5px; line-height: 1.6; color: var(--fg-muted); max-width: 62ch; }
+.vfeature__desc { font-size: 16px; line-height: 1.6; color: var(--fg-muted); max-width: 70ch; }
 .vfeature__desc .demos {
   display: block; margin-top: 7px; font-family: var(--ff-mono);
   font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--fg-faint);
@@ -623,6 +623,9 @@ h3.sub__title {
 }
 .maskline__lab .mono { font-family: var(--ff-mono); font-size: 11.5px; color: var(--fg-muted); }
 .maskline__set { display: flex; gap: 5px; }
+.maskline__set--wrap { flex-wrap: wrap; gap: 5px; }
+.maskline--quick { align-items: flex-start; margin-bottom: 11px; }
+.maskline--quick .maskline__lab { padding-top: 5px; }
 .maskbtn {
   width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; padding: 0;
   font-family: var(--ff-mono); font-size: 12px; font-weight: 500;

@@ -866,6 +866,13 @@
     var mIn  = { rgb: true, dino: true, p3d: true };
     var mOut = { rgb: true, dino: true, p3d: true };
 
+    var PRESETS = {
+      joint:  { i: { rgb: 1, dino: 1, p3d: 1 }, o: { rgb: 1, dino: 1, p3d: 1 } },
+      action: { i: { rgb: 1, dino: 1, p3d: 1 }, o: { rgb: 0, dino: 0, p3d: 0 } },
+      p3d:    { i: { rgb: 1, dino: 1, p3d: 1 }, o: { rgb: 0, dino: 0, p3d: 1 } },
+      xmod:   { i: { rgb: 1, dino: 1, p3d: 0 }, o: { rgb: 0, dino: 0, p3d: 1 } }
+    };
+
     function describe() {
       var gen    = SKEYS.filter(function (k) { return mOut[k]; });
       var forced = SKEYS.filter(function (k) { return mOut[k] && !mIn[k]; });
@@ -910,6 +917,13 @@
         g.setAttribute('data-on', (o === 'act' || mOut[o]) ? 'true' : 'false');
         g.classList.toggle('is-forced', d.forced.indexOf(o) > -1);
       });
+      root.querySelectorAll('.regimechip[data-preset]').forEach(function (b) {
+        var pr = PRESETS[b.getAttribute('data-preset')];
+        var hit = pr && SKEYS.every(function (k) {
+          return !!pr.i[k] === !!mIn[k] && !!pr.o[k] === !!mOut[k];
+        });
+        b.setAttribute('aria-pressed', hit ? 'true' : 'false');
+      });
       var nEl = document.getElementById('av-regime-name');
       var fEl = document.getElementById('av-xmod-flag');
       var cEl = document.getElementById('av-combo');
@@ -938,6 +952,15 @@
           return;
         }
         set[k] = !set[k];
+        paintMasks();
+      });
+    });
+
+    root.querySelectorAll('.regimechip[data-preset]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var pr = PRESETS[b.getAttribute('data-preset')];
+        if (!pr) return;
+        SKEYS.forEach(function (k) { mIn[k] = !!pr.i[k]; mOut[k] = !!pr.o[k]; });
         paintMasks();
       });
     });
