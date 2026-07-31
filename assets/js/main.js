@@ -855,9 +855,14 @@
     var panels  = { rgb: document.getElementById('av-v-rgb'), p3d: document.getElementById('av-v-p3d'),
                     dino: document.getElementById('av-v-dino'), act: actHost };
     var order   = ['rgb', 'p3d', 'dino', 'act'];
-    var timer = null, touched = false, current = 'rgb';
+    var touched = false, current = 'rgb', actTimer = null, onScreen = false;
 
     if (actHost) buildActionViz(actHost);
+
+    function nextStream() {
+      if (touched) return;
+      showStream(order[(order.indexOf(current) + 1) % order.length]);
+    }
 
     function showStream(key) {
       current = key;
@@ -866,11 +871,16 @@
         c.setAttribute('aria-pressed', c.getAttribute('data-stream') === key ? 'true' : 'false');
       });
       order.forEach(function (k) {
-        var el2 = panels[k];
-        if (!el2) return;
+        var node = panels[k];
+        if (!node) return;
         var on = (k === key);
-        el2.hidden = !on;
-        if (el2.tagName === 'VIDEO') { on ? el2.play().catch(function () {}) : el2.pause(); }
+        node.hidden = !on;
+        if (node.tagName === 'VIDEO') {
+          if (on) {
+            try { node.currentTime = 0; } catch (e) {}
+            node.play().catch(function () {});
+          } else { node.pause(); }
+        }
       });
       root.querySelectorAll('.av-row, .av-out').forEach(function (g) {
         var s = g.getAttribute('data-s') || g.getAttribute('data-o');
@@ -878,10 +888,15 @@
       });
       if (badge && STREAM_INFO[key]) badge.textContent = STREAM_INFO[key].badge;
       if (note && STREAM_INFO[key]) note.textContent = STREAM_INFO[key].note;
+
+      /* the action panel is SVG, so it has no 'ended' event to wait on */
+      clearTimeout(actTimer);
+      if (!touched && key === 'act') actTimer = setTimeout(nextStream, 9000);
     }
 
     function applyRegime(name) {
-      var r = REGIMES[name]; if (!r) return;
+      var r = REGIMES[name];
+      if (!r) return;
       rchips.forEach(function (c) {
         c.setAttribute('aria-pressed', c.getAttribute('data-regime') === name ? 'true' : 'false');
       });
@@ -895,9 +910,26 @@
       if (rnote) rnote.textContent = r.note;
     }
 
+    /* auto-advance when the current clip finishes; a click hands control over for good */
+    ['rgb', 'p3d', 'dino'].forEach(function (k) {
+      var v = panels[k];
+      if (!v) return;
+      v.loop = false;
+      v.addEventListener('ended', function () {
+        if (touched) { v.play().catch(function () {}); return; }
+        if (onScreen) nextStream();
+      });
+    });
+
+    function takeOver() {
+      touched = true;
+      clearTimeout(actTimer);
+      ['rgb', 'p3d', 'dino'].forEach(function (k) { if (panels[k]) panels[k].loop = true; });
+    }
+
     chips.forEach(function (c) {
       c.addEventListener('click', function () {
-        touched = true; if (timer) { clearInterval(timer); timer = null; }
+        takeOver();
         showStream(c.getAttribute('data-stream'));
       });
     });
@@ -905,22 +937,20 @@
       c.addEventListener('click', function () { applyRegime(c.getAttribute('data-regime')); });
     });
 
-    function startCycle() {
-      if (touched || reduceMotion || timer) return;
-      timer = setInterval(function () {
-        showStream(order[(order.indexOf(current) + 1) % order.length]);
-      }, 4200);
-    }
-    function stopCycle() { if (timer) { clearInterval(timer); timer = null; } }
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) {
-        es.forEach(function (e) { e.isIntersecting ? startCycle() : stopCycle(); });
+        es.forEach(function (e) {
+          onScreen = e.isIntersecting;
+          if (!onScreen) clearTimeout(actTimer);
+          else if (!touched && current === 'act') actTimer = setTimeout(nextStream, 9000);
+        });
       }, { threshold: 0.3 }).observe(root);
-    } else { startCycle(); }
+    } else { onScreen = true; }
 
     if (reduceMotion) {
       var svg = document.getElementById('av-svg');
       if (svg && svg.pauseAnimations) svg.pauseAnimations();
+      takeOver();
     }
 
     applyRegime('joint');

@@ -598,10 +598,10 @@ h3.sub__title {
 .av-box--stream { fill: color-mix(in srgb, var(--dot) 14%, transparent); stroke: var(--dot); }
 .av-box--core { fill: color-mix(in srgb, var(--primary) 13%, transparent); stroke: color-mix(in srgb, var(--primary) 55%, transparent); }
 .av-box--act  { fill: color-mix(in srgb, var(--s-action) 15%, transparent); stroke: color-mix(in srgb, var(--s-action) 60%, transparent); }
-.av-t     { fill: var(--fg-muted); font-family: var(--ff-mono); font-size: 12px; letter-spacing: .02em; }
+.av-t     { fill: var(--fg-muted); font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0; }
 .av-t--s  { fill: var(--dot); }
-.av-t--core { fill: var(--fg); font-size: 13px; }
-.av-t--dim { fill: var(--fg-faint); font-size: 10.5px; }
+.av-t--core { fill: var(--fg); font-size: 12.5px; }
+.av-t--dim { fill: var(--fg-faint); font-size: 9.8px; }
 .av-path  { fill: none; stroke: var(--border); stroke-width: 1.2; }
 .av-path--s { stroke: color-mix(in srgb, var(--dot) 70%, transparent); }
 .av-token { fill: var(--dot); }
