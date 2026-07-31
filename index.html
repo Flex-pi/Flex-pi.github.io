@@ -200,8 +200,10 @@
     <p class="eyebrow">How it sees the world</p>
     <h2 class="sec__title">Three views of one moment — and any subset you ask for</h2>
     <p class="sec__sub">Flex-π reads the same observation three ways and generates all three futures alongside the
-    action. Which streams go <em>in</em> and which futures come <em>out</em> are runtime arguments, not
-    architecture — pick a regime to see the model reconfigure.</p>
+    action. Which streams go <em>in</em> and which futures come <em>out</em> are two <em>independent</em> runtime
+    masks, not architecture. Toggle them freely — all 56 combinations are deployable from the same weights, and
+    cross-modality forcing is simply what happens when you generate a stream you never observed. The action chunk,
+    beside every view, is always predicted.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:30px">
@@ -262,18 +264,21 @@
           <g class="av-out" data-o="rgb" data-on="true" style="--dot:var(--s-rgb)">
             <rect class="av-box av-box--stream" x="300" y="48" width="96" height="32" rx="4"/>
             <text class="av-t av-t--s" x="348" y="68" text-anchor="middle">RGB future</text>
+            <text class="av-star" x="306" y="61">&#9733;</text>
             <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
               <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.1s"><mpath href="#av-o-rgb" xlink:href="#av-o-rgb"/></animateMotion></rect>
           </g>
           <g class="av-out" data-o="dino" data-on="true" style="--dot:var(--s-dino)">
             <rect class="av-box av-box--stream" x="300" y="116" width="96" height="32" rx="4"/>
             <text class="av-t av-t--s" x="348" y="136" text-anchor="middle">DINO future</text>
+            <text class="av-star" x="306" y="129">&#9733;</text>
             <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
               <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.9s"><mpath href="#av-o-dino" xlink:href="#av-o-dino"/></animateMotion></rect>
           </g>
           <g class="av-out" data-o="p3d" data-on="true" style="--dot:var(--s-3d)">
             <rect class="av-box av-box--stream" x="300" y="184" width="96" height="32" rx="4"/>
             <text class="av-t av-t--s" x="348" y="204" text-anchor="middle">3D future</text>
+            <text class="av-star" x="306" y="197">&#9733;</text>
             <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
               <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.5s"><mpath href="#av-o-p3d" xlink:href="#av-o-p3d"/></animateMotion></rect>
           </g>
@@ -289,14 +294,36 @@
           </g>
         </svg>
 
-        <div class="archviz__regimes" role="group" aria-label="Choose an inference regime">
-          <button class="regimechip" type="button" data-regime="joint"  aria-pressed="true">Full joint</button>
-          <button class="regimechip" type="button" data-regime="action" aria-pressed="false">Action-only</button>
-          <button class="regimechip" type="button" data-regime="p3d"    aria-pressed="false">3D + action</button>
-          <button class="regimechip" type="button" data-regime="xmod"   aria-pressed="false">Cross-modality forcing</button>
+        <div class="maskctl2">
+          <div class="maskline">
+            <span class="maskline__lab">observed <span class="mono">m<sup>in</sup></span></span>
+            <span class="maskline__set">
+              <button class="maskbtn" type="button" data-mask="in" data-s="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true" title="RGB observed">V</button>
+              <button class="maskbtn" type="button" data-mask="in" data-s="dino" style="--dot:var(--s-dino)" aria-pressed="true" title="DINO observed">D</button>
+              <button class="maskbtn" type="button" data-mask="in" data-s="p3d"  style="--dot:var(--s-3d)"   aria-pressed="true" title="Pointmap observed">P</button>
+            </span>
+          </div>
+          <div class="maskline">
+            <span class="maskline__lab">generated <span class="mono">m<sup>out</sup></span></span>
+            <span class="maskline__set">
+              <button class="maskbtn" type="button" data-mask="out" data-s="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true" title="RGB future generated">V</button>
+              <button class="maskbtn" type="button" data-mask="out" data-s="dino" style="--dot:var(--s-dino)" aria-pressed="true" title="DINO future generated">D</button>
+              <button class="maskbtn" type="button" data-mask="out" data-s="p3d"  style="--dot:var(--s-3d)"   aria-pressed="true" title="Pointmap future generated">P</button>
+              <span class="maskbtn maskbtn--locked" style="--dot:var(--s-action)" title="the action chunk is always generated">a</span>
+            </span>
+          </div>
+
+          <div class="regimeout">
+            <span class="regimeout__name" id="av-regime-name">Full joint generation</span>
+            <span class="regimeout__flag" id="av-xmod-flag" hidden>cross-modality forcing</span>
+          </div>
+          <p class="archviz__regimenote" id="av-regime-note">All three futures are co-denoised with the action, and
+          the action expert reads every one of them.</p>
+          <div class="maskctl2__foot">
+            <button class="regimechip" type="button" id="av-draw">random draw</button>
+            <span class="maskctl2__count"><span id="av-combo">1</span> of 56 configurations</span>
+          </div>
         </div>
-        <p class="archviz__regimenote" id="av-regime-note">All three futures are co-denoised with the action, and
-        the action expert reads every one of them.</p>
       </div>
 
       <!-- right: the selected stream -->

@@ -766,22 +766,6 @@
                   'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' }
   };
 
-  /* the four rows of the paper’s Figure 4 */
-  var REGIMES = {
-    joint:  { min: { rgb: 1, p3d: 1, dino: 1 }, out: { rgb: 1, p3d: 1, dino: 1 },
-              note: 'All three futures are co-denoised with the action, and the action expert reads every one of them.' },
-    action: { min: { rgb: 1, p3d: 1, dino: 1 }, out: { rgb: 0, p3d: 0, dino: 0 },
-              note: 'The action-only fast path. No future visual stream is read, so none is computed — this is where ' +
-                    'the VLA-level latency comes from.' },
-    p3d:    { min: { rgb: 1, p3d: 1, dino: 1 }, out: { rgb: 0, p3d: 1, dino: 0 },
-              note: 'One of many intermediate regimes: only the 3D future is generated and read, buying geometric ' +
-                    'grounding without paying for the other two streams.' },
-    xmod:   { min: { rgb: 1, p3d: 0, dino: 1 }, out: { rgb: 0, p3d: 1, dino: 0 },
-              note: 'Cross-modality forcing. The pointmap is never observed, yet its future is generated from RGB and ' +
-                    'DINO alone and read by the action expert — which is what forces the three streams to stay ' +
-                    'mutually predictive.' }
-  };
-
   /* --- narrow, always-on action readout: 14 joint traces over a 32-step chunk --- */
   function buildActionStrip(host) {
     var W = 108, H = 320, padT = 26, padB = 20, padL = 5, padR = 5;
@@ -830,7 +814,6 @@
     var root = document.getElementById('archviz');
     if (!root) return;
     var chips   = Array.prototype.slice.call(root.querySelectorAll('.streamchip'));
-    var rchips  = Array.prototype.slice.call(root.querySelectorAll('.regimechip'));
     var badge   = document.getElementById('av-badge');
     var note    = document.getElementById('av-note');
     var rnote   = document.getElementById('av-regime-note');
@@ -874,20 +857,99 @@
 
     }
 
-    function applyRegime(name) {
-      var r = REGIMES[name];
-      if (!r) return;
-      rchips.forEach(function (c) {
-        c.setAttribute('aria-pressed', c.getAttribute('data-regime') === name ? 'true' : 'false');
+    /* --- mask state: any subset observed, any subset generated --------------
+       The two masks are independent, exactly as in training, so cross-modality
+       forcing is not a preset — it is whatever happens when a stream is
+       generated without being observed. --------------------------------- */
+    var SNAME = { rgb: 'RGB', dino: 'DINO', p3d: '3D' };
+    var SKEYS = ['rgb', 'dino', 'p3d'];
+    var mIn  = { rgb: true, dino: true, p3d: true };
+    var mOut = { rgb: true, dino: true, p3d: true };
+
+    function describe() {
+      var gen    = SKEYS.filter(function (k) { return mOut[k]; });
+      var forced = SKEYS.filter(function (k) { return mOut[k] && !mIn[k]; });
+      var obs    = SKEYS.filter(function (k) { return mIn[k]; });
+      var name, note;
+
+      if (!gen.length) {
+        name = 'Action-only fast path';
+        note = 'No future visual stream is read, so none is computed. This is the cheapest point on the ' +
+               'frontier and recovers VLA-level latency.';
+      } else if (gen.length === 3 && obs.length === 3) {
+        name = 'Full joint generation';
+        note = 'All three futures are co-denoised with the action, and the action expert reads every one of them. ' +
+               'The most accurate — and the slowest — configuration.';
+      } else {
+        name = gen.map(function (k) { return SNAME[k]; }).join(' + ') + ' + action';
+        note = 'One of many intermediate regimes. Only the ' +
+               gen.map(function (k) { return SNAME[k]; }).join(' and ') +
+               ' future' + (gen.length > 1 ? 's are' : ' is') + ' generated and read, so you pay for exactly the ' +
+               'grounding you want.';
+      }
+      if (forced.length) {
+        note += ' The ' + forced.map(function (k) { return SNAME[k]; }).join(' and ') + ' stream' +
+                (forced.length > 1 ? 's are' : ' is') + ' never observed, yet ' +
+                (forced.length > 1 ? 'their futures are' : 'its future is') +
+                ' still generated from the streams that remain — the ★ marks it.';
+      }
+      return { name: name, note: note, forced: forced };
+    }
+
+    function paintMasks() {
+      root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {
+        var set = b.getAttribute('data-mask') === 'in' ? mIn : mOut;
+        b.setAttribute('aria-pressed', set[b.getAttribute('data-s')] ? 'true' : 'false');
       });
       root.querySelectorAll('.av-row').forEach(function (g) {
-        g.setAttribute('data-on', r.min[g.getAttribute('data-s')] ? 'true' : 'false');
+        g.setAttribute('data-on', mIn[g.getAttribute('data-s')] ? 'true' : 'false');
       });
+      var d = describe();
       root.querySelectorAll('.av-out').forEach(function (g) {
         var o = g.getAttribute('data-o');
-        g.setAttribute('data-on', (o === 'act' || r.out[o]) ? 'true' : 'false');
+        g.setAttribute('data-on', (o === 'act' || mOut[o]) ? 'true' : 'false');
+        g.classList.toggle('is-forced', d.forced.indexOf(o) > -1);
       });
-      if (rnote) rnote.textContent = r.note;
+      var nEl = document.getElementById('av-regime-name');
+      var fEl = document.getElementById('av-xmod-flag');
+      var cEl = document.getElementById('av-combo');
+      if (nEl) nEl.textContent = d.name;
+      if (fEl) fEl.hidden = !d.forced.length;
+      if (rnote) rnote.textContent = d.note;
+      if (cEl) {
+        /* index this configuration among the 7 x 8 = 56 valid ones */
+        var i = SKEYS.reduce(function (a, k, n) { return a + (mIn[k] ? (1 << n) : 0); }, 0);
+        var o = SKEYS.reduce(function (a, k, n) { return a + (mOut[k] ? (1 << n) : 0); }, 0);
+        cEl.textContent = String((i - 1) * 8 + o + 1);
+      }
+    }
+
+    root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var which = b.getAttribute('data-mask'), k = b.getAttribute('data-s');
+        var set = which === 'in' ? mIn : mOut;
+        /* rejection sampling in the paper guarantees at least one visual input */
+        if (which === 'in' && set[k] && SKEYS.filter(function (x) { return mIn[x]; }).length === 1) {
+          b.classList.remove('is-refused');
+          void b.offsetWidth;
+          b.classList.add('is-refused');
+          if (rnote) rnote.textContent = 'At least one visual input must be observed — the paper rejection-samples ' +
+                                         'the input mask to guarantee it.';
+          return;
+        }
+        set[k] = !set[k];
+        paintMasks();
+      });
+    });
+
+    var drawBtn = document.getElementById('av-draw');
+    if (drawBtn) {
+      drawBtn.addEventListener('click', function () {
+        do { SKEYS.forEach(function (k) { mIn[k] = Math.random() < 0.5; }); }
+        while (!SKEYS.some(function (k) { return mIn[k]; }));
+        SKEYS.forEach(function (k) { mOut[k] = Math.random() < 0.5; });
+        paintMasks();
+      });
     }
 
     /* auto-advance when the current clip finishes; a click hands control over for good */
@@ -912,9 +974,6 @@
         showStream(c.getAttribute('data-stream'));
       });
     });
-    rchips.forEach(function (c) {
-      c.addEventListener('click', function () { applyRegime(c.getAttribute('data-regime')); });
-    });
 
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) {
@@ -930,7 +989,7 @@
       takeOver();
     }
 
-    applyRegime('joint');
+    paintMasks();
     showStream('rgb');
   }
 

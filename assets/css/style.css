@@ -614,8 +614,43 @@ h3.sub__title {
 /* the stream currently shown on the right gets a light emphasis */
 .av-row.is-sel .av-box, .av-out.is-sel .av-box { stroke-width: 2; }
 
-/* regime presets under the diagram */
-.archviz__regimes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+/* free mask toggles: any subset in, any subset out */
+.maskctl2 { margin-top: 14px; }
+.maskline { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.maskline__lab {
+  font-family: var(--ff-body); font-size: 13px; color: var(--fg-dim);
+  flex: 0 0 108px;
+}
+.maskline__lab .mono { font-family: var(--ff-mono); font-size: 11.5px; color: var(--fg-muted); }
+.maskline__set { display: flex; gap: 5px; }
+.maskbtn {
+  width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; padding: 0;
+  font-family: var(--ff-mono); font-size: 12px; font-weight: 500;
+  border: 1.5px solid var(--dot); border-radius: 3px;
+  color: var(--dot); background: color-mix(in srgb, var(--dot) 22%, transparent);
+  transition: background .15s var(--ease), opacity .15s var(--ease);
+}
+.maskbtn[aria-pressed="false"] { background: transparent; border-style: dashed; opacity: .42; }
+.maskbtn:hover { background: color-mix(in srgb, var(--dot) 34%, transparent); }
+.maskbtn--locked { cursor: default; opacity: 1; }
+.maskbtn--locked:hover { background: color-mix(in srgb, var(--dot) 22%, transparent); }
+.maskbtn.is-refused { animation: refuse .32s var(--ease); }
+@keyframes refuse { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+.regimeout { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+.regimeout__name { font-family: var(--ff-display); font-size: 15.5px; font-weight: 600; }
+.regimeout__flag {
+  font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--s-action) 60%, transparent);
+  color: var(--s-action); background: color-mix(in srgb, var(--s-action) 12%, transparent);
+}
+.maskctl2__foot { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.maskctl2__count { font-family: var(--ff-mono); font-size: 10.5px; color: var(--fg-faint); }
+
+.av-star { fill: var(--s-action); font-size: 11px; opacity: 0; transition: opacity .2s var(--ease); }
+.av-out.is-forced .av-star { opacity: 1; }
+
 .regimechip {
   font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
   padding: 6px 10px; border-radius: var(--radius); cursor: pointer;
@@ -628,7 +663,7 @@ h3.sub__title {
   background: var(--primary-soft); color: var(--primary-ink);
 }
 .archviz__regimenote {
-  margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--fg-dim);
+  margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--fg-dim); min-height: 3.6em;
 }
 
 /* the modality view and a permanent narrow action readout, side by side */
