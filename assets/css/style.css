@@ -573,8 +573,6 @@ h3.sub__title {
 .archviz__diagram svg { width: 100%; height: 100%; flex: 1 1 auto; min-height: 190px; }
 
 .archviz__stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.archviz__stage .player { flex: 1; }
-.archviz__stage .player video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
 
 .archviz__chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .streamchip {
@@ -633,18 +631,30 @@ h3.sub__title {
   margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--fg-dim);
 }
 
-/* action-chunk schematic, sits in the same 16:9 box as the stream videos */
-.actionviz {
-  width: 100%; aspect-ratio: 16 / 9; background: #0c0c0c;
-  display: block; position: relative;
+/* the modality view and a permanent narrow action readout, side by side */
+/* The player's aspect ratio sets the row height and the strip is taken out of flow,
+   otherwise the strip's SVG viewBox dictates the height through its intrinsic ratio
+   and the video ends up sitting in a tall box with dead space under it. */
+.archviz__stagerow { position: relative; padding-right: 118px; min-width: 0; }
+.archviz__stagerow .player { width: 100%; aspect-ratio: 16 / 9; }
+.archviz__stagerow .player video {
+  width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover;
 }
-.actionviz svg { width: 100%; height: 100%; display: block; }
-.actionviz .ac-trace { fill: none; stroke-width: 1.4; opacity: .92; }
-.actionviz .ac-grid  { stroke: rgba(255,255,255,.10); stroke-width: 1; }
-.actionviz .ac-lab   { fill: rgba(255,255,255,.60); font-family: var(--ff-mono); font-size: 11px; }
-.actionviz .ac-lab--dim { fill: rgba(255,255,255,.38); font-size: 10px; }
-.actionviz .ac-head  { stroke: rgba(255,255,255,.85); stroke-width: 1.2; }
-.actionviz .ac-headdot { fill: var(--s-action); }
+.actionstrip {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 108px;
+  background: #0c0c0c; border: 1px solid var(--border-faint);
+  border-radius: var(--radius); overflow: hidden;
+}
+@media (max-width: 560px) {
+  .archviz__stagerow { padding-right: 84px; }
+  .actionstrip { width: 76px; }
+}
+.actionstrip svg { width: 100%; height: 100%; display: block; }
+.actionstrip .ac-trace { fill: none; stroke-width: 1.2; opacity: .9; vector-effect: non-scaling-stroke; }
+.actionstrip .ac-sep   { stroke: rgba(255,255,255,.16); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.actionstrip .ac-lab   { fill: rgba(255,255,255,.62); font-family: var(--ff-mono); font-size: 9px; }
+.actionstrip .ac-lab--dim { fill: rgba(255,255,255,.34); font-family: var(--ff-mono); font-size: 8px; }
+.actionstrip .ac-head  { stroke: rgba(255,255,255,.8); stroke-width: 1; vector-effect: non-scaling-stroke; }
 
 .archviz__note--fine { color: var(--fg-faint); font-size: 12px; }
 .archviz__note--fine b { color: var(--fg-dim); font-weight: 600; }

@@ -763,11 +763,7 @@
                   'geometry directly.' },
     dino: { badge: 'DINO · object semantics',
             note: 'Semantics. Object-level tokens from a frozen DINOv3 encoder, folded 2×2 into the channel ' +
-                  'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' },
-    act:  { badge: 'Action · 32 steps × 14 DoF',
-            note: 'Action. The policy emits a chunk of 32 future steps across 14 commanded degrees of freedom — ' +
-                  'two 6-DoF arms plus a gripper each. The robot executes the whole chunk before re-planning, once ' +
-                  'every 1.07 s.' }
+                  'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' }
   };
 
   /* the four rows of the paper’s Figure 4 */
@@ -786,57 +782,44 @@
                     'mutually predictive.' }
   };
 
-  /* --- schematic action chunk: 14 joint traces over 32 steps --- */
-  function buildActionViz(host) {
-    var W = 640, H = 360, padL = 52, padR = 18, padT = 30, padB = 34;
+  /* --- narrow, always-on action readout: 14 joint traces over a 32-step chunk --- */
+  function buildActionStrip(host) {
+    var W = 108, H = 320, padT = 26, padB = 20, padL = 5, padR = 5;
     var DOF = 14, STEPS = 32;
-    var plotW = W - padL - padR, plotH = H - padT - padB;
-    var lane = plotH / DOF;
+    var plotW = W - padL - padR, plotH = H - padT - padB, lane = plotH / DOF;
 
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'xMidYMid meet',
-                          role: 'img', 'aria-label': host.getAttribute('aria-label') || 'action chunk schematic' });
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'none',
+                          role: 'img', 'aria-label': host.getAttribute('aria-label') || 'action chunk' });
+    svg.appendChild(el('text', { 'class': 'ac-lab', x: padL, y: 13 }, 'action'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: 22 }, '32 × 14 DoF'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: H - 7 }, 'always on'));
 
-    svg.appendChild(el('text', { 'class': 'ac-lab', x: padL, y: 18 }, 'action chunk'));
-    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: 18, 'text-anchor': 'end' },
-      '32 steps × 14 DoF · 30 Hz'));
-    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: H - 12 }, 't'));
-    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: H - 12, 'text-anchor': 'end' },
-      't + 32  (re-plan)'));
-
-    /* vertical step grid */
-    for (var s = 0; s <= STEPS; s += 8) {
-      var gx = padL + (s / STEPS) * plotW;
-      svg.appendChild(el('line', { 'class': 'ac-grid', x1: gx, y1: padT - 6, x2: gx, y2: padT + plotH + 4 }));
-    }
-
-    /* deterministic smooth traces: sum of a few sines per joint */
-    var names = ['L·j1','L·j2','L·j3','L·j4','L·j5','L·j6','L·grip',
-                 'R·j1','R·j2','R·j3','R·j4','R·j5','R·j6','R·grip'];
     for (var d = 0; d < DOF; d++) {
-      var cy = padT + lane * (d + 0.5);
-      svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL - 8, y: cy + 3.5, 'text-anchor': 'end' }, names[d]));
-      var pts = [], amp = lane * 0.42;
+      var cy = padT + lane * (d + 0.5), amp = lane * 0.40, pts = [];
       for (var k = 0; k <= STEPS; k++) {
         var u = k / STEPS;
         var v = Math.sin(u * 3.1 + d * 0.9) * 0.55
               + Math.sin(u * 6.7 + d * 2.3) * 0.28
               + Math.sin(u * 11.3 + d * 1.7) * 0.14;
-        if (names[d].indexOf('grip') > -1) v = Math.tanh(Math.sin(u * 2.2 + d) * 3) * 0.85;  /* grippers step */
+        if (d === 6 || d === 13) v = Math.tanh(Math.sin(u * 2.2 + d) * 3) * 0.85;   /* grippers switch */
         pts.push([padL + u * plotW, cy - v * amp]);
       }
-      var dstr = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
-      var hue = d < 7 ? 'var(--s-action)' : 'var(--s-3d)';
-      svg.appendChild(el('path', { 'class': 'ac-trace', d: dstr, stroke: hue,
-                                   opacity: (0.55 + 0.35 * (1 - Math.abs(d - 6.5) / 7)).toFixed(2) }));
+      svg.appendChild(el('path', {
+        'class': 'ac-trace',
+        d: pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' '),
+        stroke: d < 7 ? 'var(--s-action)' : 'var(--s-3d)'
+      }));
     }
+    /* divider between the two arms */
+    var sy = padT + lane * 7;
+    svg.appendChild(el('line', { 'class': 'ac-sep', x1: padL, y1: sy, x2: W - padR, y2: sy }));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: sy - 3, 'text-anchor': 'end' }, 'L'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: sy + 9, 'text-anchor': 'end' }, 'R'));
 
-    /* sweeping playhead */
     var head = el('g', {});
-    head.appendChild(el('line', { 'class': 'ac-head', x1: 0, y1: padT - 6, x2: 0, y2: padT + plotH + 4 }));
-    head.appendChild(el('circle', { 'class': 'ac-headdot', cx: 0, cy: padT - 8, r: 3.5 }));
-    var anim = el('animateTransform', { attributeName: 'transform', type: 'translate',
-      from: padL + ',0', to: (padL + plotW) + ',0', dur: '4s', repeatCount: 'indefinite' });
-    head.appendChild(anim);
+    head.appendChild(el('line', { 'class': 'ac-head', x1: 0, y1: padT - 4, x2: 0, y2: padT + plotH + 3 }));
+    head.appendChild(el('animateTransform', { attributeName: 'transform', type: 'translate',
+      from: padL + ',0', to: (padL + plotW) + ',0', dur: '4s', repeatCount: 'indefinite' }));
     svg.appendChild(head);
 
     host.innerHTML = '';
@@ -851,13 +834,13 @@
     var badge   = document.getElementById('av-badge');
     var note    = document.getElementById('av-note');
     var rnote   = document.getElementById('av-regime-note');
-    var actHost = document.getElementById('av-v-act');
-    var panels  = { rgb: document.getElementById('av-v-rgb'), p3d: document.getElementById('av-v-p3d'),
-                    dino: document.getElementById('av-v-dino'), act: actHost };
-    var order   = ['rgb', 'p3d', 'dino', 'act'];
-    var touched = false, current = 'rgb', actTimer = null, onScreen = false;
+    var strip   = document.getElementById('av-strip');
+    var panels  = { rgb: document.getElementById('av-v-rgb'), dino: document.getElementById('av-v-dino'),
+                    p3d: document.getElementById('av-v-p3d') };
+    var order   = ['rgb', 'dino', 'p3d'];
+    var touched = false, current = 'rgb', onScreen = false;
 
-    if (actHost) buildActionViz(actHost);
+    if (strip) buildActionStrip(strip);
 
     function nextStream() {
       if (touched) return;
@@ -889,9 +872,6 @@
       if (badge && STREAM_INFO[key]) badge.textContent = STREAM_INFO[key].badge;
       if (note && STREAM_INFO[key]) note.textContent = STREAM_INFO[key].note;
 
-      /* the action panel is SVG, so it has no 'ended' event to wait on */
-      clearTimeout(actTimer);
-      if (!touched && key === 'act') actTimer = setTimeout(nextStream, 9000);
     }
 
     function applyRegime(name) {
@@ -911,7 +891,7 @@
     }
 
     /* auto-advance when the current clip finishes; a click hands control over for good */
-    ['rgb', 'p3d', 'dino'].forEach(function (k) {
+    order.forEach(function (k) {
       var v = panels[k];
       if (!v) return;
       v.loop = false;
@@ -923,8 +903,7 @@
 
     function takeOver() {
       touched = true;
-      clearTimeout(actTimer);
-      ['rgb', 'p3d', 'dino'].forEach(function (k) { if (panels[k]) panels[k].loop = true; });
+      order.forEach(function (k) { if (panels[k]) panels[k].loop = true; });
     }
 
     chips.forEach(function (c) {
@@ -941,8 +920,6 @@
       new IntersectionObserver(function (es) {
         es.forEach(function (e) {
           onScreen = e.isIntersecting;
-          if (!onScreen) clearTimeout(actTimer);
-          else if (!touched && current === 'act') actTimer = setTimeout(nextStream, 9000);
         });
       }, { threshold: 0.3 }).observe(root);
     } else { onScreen = true; }
