@@ -89,6 +89,13 @@ by the stream colours and the chart series (green is "ours", amber is π0.5,
 brick red is the action stream), so an accent in any of them would read as
 carrying that meaning.
 
+**If you change the accent, change the favicon too.** It is an inline
+`data:image/svg+xml` URI in `index.html` with the colour hardcoded — a claret
+tile with a white "F". It is deliberately not a π: at tab size a π reads as the
+π0.5/π0.6 lineage rather than as this model. Abstract marks were tried and
+rejected — three stream bars are indistinguishable from a hamburger menu icon
+at 16px.
+
 **The title is capped at 38px on purpose — do not put it back up.** Source
 Serif 4 is a variable font with an `opsz 8..60` axis and `font-optical-sizing`
 defaults to `auto`, so `font-size` alone drives the optical axis: at the old
