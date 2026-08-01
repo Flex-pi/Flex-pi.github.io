@@ -78,8 +78,24 @@ file: the declarations it overrides come later and match at equal specificity.
 
 The visual system follows NVIDIA GEAR's
 [ENPIRE](https://research.nvidia.com/labs/gear/enpire/) project page: a
-near-black cinematic hero, then a cream `#f6f6ef` article body set in Source
-Serif 4 with JetBrains Mono for metadata, a periwinkle accent and 4px radii.
+near-black cinematic hero, then a cream `#f6f6ef` article body, a periwinkle
+accent and 4px radii. Three faces, one job each: **IBM Plex Sans 600** for every
+display role (`--ff-display`: h1-h6, panel titles, large numerals, the nav
+wordmark), **Source Serif 4** for all prose, **JetBrains Mono** for metadata.
+
+Only Plex weight 600 is requested, because that is the only weight any
+display-role element uses — do not introduce a 400-weight sans element without
+adding the weight to the font request, or it will render synthesised. The Greek
+subset is required and present: the π in the title is U+03C0.
+
+Source Serif 4 was previously used for headings too, which is what the title
+looked wrong: it is a variable font with an `opsz 8..60` axis and
+`font-optical-sizing` defaults to `auto`, so at 58px the browser rendered its
+60pt *display* master — high stroke contrast, hairline serifs. Nothing in the
+CSS asked for that; the font-size did. A separate display face removes the
+failure mode by construction. Plex also sets much wider, so the title caps at
+46px rather than 58px to stay on two lines.
+
 Mono is for metadata and numerals only — anything read as words (nav, buttons,
 chips, badges, diagram labels) is set in the body face. Uppercase mono labels
 all use `--fs-meta` / `--ls-meta`; a label with its own size is a bug.
