@@ -79,7 +79,15 @@ file: the declarations it overrides come later and match at equal specificity.
 The visual system follows NVIDIA GEAR's
 [ENPIRE](https://research.nvidia.com/labs/gear/enpire/) project page: a
 near-black cinematic hero, then a cream `#f6f6ef` article body set in Source
-Serif 4 with JetBrains Mono for metadata, a periwinkle accent and 4px radii.
+Serif 4 with JetBrains Mono for metadata, a claret accent and 4px radii.
+
+The accent is **one colour, used everywhere** — `--primary` / `--primary-ink` /
+`--primary-soft`, plus the favicon. Day `#6e1f35`, night `#b8455f` for fills and
+`#de93a8` for text, which needs the lighter value to clear contrast on `#0c0c0c`.
+It is deliberately not blue, green, amber, red or grey: those are all spoken for
+by the stream colours and the chart series (green is "ours", amber is π0.5,
+brick red is the action stream), so an accent in any of them would read as
+carrying that meaning.
 
 **The title is capped at 38px on purpose — do not put it back up.** Source
 Serif 4 is a variable font with an `opsz 8..60` axis and `font-optical-sizing`

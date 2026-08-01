@@ -5,7 +5,7 @@
    layer overrides them, and the page SHIPS "day" (cream #f6f6ef paper, #0c0c0c
    ink) — exactly as ENPIRE does. The cinematic hero stage stays near-black in
    both themes. Source Serif 4 for body *and* headings, JetBrains Mono for
-   metadata, periwinkle #797af2 accent, 4px radii, cream plates for figures.
+   metadata, claret #6E1F35 accent, 4px radii, cream plates for figures.
    Stream accent colors mirror the legend of the paper's own Figures 2 & 4.
    ========================================================================== */
 
@@ -27,9 +27,9 @@
   --surface-3:     rgba(255,255,255,.11);
 
   /* accents */
-  --primary:       #797af2;
-  --primary-ink:   #9b9cff;
-  --primary-soft:  rgba(121,122,242,.16);
+  --primary:       #b8455f;
+  --primary-ink:   #de93a8;
+  --primary-soft:  rgba(184,69,95,.18);
   --figure-cream:  #f6f6ef;
   --figure-black:  #0c0c0c;
 
@@ -96,9 +96,9 @@
   --surface-2:     rgba(12,12,12,.055);
   --surface-3:     rgba(12,12,12,.10);
 
-  --primary:       #4a45c9;
-  --primary-ink:   #4a45c9;
-  --primary-soft:  rgba(74,69,201,.09);
+  --primary:       #6e1f35;
+  --primary-ink:   #6e1f35;
+  --primary-soft:  rgba(110,31,53,.08);
 
   /* streams, darkened for contrast on cream */
   --s-rgb:    #5c5f66;
@@ -175,6 +175,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-size: clamp(17px, 1.8vw, 20px);
   color: var(--fg-muted); line-height: 1.58; max-width: 70ch;
 }
+/* cross-references in a standfirst get the same treatment as prose links,
+   rather than the browser's default underline */
+.sec__sub a, .sub__lede a {
+  color: var(--primary-ink); text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+.sec__sub a:hover, .sub__lede a:hover { border-bottom-color: var(--primary); }
 /* Third level: one sub-point, one heading, its own figures underneath. */
 .sub__title {
   font-size: clamp(19px, 1.9vw, 23px);
@@ -569,7 +576,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   background: rgba(255,255,255,.08); color: rgba(255,255,255,.78);
   border: 1px solid rgba(255,255,255,.16); border-radius: var(--radius); cursor: pointer;
 }
-.lb__speeds button[aria-pressed="true"] { background: #797af2; border-color: #797af2; color: #fff; }
+.lb__speeds button[aria-pressed="true"] { background: #b8455f; border-color: #b8455f; color: #fff; }
 .lb__close {
   background: rgba(255,255,255,.08); color: #fff; cursor: pointer;
   border: 1px solid rgba(255,255,255,.16); border-radius: var(--radius);
