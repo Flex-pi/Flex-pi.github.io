@@ -401,8 +401,8 @@
     <div class="vfeature__meta">
       <div>
         <h4 class="vfeature__name">Bimanual Put Plate on the Rack</h4>
-        <p class="vfeature__desc">Both arms cooperate to lift a flat, low-friction plate and seat it into a rack
-        without tipping it — the grasp has to hold through the whole placement.
+        <p class="vfeature__desc">A flat, low-friction plate, seated in a rack without tipping — the grasp has to
+        hold through the whole placement.
         <span class="demos">300 teleoperated demonstrations</span></p>
       </div>
       <div class="scoreboard">
@@ -461,7 +461,6 @@
 
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">Scored against π<sub>0.5</sub></h4>
-    <p class="sub__lede">Rollouts are scored under a partial-credit rubric, ten rollouts per task.</p>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="chartbox">
@@ -498,8 +497,7 @@
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Teleoperated data collection</b>
-        Demonstrations are recorded at 30&nbsp;Hz on the same workcell used for evaluation. The policy is queried
-        once per 32-step action chunk, re-planning every 1.07&nbsp;s of robot time.</figcaption>
+        Demonstrations are recorded at 30&nbsp;Hz on the same workcell used for evaluation.</figcaption>
       </figure>
       <figure>
         <div class="player player--contain" data-player data-caption="Three camera views tiled into a single composite canvas so all views cost one VAE pass. Placeholder footage.">
@@ -510,8 +508,8 @@
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>One composite canvas</b>
-        An overhead ZED&nbsp;2i and a ZED&nbsp;Mini on each wrist are tiled into a single canvas, so three views cost
-        one VAE pass instead of three.</figcaption>
+        An overhead ZED&nbsp;2i plus a ZED&nbsp;Mini on each wrist, tiled into one canvas — three views, one VAE
+        pass.</figcaption>
       </figure>
     </div>
   </div>
@@ -529,10 +527,9 @@
 
   <div class="wrap reveal" style="margin-top:52px">
     <h4 class="sub__title">Key unlocking</h4>
-    <p class="sub__lede">The robot grasps a key, hands it to the other arm, picks up the padlock with the now-free
-    hand, and inserts the key into the keyway of the <em>handheld</em> lock. Neither object is fixed to the
-    workspace, so what the policy controls is the relative pose of two independently actuated end-effectors —
-    compounded by in-hand pose uncertainty that becomes unobservable the moment the grippers close.</p>
+    <p class="sub__lede">The robot hands the key to its other arm, then inserts it into a <em>handheld</em> padlock —
+    so what the policy controls is the relative pose of two independently actuated end-effectors, under in-hand pose
+    uncertainty that becomes unobservable the moment the grippers close.</p>
   </div>
 
   <div class="wrap wrap--wide reveal vfeature">
@@ -546,10 +543,9 @@
     <div class="vfeature__meta">
       <div>
         <h4 class="vfeature__name">One episode, end to end</h4>
-        <p class="vfeature__desc">Each episode begins with a padlock and its key at randomized positions and
-        orientations. The robot must insert the key, turn it 45° and back to release the shackle, open it, and
-        place the lock — with the key still inserted — into a lock box. The unlocking torque is negligible, so
-        <b>every failure mode here is perception or precision, never force</b>.
+        <p class="vfeature__desc">Padlock and key start at randomized poses. The robot inserts the key, turns it
+        45° and back, opens the lock, and places it — key still inserted — in a lock box. Unlocking torque is
+        negligible, so <b>every failure here is perception or precision, never force</b>.
         <span class="demos">1,400 episodes &middot; 500 demonstrations + 900 DAgger-style corrections &middot; 12.9 h</span></p>
       </div>
     </div>
@@ -558,22 +554,13 @@
   <div class="wrap wrap--wide reveal" style="margin-top:26px">
     <div class="specs">
       <div class="spec"><div class="spec__num">±0.25<span class="unit"> mm</span></div><div class="spec__lab">lateral clearance — a 3.5&nbsp;mm key bit through a 4&nbsp;mm aperture</div></div>
-      <div class="spec"><div class="spec__num">&approx;1.8°</div><div class="spec__lab">angular tolerance, which must hold over the full insertion</div></div>
-      <div class="spec"><div class="spec__num">16<span class="unit"> mm</span></div><div class="spec__lab">insertion depth over which both tolerances must be maintained</div></div>
-      <div class="spec"><div class="spec__num">33<span class="unit"> s</span></div><div class="spec__lab">average length of a teleoperated demonstration of the full sequence</div></div>
+      <div class="spec"><div class="spec__num">&approx;1.8°</div><div class="spec__lab">angular tolerance</div></div>
+      <div class="spec"><div class="spec__num">16<span class="unit"> mm</span></div><div class="spec__lab">insertion depth over which both tolerances hold</div></div>
+      <div class="spec"><div class="spec__num">33<span class="unit"> s</span></div><div class="spec__lab">average teleoperated demonstration</div></div>
     </div>
   </div>
 
-  <div class="wrap reveal" style="margin-top:40px">
-    <div class="prose">
-      <p>That tolerance sits at or below the single-pixel scale of the policy's visual input, so the policy
-      <em>cannot</em> simply read residual misalignment off one observation. It has to infer that misalignment from
-      sub-pixel and temporal cues, or resolve it through contact — retrying rather than committing to an open-loop
-      approach.</p>
-    </div>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:26px">
+  <div class="wrap wrap--wide reveal" style="margin-top:40px">
     <div class="vgrid vgrid--3">
       <figure>
         <div class="player" data-player data-caption="Fine insertion close-up. Placeholder footage.">
@@ -581,7 +568,7 @@
           <video src="assets/videos/precision-insertion.mp4" poster="assets/videos/precision-insertion.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arms performing a fine insertion on a dark mat"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b>Below the pixel scale</b>Misalignment has to be inferred, not observed.</figcaption>
+        <figcaption class="vcard__cap"><b>Below the pixel scale</b>Residual misalignment sits at or below the single-pixel scale of the policy's input — it must be inferred from sub-pixel and temporal cues, not observed.</figcaption>
       </figure>
       <figure>
         <div class="player" data-player data-caption="Recovering from a misaligned first attempt. Placeholder footage.">
@@ -609,12 +596,8 @@
   <!-- long horizon -->
   <div class="wrap reveal" style="margin-top:72px">
     <h4 class="sub__title">Self-repair gripper</h4>
-    <p class="sub__lede" style="margin-bottom:14px">Eight dependent stages, and the tolerance chain tightens as the
-    sequence advances.</p>
-    <p class="prose">The robot repairs its own gripper over eight stages that must be completed <em>in order</em>,
-    with the workspace splitting the sequence between the arms. Half of the rubric's 3.0 points sits on the three
-    insertion and fastening stages, so a policy cannot score well by transporting objects competently and failing at
-    the tolerances.</p>
+    <p class="sub__lede">The robot repairs its own gripper over eight stages that must be completed <em>in order</em>,
+    split between the two arms, and the tolerance chain tightens as the sequence advances.</p>
   </div>
 
   <div class="wrap wrap--wide reveal vfeature">
@@ -647,12 +630,12 @@
       <div class="stage-row stage-row--tight"><span class="stage-row__i">3</span><span class="stage-row__name"><b>Insert / seat gripper</b><small>19 mm part into a 20 mm holder — ±0.5 mm</small></span><span class="stage-row__pts">0.50</span></div>
       <div class="stage-row"><span class="stage-row__i">4</span><span class="stage-row__name"><b>Pick screw</b></span><span class="stage-row__pts">0.50</span></div>
       <div class="stage-row stage-row--tight"><span class="stage-row__i">5</span><span class="stage-row__name"><b>Insert / start screw</b><small>4.5 mm M5 shank into an 8 mm hole — ±1.75 mm</small></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row"><span class="stage-row__i">6</span><span class="stage-row__name"><b>Pick driver</b><small>grasping it depresses the trigger, so the bit is already turning</small></span><span class="stage-row__pts">0.25</span></div>
+      <div class="stage-row"><span class="stage-row__i">6</span><span class="stage-row__name"><b>Pick driver</b></span><span class="stage-row__pts">0.25</span></div>
       <div class="stage-row stage-row--tight"><span class="stage-row__i">7</span><span class="stage-row__name"><b>Screw in</b><small>4 mm bit into a 4.5 mm socket — ±0.25 mm, the tightest stage</small></span><span class="stage-row__pts">0.75</span></div>
       <div class="stage-row"><span class="stage-row__i">8</span><span class="stage-row__name"><b>Pick &amp; place</b><small>clear the table by placing a vegetable in the bucket</small></span><span class="stage-row__pts">0.25</span></div>
     </div>
-    <p class="figcap" style="margin-top:12px">Highlighted rows are the three insertion and fastening stages, which
-    together carry half of the 3.0 available points.</p>
+    <p class="figcap" style="margin-top:12px">Highlighted: the three insertion and fastening stages carry half of
+    the 3.0 points, so transport alone scores poorly.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:34px">
@@ -663,7 +646,7 @@
           <video src="assets/videos/task-selfrepair-b.mp4" poster="assets/videos/task-selfrepair-b.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper seating a part into a holder"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b>Seating the replacement</b>A 19&nbsp;mm part into a 20&nbsp;mm holder — ±0.5&nbsp;mm.</figcaption>
+        <figcaption class="vcard__cap"><b>Seating the replacement</b>Stage 3.</figcaption>
       </figure>
       <figure>
         <div class="player" data-player data-caption="Recovering after a misaligned fastening attempt. Placeholder footage.">
@@ -686,11 +669,10 @@
         <div class="legend" id="lg-selfrepair"></div>
       </div>
       <div data-chart="selfrepair"></div>
-      <p class="figcap" style="margin-top:10px">A policy that clears each stage nine times in ten still finishes the
-      whole episode only 43% of the time, so a progress score alone cannot separate a policy that nearly finishes
-      from one that finishes. Moving from action-only to full joint generation adds <b>21.9 points of partial credit
-      but 40 points of full-task success</b> (15% → 55%) — the two metrics separate exactly the policies that chain
-      eight stages from those that merely start them well.</p>
+      <p class="figcap" style="margin-top:10px">Clearing each stage nine times in ten still finishes the whole
+      episode only 43% of the time, so partial credit alone cannot separate a policy that nearly finishes from one
+      that finishes. Action-only → full joint generation adds <b>21.9 points of partial credit but 40 points of
+      full-task success</b> (15% → 55%).</p>
     </div>
   </div>
 </section>
@@ -703,7 +685,7 @@
     <h3 class="sec__title">Generalization to unseen conditions</h3>
     <p class="sec__sub">We re-run the same three tasks under conditions never seen during fine-tuning: novel
     distractor objects in every scene, and — for Put Plate on the Rack — an unseen plate and rack of a different
-    type. This is where the gap widens sharply.</p>
+    type.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:56px">
@@ -754,15 +736,13 @@
         <div class="vcompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">transfers to novel geometry</span></div>
       </div>
     </div>
-    <p class="figcap" style="margin-top:12px"><b>An unseen plate and rack.</b> Flex-π (Joint) reaches <b>98%</b> on
-    object geometry it has never seen, against 70% for π<sub>0.5</sub> — the skill transfers rather than the
-    appearance.</p>
+    <p class="figcap" style="margin-top:12px"><b>An unseen plate and rack.</b> Flex-π (Joint) reaches <b>98%</b>
+    against 70% for π<sub>0.5</sub> on geometry it has never seen.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:64px">
     <h4 class="sub__title">Four held-out variations</h4>
-    <p class="sub__lede">Each clip is a held-out condition; each number is Flex-π (Joint) against
-    π<sub>0.5</sub> on the same condition.</p>
+    <p class="sub__lede">Each number is Flex-π (Joint) against π<sub>0.5</sub> on the same held-out condition.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
@@ -773,7 +753,7 @@
           <video src="assets/videos/gen-big-plate.mp4" poster="assets/videos/gen-big-plate.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot gripper grasping a large flat plate"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b>Unseen big plate</b>Novel object geometry.
+        <figcaption class="vcard__cap"><b>Unseen big plate</b>
         <span class="metric">98% &nbsp;<span class="vs">vs. 70%</span></span></figcaption>
       </figure>
       <figure>
@@ -834,7 +814,6 @@
 
   <div class="wrap reveal" style="margin-top:64px">
     <h4 class="sub__title">Halving the data</h4>
-    <p class="sub__lede">Cutting the fine-tuning set in half separates the methods further still.</p>
   </div>
 
   <div class="wrap wrap--mid reveal" style="margin-top:20px">
@@ -869,8 +848,7 @@
   <div class="wrap reveal">
     <h3 class="sec__title">One latent space, one backbone</h3>
     <p class="sec__sub">Appearance, geometry and object semantics normally mean three separate pipelines. Flex-π
-    carries all three through a single shared backbone — which is what makes the input and output streams
-    interchangeable at inference rather than fixed at training time.</p>
+    carries all three through a single shared backbone.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:56px">
@@ -891,9 +869,8 @@
       <div class="stream" style="--dot:var(--s-dino)">
         <div class="stream__key"><span class="swatch"></span>Stream D</div>
         <h5 class="stream__name">DINO &mdash; object semantics</h5>
-        <p class="stream__desc">Object-level semantic tokens that ground the other two streams in an object-centric
-        representation. Patch grids are folded 2&times;2 into the channel dimension, removing 75% of the tokens
-        losslessly.</p>
+        <p class="stream__desc">Object-level semantic tokens that ground appearance and geometry. Patch grids are
+        folded 2&times;2 into the channel dimension, removing 75% of the tokens losslessly.</p>
         <p class="stream__src">DINO(o<sub>t</sub>) &middot; frozen DINOv3</p>
       </div>
       <div class="stream" style="--dot:var(--s-3d)">
@@ -925,19 +902,10 @@
 
   <div class="wrap reveal" style="margin-top:60px">
     <h4 class="sub__title">Why latents instead of pixels</h4>
-    <p class="sub__lede">Pixel-level detail costs capacity and inference time without aiding control, so Flex-π
-    keeps the joint prediction objective and runs it one level up.</p>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:18px">
-    <div class="prose">
-      <p>The strongest WAMs predict future <em>images</em>, spending capacity and inference time on pixel-level
-      detail that does not aid control. Flex-π keeps the joint prediction objective but runs it in latent space:
-      it reconstructs future <em>latent</em> observations, stripping away irrelevant visual noise while still
-      inheriting the priors of a large pre-trained video model. Because actions are generated jointly with future
-      visual tokens under shared self-attention, the policy benefits from the model's evolving representation of
-      the future without the computational bloat of pixel-level decoding.</p>
-    </div>
+    <p class="sub__lede">The strongest WAMs predict future <em>images</em>, spending capacity and inference time on
+    pixel-level detail that does not aid control. Flex-π keeps the joint prediction objective but runs it on future
+    <em>latent</em> observations — and because actions are generated jointly with those latents under shared
+    self-attention, the policy still reads the model's evolving picture of the future, with no pixels decoded.</p>
   </div>
 
   <div class="wrap wrap--mid reveal" style="margin-top:34px">
@@ -947,8 +915,7 @@
       </div>
       <figcaption class="figcap"><span class="tag">Figure 3</span><b>A video VAE trained only on RGB already encodes 3D.</b>
       Encoding and then decoding a pointmap with the frozen Wan-2.2 VAE yields a very accurate reconstruction
-      (PSNR 38&nbsp;dB, MSE 1&times;10<sup>&minus;4</sup>), which is what makes it possible to carry geometry in the
-      same latent space as appearance.</figcaption>
+      (PSNR 38&nbsp;dB, MSE 1&times;10<sup>&minus;4</sup>).</figcaption>
     </figure>
   </div>
 
@@ -968,8 +935,7 @@
       <b>m</b><sup>in</sup> selects which streams are <em>observed</em> at time <em>t</em>;
       <b>m</b><sup>out</sup> selects which futures the action tokens <em>read</em>. The rows show full joint
       generation, the action-only fast path, one of many intermediate regimes, and
-      <em>cross-modality forcing</em> — where the pointmap is never observed, yet its future is generated from the
-      observed RGB and DINO streams and read by the action expert.</figcaption>
+      <em>cross-modality forcing</em> (below).</figcaption>
     </figure>
   </div>
 
@@ -1047,8 +1013,7 @@
   <div class="wrap reveal">
     <h3 class="sec__title">Choosing the operating point</h3>
     <p class="sec__sub">The same weights, invoked with different flags. Toggle the streams Flex-π generates and
-    watch latency and success rate move together — a single checkpoint spans a 6&times; latency range and 25 points
-    of success, and the operating point is chosen at deployment rather than at training time.</p>
+    watch latency and success rate move together.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
@@ -1118,7 +1083,7 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Latency vs. success — one checkpoint throughout</div>
-          <div class="chartbox__sub">RoboTwin, video-only input; generating more streams trades latency for success</div>
+          <div class="chartbox__sub">RoboTwin, video-only input</div>
         </div>
         <div class="legend">
           <span class="legend__item"><span class="legend__sw legend__sw--line" style="--c:var(--c-ours);background:var(--c-ours)"></span>Flex-π</span>
@@ -1127,8 +1092,7 @@
       </div>
       <div data-chart="pareto"></div>
       <p class="figcap" style="margin-top:10px">A single checkpoint spans a <b>6&times; latency range and 25 points of
-      success</b>, leaving the operating point to be chosen at deployment. The four Flex-π points differ only in the
-      output mask.
+      success</b>; the four Flex-π points differ only in the output mask.
       <noscript>Charts require JavaScript; the underlying figure is reproduced in the paper (Figure&nbsp;6b).</noscript></p>
     </div>
   </div>
@@ -1143,9 +1107,8 @@
       </div>
       <div data-chart="latency"></div>
       <p class="figcap" style="margin-top:10px">Flex-π's action-only path (118–152 ms) stays close enough to the
-      π<sub>0.5</sub> baseline (66 ms) to drive the same 30 Hz robot, while full joint generation trades speed for
-      precision. Chunked execution decouples inference rate from control rate: the robot executes all 32 predicted
-      steps before the next chunk is planned, re-planning once every 1.07 s of robot time.</p>
+      π<sub>0.5</sub> baseline (66 ms) to drive the same 30 Hz robot — chunked execution decouples inference rate
+      from control rate, one query per 32-step chunk — while full joint generation trades speed for precision.</p>
     </div>
   </div>
 </section>
@@ -1167,9 +1130,8 @@
 <section class="sec" id="simulation">
   <div class="wrap reveal">
     <h3 class="sec__title">Simulation benchmarks</h3>
-    <p class="sec__sub">One model is the best VLA in its fast mode and the best WAM in its full mode. On RoboTwin
-    the action-only path already beats every VLA we compare against, while full joint generation leads the WAMs —
-    and the two deployment modes land within half a point of each other.</p>
+    <p class="sec__sub">One model is the best VLA in its fast mode and the best WAM in its full mode — on RoboTwin
+    the two deployment modes land within half a point of each other.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:56px">
@@ -1197,16 +1159,16 @@
         </tbody>
       </table>
     </div>
-    <p class="figcap" style="margin-top:14px">The gap is widest under domain randomization: π<sub>0.5</sub> loses
-    5.9&nbsp;points moving from clean to randomized scenes, while Flex-π loses none — which we attribute to the 3D
-    and DINO streams providing appearance-invariant structure.</p>
+    <p class="figcap" style="margin-top:14px">π<sub>0.5</sub> loses 5.9&nbsp;points moving from clean to randomized
+    scenes; Flex-π loses none — we attribute this to the 3D and DINO streams providing appearance-invariant
+    structure.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:64px">
     <h4 class="sub__title">LIBERO</h4>
     <p class="sub__lede">One flexible checkpoint already matches the strongest published method in each group —
-    <b>98.1%</b> action-only and <b>98.5%</b> at full joint generation. Committing that flexibility and fine-tuning
-    a checkpoint per mode lifts the pair to 98.7% and 99.2%, ahead of every VLA and WAM we compare against.</p>
+    <b>98.1%</b> action-only and <b>98.5%</b> at full joint generation. The mode-committed checkpoints in the table
+    below go higher still.</p>
   </div>
 
   <div class="wrap wrap--mid reveal" style="margin-top:22px">
@@ -1254,9 +1216,8 @@
         <div class="legend" id="lg-scaling"></div>
       </div>
       <div data-chart="scaling"></div>
-      <p class="figcap" style="margin-top:10px">Flex-π leads at every data scale, with the largest margin at low
-      data: at 50 demos per task it reaches <b>78.8%</b> against 41.9% for Fast-WAM and 31.4% for
-      π<sub>0.5</sub>. Baselines only close the gap at 500 demos per task.</p>
+      <p class="figcap" style="margin-top:10px">At 50 demos per task Flex-π reaches <b>78.8%</b> against 41.9% for
+      Fast-WAM and 31.4% for π<sub>0.5</sub>; baselines only close the gap at 500 demos per task.</p>
     </div>
   </div>
 
