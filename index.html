@@ -67,13 +67,13 @@
 <aside class="rail" aria-label="On this page" data-over-hero="true">
   <nav class="rail__links">
     <a data-level="1" href="#abstract">Abstract</a>
+    <a data-level="1" href="#overview">Overview</a>
+    <a data-level="1" href="#streams">Architecture</a>
     <a data-level="1" href="#part-1">What Flex-π does</a>
-    <a data-level="2" data-part="part-1" href="#overview">Flex-π in action</a>
     <a data-level="2" data-part="part-1" href="#real-robot">Dexterity</a>
     <a data-level="2" data-part="part-1" href="#precision">Precision</a>
     <a data-level="2" data-part="part-1" href="#generalization">Generalization</a>
     <a data-level="1" href="#part-2">How it works</a>
-    <a data-level="2" data-part="part-2" href="#streams">Architecture</a>
     <a data-level="2" data-part="part-2" href="#method">One latent space</a>
     <a data-level="2" data-part="part-2" href="#explorer">Compute flexibility</a>
     <a data-level="1" href="#part-3">How it compares</a>
@@ -166,19 +166,6 @@
   </div>
 </section>
 
-<!-- ====================== part I ====================== -->
-<div class="part" id="part-1">
-  <div class="wrap wrap--wide reveal">
-    <div class="part__in">
-      <div class="part__head">
-        <div class="part__n">Part I</div>
-        <h2 class="part__t">What Flex-π does</h2>
-      </div>
-      <p class="part__d">One checkpoint on a bimanual YAM workcell: three contact-rich tasks, a sub-millimetre insertion, an eight-stage self-repair, and four conditions it was never fine-tuned on.</p>
-    </div>
-  </div>
-</div>
-
 <!-- ====================== introductory video ====================== -->
 <section class="sec" id="overview">
   <div class="wrap reveal">
@@ -204,6 +191,194 @@
 </section>
 
 <hr class="rule">
+
+<!-- ====================== dynamic architecture + streams ====================== -->
+<section class="sec" id="streams">
+  <div class="wrap reveal">
+    <h3 class="sec__title">Three views of one moment</h3>
+    <p class="sec__sub">Flex-π reads the same observation as appearance, semantics and geometry, and generates all
+    three futures alongside the action. What goes <em>in</em> and what comes <em>out</em> are runtime arguments rather
+    than architecture, so all 56 combinations are deployable from the same weights — try them below. How that is
+    trained is in <a href="#method">How it works</a>.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:30px">
+    <div class="archviz" id="archviz" data-active="rgb">
+
+      <!-- left: animated architecture that reflects the masks -->
+      <div class="archviz__diagram">
+        <div class="archviz__label">Multi-stream world-action model</div>
+        <svg viewBox="0 0 400 320" role="img" id="av-svg"
+             aria-label="Architecture diagram. Three observed input streams on the left — RGB and pointmap through one shared frozen Wan-2.2 VAE, DINO through a frozen DINOv3 encoder — feed a shared Multi-Stream Mixture-of-Transformers trunk in the centre. The trunk emits one future latent per stream on the right, mirroring the inputs, and drives an action expert below it that outputs the action chunk. Streams that are not observed, and futures that are not generated, are drawn dashed.">
+
+          <path id="av-p-rgb"  class="av-path av-path--s" style="--dot:var(--s-rgb)"  d="M100,64 C126,64 130,92 152,92"/>
+          <path id="av-p-dino" class="av-path av-path--s" style="--dot:var(--s-dino)" d="M100,132 L152,132"/>
+          <path id="av-p-p3d"  class="av-path av-path--s" style="--dot:var(--s-3d)"   d="M100,200 C126,200 130,172 152,172"/>
+          <path id="av-o-rgb"  class="av-path av-path--s" style="--dot:var(--s-rgb)"  d="M248,92 C274,92 278,64 300,64"/>
+          <path id="av-o-dino" class="av-path av-path--s" style="--dot:var(--s-dino)" d="M248,132 L300,132"/>
+          <path id="av-o-p3d"  class="av-path av-path--s" style="--dot:var(--s-3d)"   d="M248,172 C274,172 278,200 300,200"/>
+          <path id="av-o-act"  class="av-path av-path--s" style="--dot:var(--s-action)" d="M248,264 L300,264"/>
+          <path class="av-path" d="M200,224 L200,244"/>
+
+          <text class="av-t av-t--dim" x="4"   y="20" text-anchor="start">observed inputs</text>
+          <text class="av-t av-t--dim" x="396" y="20" text-anchor="end">generated futures</text>
+
+          <rect class="av-box av-box--core" x="152" y="40" width="96" height="184" rx="5"/>
+          <text class="av-t av-t--dim"  x="200" y="60"  text-anchor="middle">init. Wan-2.2</text>
+          <text class="av-t"            x="200" y="124" text-anchor="middle">Multi-Stream</text>
+          <text class="av-t av-t--core" x="200" y="140" text-anchor="middle">MoT</text>
+          <text class="av-t av-t--dim"  x="200" y="154" text-anchor="middle">5B trunk</text>
+
+          <g class="av-row" data-s="rgb" data-on="true" style="--dot:var(--s-rgb)">
+            <rect class="av-box av-box--stream" x="4" y="48" width="96" height="32" rx="4"/>
+            <text class="av-t av-t--s"   x="52" y="63" text-anchor="middle">RGB</text>
+            <text class="av-t av-t--dim" x="52" y="74" text-anchor="middle">Wan VAE</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath href="#av-p-rgb" xlink:href="#av-p-rgb"/></animateMotion></rect>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.3s"><mpath href="#av-p-rgb" xlink:href="#av-p-rgb"/></animateMotion></rect>
+          </g>
+          <g class="av-row" data-s="dino" data-on="true" style="--dot:var(--s-dino)">
+            <rect class="av-box av-box--stream" x="4" y="116" width="96" height="32" rx="4"/>
+            <text class="av-t av-t--s"   x="52" y="131" text-anchor="middle">DINO</text>
+            <text class="av-t av-t--dim" x="52" y="142" text-anchor="middle">DINOv3</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.9s"><mpath href="#av-p-dino" xlink:href="#av-p-dino"/></animateMotion></rect>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="2.2s"><mpath href="#av-p-dino" xlink:href="#av-p-dino"/></animateMotion></rect>
+          </g>
+          <g class="av-row" data-s="p3d" data-on="true" style="--dot:var(--s-3d)">
+            <rect class="av-box av-box--stream" x="4" y="184" width="96" height="32" rx="4"/>
+            <text class="av-t av-t--s"   x="52" y="199" text-anchor="middle">Pointmap</text>
+            <text class="av-t av-t--dim" x="52" y="210" text-anchor="middle">same VAE</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.45s"><mpath href="#av-p-p3d" xlink:href="#av-p-p3d"/></animateMotion></rect>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.75s"><mpath href="#av-p-p3d" xlink:href="#av-p-p3d"/></animateMotion></rect>
+          </g>
+
+          <g class="av-out" data-o="rgb" data-on="true" style="--dot:var(--s-rgb)">
+            <rect class="av-box av-box--stream" x="300" y="48" width="96" height="32" rx="4"/>
+            <text class="av-t av-t--s" x="348" y="68" text-anchor="middle">RGB future</text>
+            <text class="av-star" x="306" y="61">&#9733;</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.1s"><mpath href="#av-o-rgb" xlink:href="#av-o-rgb"/></animateMotion></rect>
+          </g>
+          <g class="av-out" data-o="dino" data-on="true" style="--dot:var(--s-dino)">
+            <rect class="av-box av-box--stream" x="300" y="116" width="96" height="32" rx="4"/>
+            <text class="av-t av-t--s" x="348" y="136" text-anchor="middle">DINO future</text>
+            <text class="av-star" x="306" y="129">&#9733;</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.9s"><mpath href="#av-o-dino" xlink:href="#av-o-dino"/></animateMotion></rect>
+          </g>
+          <g class="av-out" data-o="p3d" data-on="true" style="--dot:var(--s-3d)">
+            <rect class="av-box av-box--stream" x="300" y="184" width="96" height="32" rx="4"/>
+            <text class="av-t av-t--s" x="348" y="204" text-anchor="middle">3D future</text>
+            <text class="av-star" x="306" y="197">&#9733;</text>
+            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.5s"><mpath href="#av-o-p3d" xlink:href="#av-o-p3d"/></animateMotion></rect>
+          </g>
+
+          <rect class="av-box av-box--act" x="152" y="244" width="96" height="40" rx="5"/>
+          <text class="av-t"           x="200" y="261" text-anchor="middle">action</text>
+          <text class="av-t av-t--dim" x="200" y="274" text-anchor="middle">expert &middot; 1B</text>
+          <g class="av-out" data-o="act" data-on="true" style="--dot:var(--s-action)">
+            <rect class="av-box av-box--act" x="300" y="248" width="96" height="32" rx="4"/>
+            <text class="av-t" x="348" y="268" text-anchor="middle">action chunk</text>
+            <rect class="av-token av-token--act" width="6" height="6" rx="1" x="-3" y="-3">
+              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.6s"><mpath href="#av-o-act" xlink:href="#av-o-act"/></animateMotion></rect>
+          </g>
+        </svg>
+
+        <div class="maskctl2">
+          <div class="maskline maskline--quick">
+            <span class="maskline__lab">jump to</span>
+            <span class="maskline__set maskline__set--wrap">
+              <button class="regimechip" type="button" data-preset="joint"  aria-pressed="true">Full joint</button>
+              <button class="regimechip" type="button" data-preset="action" aria-pressed="false">Action-only</button>
+              <button class="regimechip" type="button" data-preset="p3d"    aria-pressed="false">3D + action</button>
+              <button class="regimechip" type="button" data-preset="xmod"   aria-pressed="false">Cross-modality</button>
+            </span>
+          </div>
+          <div class="maskline">
+            <span class="maskline__lab">observed <span class="mono">m<sup>in</sup></span></span>
+            <span class="maskline__set">
+              <button class="maskbtn" type="button" data-mask="in" data-s="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true" title="RGB observed">V</button>
+              <button class="maskbtn" type="button" data-mask="in" data-s="dino" style="--dot:var(--s-dino)" aria-pressed="true" title="DINO observed">D</button>
+              <button class="maskbtn" type="button" data-mask="in" data-s="p3d"  style="--dot:var(--s-3d)"   aria-pressed="true" title="Pointmap observed">P</button>
+            </span>
+          </div>
+          <div class="maskline">
+            <span class="maskline__lab">generated <span class="mono">m<sup>out</sup></span></span>
+            <span class="maskline__set">
+              <button class="maskbtn" type="button" data-mask="out" data-s="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true" title="RGB future generated">V</button>
+              <button class="maskbtn" type="button" data-mask="out" data-s="dino" style="--dot:var(--s-dino)" aria-pressed="true" title="DINO future generated">D</button>
+              <button class="maskbtn" type="button" data-mask="out" data-s="p3d"  style="--dot:var(--s-3d)"   aria-pressed="true" title="Pointmap future generated">P</button>
+              <span class="maskbtn maskbtn--locked" style="--dot:var(--s-action)" title="the action chunk is always generated">a</span>
+            </span>
+          </div>
+
+          <div class="regimeout">
+            <span class="regimeout__name" id="av-regime-name">Full joint generation</span>
+            <span class="regimeout__flag" id="av-xmod-flag" hidden>cross-modality forcing</span>
+          </div>
+          <p class="archviz__regimenote" id="av-regime-note">All three futures are co-denoised with the action, and
+          the action expert reads every one of them.</p>
+          <div class="maskctl2__foot">
+            <button class="regimechip" type="button" id="av-draw">Random draw</button>
+            <span class="maskctl2__count">configuration <span id="av-combo">1</span> of 56</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: the selected stream -->
+      <div class="archviz__stage">
+        <div class="archviz__stagerow">
+        <div class="player" data-player data-caption="The same observation viewed as each of the streams Flex-π consumes. Placeholder footage; the pointmap and DINO panels are illustrative renderings, not model output.">
+          <span class="player__badge" id="av-badge">RGB &middot; appearance</span>
+          <video id="av-v-rgb" src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
+                 muted playsinline preload="metadata" data-autoplay
+                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
+          <video id="av-v-p3d" src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
+                 muted playsinline preload="metadata" data-autoplay hidden
+                 aria-label="The same scene as a false-colour depth map, illustrating the 3D pointmap stream"></video>
+          <video id="av-v-dino" src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg"
+                 muted playsinline preload="metadata" data-autoplay hidden
+                 aria-label="The same scene as a patch-resolution PCA feature map, illustrating object-level semantics"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+          </div>
+          <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
+        </div>
+
+        <div class="archviz__chips" role="group" aria-label="Choose a stream to view">
+          <button class="streamchip" type="button" data-stream="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true"><span class="dot"></span>RGB</button>
+          <button class="streamchip" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false"><span class="dot"></span>DINO</button>
+          <button class="streamchip" type="button" data-stream="p3d"  style="--dot:var(--s-3d)"   aria-pressed="false"><span class="dot"></span>Pointmap</button>
+        </div>
+        <p class="archviz__note" id="av-note">Appearance. The observation image, encoded by a frozen Wan-2.2 VAE
+        into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</p>
+        <p class="archviz__note archviz__note--fine">How these panels were made: <b>RGB</b> is the source clip.
+        <b>Pointmap</b> is a false-colour ramp over image luminance and height — it mimics the look of Figure 3 but
+        carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
+        than DINOv3's 768-D features. The <b>action</b> strip beside them is a schematic. None of these are model output; the paper's real
+        VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== part I ====================== -->
+<div class="part" id="part-1">
+  <div class="wrap wrap--wide reveal">
+    <div class="part__in">
+      <div class="part__head">
+        <div class="part__n">Part I</div>
+        <h2 class="part__t">What Flex-π does</h2>
+      </div>
+      <p class="part__d">One checkpoint on a bimanual YAM workcell: three contact-rich tasks, a sub-millimetre insertion, an eight-stage self-repair, and four conditions it was never fine-tuned on.</p>
+    </div>
+  </div>
+</div>
 
 <!-- ====================== real robot: dexterity ====================== -->
 <section class="sec" id="real-robot">
@@ -676,7 +851,6 @@
     </div>
   </div>
 </section>
-
 <!-- ====================== part II ====================== -->
 <div class="part" id="part-2">
   <div class="wrap wrap--wide reveal">
@@ -685,186 +859,10 @@
         <div class="part__n">Part II</div>
         <h2 class="part__t">How it works</h2>
       </div>
-      <p class="part__d">The architecture, the shared latent space that carries appearance, geometry and semantics together, and the two masks that let one set of weights cover every input/output combination.</p>
+      <p class="part__d">What is behind the diagram above: the shared latent space that carries appearance, geometry and semantics together, and the two masks that let one set of weights cover every input/output combination.</p>
     </div>
   </div>
 </div>
-
-<!-- ====================== dynamic architecture + streams ====================== -->
-<section class="sec" id="streams">
-  <div class="wrap reveal">
-    <h3 class="sec__title">Three views of one moment</h3>
-    <p class="sec__sub">Flex-π reads the same observation as appearance, semantics and geometry, and generates all
-    three futures alongside the action. What goes <em>in</em> and what comes <em>out</em> are two independent runtime
-    masks rather than architecture, so all 56 combinations are deployable from the same weights. Toggle them below.</p>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:30px">
-    <div class="archviz" id="archviz" data-active="rgb">
-
-      <!-- left: animated architecture that reflects the masks -->
-      <div class="archviz__diagram">
-        <div class="archviz__label">Multi-stream world-action model</div>
-        <svg viewBox="0 0 400 320" role="img" id="av-svg"
-             aria-label="Architecture diagram. Three observed input streams on the left — RGB and pointmap through one shared frozen Wan-2.2 VAE, DINO through a frozen DINOv3 encoder — feed a shared Multi-Stream Mixture-of-Transformers trunk in the centre. The trunk emits one future latent per stream on the right, mirroring the inputs, and drives an action expert below it that outputs the action chunk. Streams that are not observed, and futures that are not generated, are drawn dashed.">
-
-          <path id="av-p-rgb"  class="av-path av-path--s" style="--dot:var(--s-rgb)"  d="M100,64 C126,64 130,92 152,92"/>
-          <path id="av-p-dino" class="av-path av-path--s" style="--dot:var(--s-dino)" d="M100,132 L152,132"/>
-          <path id="av-p-p3d"  class="av-path av-path--s" style="--dot:var(--s-3d)"   d="M100,200 C126,200 130,172 152,172"/>
-          <path id="av-o-rgb"  class="av-path av-path--s" style="--dot:var(--s-rgb)"  d="M248,92 C274,92 278,64 300,64"/>
-          <path id="av-o-dino" class="av-path av-path--s" style="--dot:var(--s-dino)" d="M248,132 L300,132"/>
-          <path id="av-o-p3d"  class="av-path av-path--s" style="--dot:var(--s-3d)"   d="M248,172 C274,172 278,200 300,200"/>
-          <path id="av-o-act"  class="av-path av-path--s" style="--dot:var(--s-action)" d="M248,264 L300,264"/>
-          <path class="av-path" d="M200,224 L200,244"/>
-
-          <text class="av-t av-t--dim" x="4"   y="20" text-anchor="start">observed inputs</text>
-          <text class="av-t av-t--dim" x="396" y="20" text-anchor="end">generated futures</text>
-
-          <rect class="av-box av-box--core" x="152" y="40" width="96" height="184" rx="5"/>
-          <text class="av-t av-t--dim"  x="200" y="60"  text-anchor="middle">init. Wan-2.2</text>
-          <text class="av-t"            x="200" y="124" text-anchor="middle">Multi-Stream</text>
-          <text class="av-t av-t--core" x="200" y="140" text-anchor="middle">MoT</text>
-          <text class="av-t av-t--dim"  x="200" y="154" text-anchor="middle">5B trunk</text>
-
-          <g class="av-row" data-s="rgb" data-on="true" style="--dot:var(--s-rgb)">
-            <rect class="av-box av-box--stream" x="4" y="48" width="96" height="32" rx="4"/>
-            <text class="av-t av-t--s"   x="52" y="63" text-anchor="middle">RGB</text>
-            <text class="av-t av-t--dim" x="52" y="74" text-anchor="middle">Wan VAE</text>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath href="#av-p-rgb" xlink:href="#av-p-rgb"/></animateMotion></rect>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.3s"><mpath href="#av-p-rgb" xlink:href="#av-p-rgb"/></animateMotion></rect>
-          </g>
-          <g class="av-row" data-s="dino" data-on="true" style="--dot:var(--s-dino)">
-            <rect class="av-box av-box--stream" x="4" y="116" width="96" height="32" rx="4"/>
-            <text class="av-t av-t--s"   x="52" y="131" text-anchor="middle">DINO</text>
-            <text class="av-t av-t--dim" x="52" y="142" text-anchor="middle">DINOv3</text>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.9s"><mpath href="#av-p-dino" xlink:href="#av-p-dino"/></animateMotion></rect>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="2.2s"><mpath href="#av-p-dino" xlink:href="#av-p-dino"/></animateMotion></rect>
-          </g>
-          <g class="av-row" data-s="p3d" data-on="true" style="--dot:var(--s-3d)">
-            <rect class="av-box av-box--stream" x="4" y="184" width="96" height="32" rx="4"/>
-            <text class="av-t av-t--s"   x="52" y="199" text-anchor="middle">Pointmap</text>
-            <text class="av-t av-t--dim" x="52" y="210" text-anchor="middle">same VAE</text>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.45s"><mpath href="#av-p-p3d" xlink:href="#av-p-p3d"/></animateMotion></rect>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.75s"><mpath href="#av-p-p3d" xlink:href="#av-p-p3d"/></animateMotion></rect>
-          </g>
-
-          <g class="av-out" data-o="rgb" data-on="true" style="--dot:var(--s-rgb)">
-            <rect class="av-box av-box--stream" x="300" y="48" width="96" height="32" rx="4"/>
-            <text class="av-t av-t--s" x="348" y="68" text-anchor="middle">RGB future</text>
-            <text class="av-star" x="306" y="61">&#9733;</text>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.1s"><mpath href="#av-o-rgb" xlink:href="#av-o-rgb"/></animateMotion></rect>
-          </g>
-          <g class="av-out" data-o="dino" data-on="true" style="--dot:var(--s-dino)">
-            <rect class="av-box av-box--stream" x="300" y="116" width="96" height="32" rx="4"/>
-            <text class="av-t av-t--s" x="348" y="136" text-anchor="middle">DINO future</text>
-            <text class="av-star" x="306" y="129">&#9733;</text>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.9s"><mpath href="#av-o-dino" xlink:href="#av-o-dino"/></animateMotion></rect>
-          </g>
-          <g class="av-out" data-o="p3d" data-on="true" style="--dot:var(--s-3d)">
-            <rect class="av-box av-box--stream" x="300" y="184" width="96" height="32" rx="4"/>
-            <text class="av-t av-t--s" x="348" y="204" text-anchor="middle">3D future</text>
-            <text class="av-star" x="306" y="197">&#9733;</text>
-            <rect class="av-token" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.5s"><mpath href="#av-o-p3d" xlink:href="#av-o-p3d"/></animateMotion></rect>
-          </g>
-
-          <rect class="av-box av-box--act" x="152" y="244" width="96" height="40" rx="5"/>
-          <text class="av-t"           x="200" y="261" text-anchor="middle">action</text>
-          <text class="av-t av-t--dim" x="200" y="274" text-anchor="middle">expert &middot; 1B</text>
-          <g class="av-out" data-o="act" data-on="true" style="--dot:var(--s-action)">
-            <rect class="av-box av-box--act" x="300" y="248" width="96" height="32" rx="4"/>
-            <text class="av-t" x="348" y="268" text-anchor="middle">action chunk</text>
-            <rect class="av-token av-token--act" width="6" height="6" rx="1" x="-3" y="-3">
-              <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.6s"><mpath href="#av-o-act" xlink:href="#av-o-act"/></animateMotion></rect>
-          </g>
-        </svg>
-
-        <div class="maskctl2">
-          <div class="maskline maskline--quick">
-            <span class="maskline__lab">jump to</span>
-            <span class="maskline__set maskline__set--wrap">
-              <button class="regimechip" type="button" data-preset="joint"  aria-pressed="true">Full joint</button>
-              <button class="regimechip" type="button" data-preset="action" aria-pressed="false">Action-only</button>
-              <button class="regimechip" type="button" data-preset="p3d"    aria-pressed="false">3D + action</button>
-              <button class="regimechip" type="button" data-preset="xmod"   aria-pressed="false">Cross-modality</button>
-            </span>
-          </div>
-          <div class="maskline">
-            <span class="maskline__lab">observed <span class="mono">m<sup>in</sup></span></span>
-            <span class="maskline__set">
-              <button class="maskbtn" type="button" data-mask="in" data-s="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true" title="RGB observed">V</button>
-              <button class="maskbtn" type="button" data-mask="in" data-s="dino" style="--dot:var(--s-dino)" aria-pressed="true" title="DINO observed">D</button>
-              <button class="maskbtn" type="button" data-mask="in" data-s="p3d"  style="--dot:var(--s-3d)"   aria-pressed="true" title="Pointmap observed">P</button>
-            </span>
-          </div>
-          <div class="maskline">
-            <span class="maskline__lab">generated <span class="mono">m<sup>out</sup></span></span>
-            <span class="maskline__set">
-              <button class="maskbtn" type="button" data-mask="out" data-s="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true" title="RGB future generated">V</button>
-              <button class="maskbtn" type="button" data-mask="out" data-s="dino" style="--dot:var(--s-dino)" aria-pressed="true" title="DINO future generated">D</button>
-              <button class="maskbtn" type="button" data-mask="out" data-s="p3d"  style="--dot:var(--s-3d)"   aria-pressed="true" title="Pointmap future generated">P</button>
-              <span class="maskbtn maskbtn--locked" style="--dot:var(--s-action)" title="the action chunk is always generated">a</span>
-            </span>
-          </div>
-
-          <div class="regimeout">
-            <span class="regimeout__name" id="av-regime-name">Full joint generation</span>
-            <span class="regimeout__flag" id="av-xmod-flag" hidden>cross-modality forcing</span>
-          </div>
-          <p class="archviz__regimenote" id="av-regime-note">All three futures are co-denoised with the action, and
-          the action expert reads every one of them.</p>
-          <div class="maskctl2__foot">
-            <button class="regimechip" type="button" id="av-draw">Random draw</button>
-            <span class="maskctl2__count">configuration <span id="av-combo">1</span> of 56</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- right: the selected stream -->
-      <div class="archviz__stage">
-        <div class="archviz__stagerow">
-        <div class="player" data-player data-caption="The same observation viewed as each of the streams Flex-π consumes. Placeholder footage; the pointmap and DINO panels are illustrative renderings, not model output.">
-          <span class="player__badge" id="av-badge">RGB &middot; appearance</span>
-          <video id="av-v-rgb" src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
-                 muted playsinline preload="metadata" data-autoplay
-                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
-          <video id="av-v-p3d" src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
-                 muted playsinline preload="metadata" data-autoplay hidden
-                 aria-label="The same scene as a false-colour depth map, illustrating the 3D pointmap stream"></video>
-          <video id="av-v-dino" src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg"
-                 muted playsinline preload="metadata" data-autoplay hidden
-                 aria-label="The same scene as a patch-resolution PCA feature map, illustrating object-level semantics"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-          </div>
-          <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
-        </div>
-
-        <div class="archviz__chips" role="group" aria-label="Choose a stream to view">
-          <button class="streamchip" type="button" data-stream="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true"><span class="dot"></span>RGB</button>
-          <button class="streamchip" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false"><span class="dot"></span>DINO</button>
-          <button class="streamchip" type="button" data-stream="p3d"  style="--dot:var(--s-3d)"   aria-pressed="false"><span class="dot"></span>Pointmap</button>
-        </div>
-        <p class="archviz__note" id="av-note">Appearance. The observation image, encoded by a frozen Wan-2.2 VAE
-        into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</p>
-        <p class="archviz__note archviz__note--fine">How these panels were made: <b>RGB</b> is the source clip.
-        <b>Pointmap</b> is a false-colour ramp over image luminance and height — it mimics the look of Figure 3 but
-        carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
-        than DINOv3's 768-D features. The <b>action</b> strip beside them is a schematic. None of these are model output; the paper's real
-        VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="rule">
 
 <!-- ====================== method: one latent space ====================== -->
 <section class="sec" id="method">
