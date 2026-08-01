@@ -691,16 +691,29 @@
      fixed and would otherwise sit on top of the full-bleed video, and the top
      bar's condensed title, which is redundant while the real title is on
      screen. One observer, both consumers. */
+  /* "The hero" for this purpose is the video stage AND the title block, not the
+     video alone: the rail may only appear once the title, authors and links are
+     completely off screen. Watching the stage alone brought it in while the
+     title was still being read, which is exactly the moment a fixed index is
+     noise. So both elements are observed and the flag is their OR -- true while
+     either is even one pixel on screen. */
   function initRail() {
     var targets = [document.querySelector('.rail'), document.querySelector('.nav')]
       .filter(Boolean);
-    var stage = document.querySelector('.stage');
+    var zones = [document.querySelector('.stage'), document.querySelector('.hero')]
+      .filter(Boolean);
     if (!targets.length) return;
     function set(v) { targets.forEach(function (t) { t.setAttribute('data-over-hero', v); }); }
-    if (!stage || !('IntersectionObserver' in window)) { set('false'); return; }
-    new IntersectionObserver(function (es) {
-      set(es[0].isIntersecting ? 'true' : 'false');
-    }, { threshold: 0, rootMargin: '-40% 0px 0px 0px' }).observe(stage);
+    if (!zones.length || !('IntersectionObserver' in window)) { set('false'); return; }
+    var onScreen = zones.map(function () { return false; });
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        var i = zones.indexOf(e.target);
+        if (i > -1) onScreen[i] = e.isIntersecting;
+      });
+      set(onScreen.some(Boolean) ? 'true' : 'false');
+    }, { threshold: 0 });
+    zones.forEach(function (z) { io.observe(z); });
   }
 
   function initNav() {

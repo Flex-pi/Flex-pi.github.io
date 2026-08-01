@@ -292,7 +292,7 @@
 
         <div class="maskctl2">
           <div class="maskline maskline--quick">
-            <span class="maskline__lab">jump to</span>
+            <span class="maskline__lab">try a preset</span>
             <span class="maskline__set maskline__set--wrap">
               <button class="regimechip" type="button" data-preset="joint"  aria-pressed="true">Full joint</button>
               <button class="regimechip" type="button" data-preset="action" aria-pressed="false">Action-only</button>
@@ -459,7 +459,7 @@
     </div>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
+  <div class="wrap wrap--wide reveal" style="margin-top:56px">
     <h4 class="sub__title">Scored against π<sub>0.5</sub></h4>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
@@ -483,7 +483,7 @@
     </div>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
+  <div class="wrap wrap--wide reveal" style="margin-top:56px">
     <h4 class="sub__title">The workcell</h4>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
@@ -525,7 +525,7 @@
     two moving hands, and an eight-stage repair in which the tolerances tighten as the sequence advances.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:52px">
+  <div class="wrap wrap--wide reveal" style="margin-top:52px">
     <h4 class="sub__title">Key unlocking</h4>
     <p class="sub__lede">The robot hands the key to its other arm, then inserts it into a <em>handheld</em> padlock —
     so what the policy controls is the relative pose of two independently actuated end-effectors, under in-hand pose
@@ -594,7 +594,7 @@
   </div>
 
   <!-- long horizon -->
-  <div class="wrap reveal" style="margin-top:72px">
+  <div class="wrap wrap--wide reveal" style="margin-top:72px">
     <h4 class="sub__title">Self-repair gripper</h4>
     <p class="sub__lede">The robot repairs its own gripper over eight stages that must be completed <em>in order</em>,
     split between the two arms, and the tolerance chain tightens as the sequence advances.</p>
@@ -688,7 +688,7 @@
     type.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
+  <div class="wrap wrap--wide reveal" style="margin-top:56px">
     <h4 class="sub__title">Where the baseline breaks</h4>
     <p class="sub__lede">π<sub>0.5</sub> degrades severely once appearance cues stop being reliable. Flex-π holds,
     because success depends on geometry and contact rather than on matching what the scene looked like in training.</p>
@@ -740,7 +740,7 @@
     against 70% for π<sub>0.5</sub> on geometry it has never seen.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:64px">
+  <div class="wrap wrap--wide reveal" style="margin-top:64px">
     <h4 class="sub__title">Four held-out variations</h4>
     <p class="sub__lede">Each number is Flex-π (Joint) against π<sub>0.5</sub> on the same held-out condition.</p>
   </div>
@@ -812,7 +812,7 @@
     </div>
   </div>
 
-  <div class="wrap reveal" style="margin-top:64px">
+  <div class="wrap wrap--mid reveal" style="margin-top:64px">
     <h4 class="sub__title">Halving the data</h4>
   </div>
 
@@ -851,7 +851,7 @@
     carries all three through a single shared backbone.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
+  <div class="wrap wrap--wide reveal" style="margin-top:56px">
     <h4 class="sub__title">Three streams, one shared space</h4>
     <p class="sub__lede">RGB and 3D pointmaps go through the <em>same</em> frozen video-generation VAE. DINOv3
     semantics come from a separate frozen encoder and are projected into the same backbone by a linear adapter.</p>
@@ -900,7 +900,7 @@
     </figure>
   </div>
 
-  <div class="wrap reveal" style="margin-top:60px">
+  <div class="wrap wrap--mid reveal" style="margin-top:60px">
     <h4 class="sub__title">Why latents instead of pixels</h4>
     <p class="sub__lede">The strongest WAMs predict future <em>images</em>, spending capacity and inference time on
     pixel-level detail that does not aid control. Flex-π keeps the joint prediction objective but runs it on future
@@ -919,7 +919,7 @@
     </figure>
   </div>
 
-  <div class="wrap reveal" style="margin-top:60px">
+  <div class="wrap wrap--wide reveal" style="margin-top:60px">
     <h4 class="sub__title">One checkpoint, any combination of streams</h4>
     <p class="sub__lede">Because the two masks are <em>sampled</em> per example rather than fixed, one training run
     covers every deployment regime — and at inference the masks stop being training noise and become choices.</p>
@@ -1134,7 +1134,7 @@
     the two deployment modes land within half a point of each other.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
+  <div class="wrap wrap--mid reveal" style="margin-top:56px">
     <h4 class="sub__title">RoboTwin</h4>
   </div>
   <div class="wrap wrap--mid reveal" style="margin-top:20px">
@@ -1164,7 +1164,7 @@
     structure.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:64px">
+  <div class="wrap wrap--mid reveal" style="margin-top:64px">
     <h4 class="sub__title">LIBERO</h4>
     <p class="sub__lede">One flexible checkpoint already matches the strongest published method in each group —
     <b>98.1%</b> action-only and <b>98.5%</b> at full joint generation. The mode-committed checkpoints in the table
@@ -1202,7 +1202,7 @@
     evaluation is still in progress and is therefore not reported here.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
+  <div class="wrap wrap--wide reveal" style="margin-top:56px">
     <h4 class="sub__title">Data efficiency</h4>
     <p class="sub__lede">The margin is widest where demonstrations are scarcest.</p>
   </div>
@@ -1221,7 +1221,7 @@
     </div>
   </div>
 
-  <div class="wrap reveal" style="margin-top:64px">
+  <div class="wrap wrap--mid reveal" style="margin-top:64px">
     <h4 class="sub__title">Which streams actually matter</h4>
     <p class="sub__lede">An ablation over which visual streams are supplied as input at all.</p>
   </div>
