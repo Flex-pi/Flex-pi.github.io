@@ -75,11 +75,7 @@
   --pad:      clamp(18px, 4vw, 44px);
   --gap-sec:  clamp(60px, 7.5vw, 112px);
 
-  /* 4px read as a hard technical corner against Source Serif's rounded bowls;
-     9px is soft enough to sit with the face and still square enough to read as
-     UI. One token, so cards, media, buttons and chips all curve by the same
-     amount -- mixed radii are what makes a page look assembled from parts. */
-  --radius:      9px;
+  --radius:      4px;
   --radius-pill: 999px;
   --ease: cubic-bezier(.22,.61,.36,1);
 }
@@ -193,9 +189,6 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 /* No max-width: 72ch at 16px is ~575px, well inside the 724px text column, and
    the short measure made every sub-point read narrower than the prose under it. */
-/* No max-width: the heading block sits in its figure's wrap and is left-aligned
-   to it, so a capped lede would end mid-row and read as a broken column. The
-   lede fills the box it was given. */
 .sub__lede { font-size: 16.5px; line-height: 1.6; color: var(--fg-muted); margin: 0; }
 .rule { height: 1px; background: var(--border-soft); border: 0; margin: 0; }
 
@@ -430,24 +423,17 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .hero { padding-top: clamp(38px, 6vw, 72px); text-align: center; }
 .hero .links { justify-content: center; }
 .hero .affils { justify-content: center; }
-/* Display size, text-master shapes. Source Serif 4 is a variable font with an
+/* DO NOT put this back up to 58px. Source Serif 4 is a variable font with an
    opsz 8..60 axis and font-optical-sizing defaults to auto, so font-size alone
-   would drive the optical axis: at 60px the browser renders the 60pt DISPLAY
-   master -- high stroke contrast, hairline serifs, tightened fit -- which reads
-   as decorative rather than formal. So the axis is pinned at 36 and the size is
-   set independently; that is what lets the title be large without going glossy.
-   Anything that changes font-size here must keep the opsz pin.
-   The max-width is what actually makes it read big: it forces the title into
-   three short lines instead of two full-measure ones, so the type block is tall
-   and dense rather than wide and thin. */
+   drives the optical axis: at 58px the browser renders the 60pt DISPLAY master
+   -- high stroke contrast, hairline serifs, tightened fit -- which reads as
+   decorative rather than formal. At 38px it stays in the text/subhead range.
+   ManiFlow sets its title at 2.5vw (= 36px at 1440) for the same reason. */
 .hero__title {
-  font-size: clamp(30px, 4.9vw, 64px);
-  font-variation-settings: "opsz" 36;
-  font-optical-sizing: none;
+  font-size: clamp(27px, 2.6vw, 38px);
   font-weight: 700;
-  line-height: 1.1; letter-spacing: -.012em;
-  max-width: 23ch; margin-inline: auto;
-  text-wrap: balance; margin-bottom: .3em;
+  line-height: 1.2; letter-spacing: 0;
+  text-wrap: balance; margin-bottom: .34em;
 }
 .hero__title .mark { color: var(--primary-ink); font-style: normal; }
 .hero__tagline {
@@ -621,8 +607,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-family: var(--ff-display); font-size: clamp(19px, 2.1vw, 24px);
   font-weight: 600; letter-spacing: -.01em; line-height: 1.25; margin-bottom: 6px;
 }
-/* fills its grid column -- the scoreboard beside it already sets the right edge */
-.vfeature__desc { font-size: 16px; line-height: 1.6; color: var(--fg-muted); }
+.vfeature__desc { font-size: 16px; line-height: 1.6; color: var(--fg-muted); max-width: 70ch; }
 .vfeature__desc .demos {
   display: block; margin-top: 8px; font-size: 14px; color: var(--fg-faint);
 }
@@ -691,15 +676,11 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* ==========================================================================
    dynamic architecture + live stream view
    ========================================================================== */
-/* One column at every width. Side by side, the diagram column was capped at
-   452px and the controls under it had to survive in that gutter -- the four
-   presets could not even hold one line. The reading order is the same either
-   way (diagram, then the stream it produces), so nothing is gained by splitting
-   it, and stacking gives both halves the full 1140px measure. */
 .archviz {
-  display: grid; grid-template-columns: 1fr;
+  display: grid; grid-template-columns: minmax(320px, 452px) minmax(0, 1fr);
   gap: clamp(18px, 2.6vw, 34px); align-items: stretch;
 }
+@media (max-width: 900px) { .archviz { grid-template-columns: 1fr; } }
 
 .archviz__diagram {
   border: 1px solid var(--border-soft); border-radius: var(--radius);
@@ -710,48 +691,25 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
   text-transform: uppercase; color: var(--fg-faint); margin-bottom: 10px;
 }
-/* Full-width the panel, but not its contents: the diagram is a 400x320 viewBox,
-   so letting it fill 1100px scales every label to headline size. Both the
-   drawing and the controls under it keep a 660px measure and centre, which is
-   also what keeps the two of them reading as one block. */
-.archviz__diagram svg {
-  width: 100%; max-width: 660px; margin-inline: auto;
-  height: 100%; flex: 1 1 auto; min-height: 190px;
-}
+.archviz__diagram svg { width: 100%; height: 100%; flex: 1 1 auto; min-height: 190px; }
 
 .archviz__stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 
-/* A row of chips only reads as a control once the GROUP looks like one. Four
-   separately-bordered pills read as a legend -- one inset track with a single
-   filled segment is the shape a reader already knows is clickable, and it says
-   "pick one of these" without a word of instruction. This site has no shadows,
-   so the track (not elevation) is what carries the affordance. */
-.archviz__chips {
-  display: inline-flex; gap: 4px; flex-wrap: wrap; align-self: flex-start;
-  padding: 4px; border: 1px solid var(--border);
-  border-radius: calc(var(--radius-pill)); background: var(--surface-2);
-}
-/* Same affordance rule as .regimechip: an unselected chip has to look like a
-   control on its own, before any hover. Muted text on a hairline border read as
-   a legend, so the resting state is full-strength text, a visible border and a
-   34px target; hover then only has to confirm what the shape already promised. */
+.archviz__chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .streamchip {
   display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  min-height: 32px; padding: 7px 14px; border-radius: var(--radius-pill);
-  border: 1px solid transparent; background: transparent;
-  color: var(--fg); font-size: 14.5px; font-weight: 500; line-height: 1.2;
-  transition: background .16s var(--ease), border-color .16s var(--ease),
-              color .16s var(--ease);
+  padding: 8px 13px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-soft); background: var(--surface);
+  color: var(--fg-muted); font-size: 14.5px; line-height: 1.2;
+  transition: background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease);
 }
-.streamchip:hover { background: var(--surface-3); color: var(--fg); }
-.streamchip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.streamchip:hover { background: var(--surface-2); color: var(--fg); }
 .streamchip .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--dot); flex: none; }
 .streamchip[aria-pressed="true"] {
   border-color: var(--dot); color: var(--dot);
-  background: color-mix(in srgb, var(--dot) 14%, var(--bg));
+  background: color-mix(in srgb, var(--dot) 12%, transparent);
 }
-/* stacked, the panel is 1100px wide -- the notes still get a readable measure */
-.archviz__note { font-size: 14px; line-height: 1.55; color: var(--fg-dim); margin: 0; max-width: 72ch; }
+.archviz__note { font-size: 14px; line-height: 1.55; color: var(--fg-dim); margin: 0; }
 
 /* --- svg diagram parts --- */
 .av-box { fill: var(--surface-2); stroke: var(--border-soft); stroke-width: 1; }
@@ -780,7 +738,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .av-row.is-sel .av-box, .av-out.is-sel .av-box { stroke-width: 2; }
 
 /* free mask toggles: any subset in, any subset out */
-.maskctl2 { margin-top: 14px; width: 100%; max-width: 660px; margin-inline: auto; }
+.maskctl2 { margin-top: 14px; }
 .maskline { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
 .maskline__lab {
   font-family: var(--ff-body); font-size: 13px; color: var(--fg-dim);
@@ -788,23 +746,11 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .maskline__lab .mono { font-family: var(--ff-mono); font-size: var(--fs-meta); color: var(--fg-muted); }
 .maskline__set { display: flex; gap: 5px; }
-/* Same segmented track as .archviz__chips -- see the note there. */
-.maskline__set--wrap {
-  flex-wrap: wrap; gap: 3px;
-  padding: 4px; border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px); background: var(--surface-2);
-}
-/* The preset row is the one line that must NOT wrap: four segments broken 3 + 1
-   stop reading as one control. The other rows keep the label beside them (three
-   small squares fit either way), but this one stacks its label so the track gets
-   the whole column and all four presets sit on a single line. */
-.maskline--quick {
-  flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 11px;
-}
-.maskline--quick .maskline__lab { flex: none; padding-top: 0; }
-.maskline--quick .maskline__set--wrap { align-self: flex-start; }
+.maskline__set--wrap { flex-wrap: wrap; gap: 5px; }
+.maskline--quick { align-items: flex-start; margin-bottom: 11px; }
+.maskline--quick .maskline__lab { padding-top: 5px; }
 .maskbtn {
-  width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; padding: 0;
+  width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; padding: 0;
   font-family: var(--ff-mono); font-size: 12px; font-weight: 500;
   border: 1.5px solid var(--dot); border-radius: 3px;
   color: var(--dot); background: color-mix(in srgb, var(--dot) 22%, transparent);
@@ -812,7 +758,6 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .maskbtn[aria-pressed="false"] { background: transparent; border-style: dashed; opacity: .42; }
 .maskbtn:hover { background: color-mix(in srgb, var(--dot) 34%, transparent); }
-.maskbtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .maskbtn--locked { cursor: default; opacity: 1; }
 .maskbtn--locked:hover { background: color-mix(in srgb, var(--dot) 22%, transparent); }
 .maskbtn.is-refused { animation: refuse .32s var(--ease); }
@@ -832,40 +777,16 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .av-star { fill: var(--s-action); font-size: 11px; opacity: 0; transition: opacity .2s var(--ease); }
 .av-out.is-forced .av-star { opacity: 1; }
 
-/* These read as tags unless they are built like buttons: at 14px/dim-on-surface
-   with a hairline border they were indistinguishable from the static labels
-   around them, and nobody clicked them. So: full-strength text colour, a border
-   that is actually visible, a 34px hit target, and motion on hover/active --
-   the three signals that say "control" rather than "caption". */
 .regimechip {
-  font-size: 14.5px; line-height: 1.2; font-weight: 500;
-  min-height: 34px; padding: 8px 14px; border-radius: var(--radius); cursor: pointer;
-  border: 1px solid var(--border); background: var(--surface); color: var(--fg);
-  transition: background .16s var(--ease), color .16s var(--ease),
-              border-color .16s var(--ease), transform .16s var(--ease);
+  font-size: 14px; line-height: 1.2;
+  padding: 6px 11px; border-radius: var(--radius); cursor: pointer;
+  border: 1px solid var(--border-soft); background: var(--surface); color: var(--fg-dim);
+  transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
 }
-.regimechip:hover {
-  background: var(--surface-2); color: var(--fg);
-  border-color: var(--fg-dim); transform: translateY(-1px);
-}
-.regimechip:active { transform: translateY(0); }
-.regimechip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-/* inside the segmented track the group carries the affordance, so the segments
-   drop their own borders and only the selected one is filled */
-/* 10px sides, not 12: the four presets together are ~5px wider than the panel
-   at 12, and 3 + 1 wrapping is worse than a slightly tighter segment. */
-.maskline__set--wrap .regimechip {
-  min-height: 32px; padding: 7px 10px;
-  border-color: transparent; background: transparent;
-}
-.maskline__set--wrap .regimechip:hover {
-  background: var(--surface-3); border-color: transparent; transform: none;
-}
-.regimechip[aria-pressed="true"],
-.maskline__set--wrap .regimechip[aria-pressed="true"] {
+.regimechip:hover { background: var(--surface-2); color: var(--fg); }
+.regimechip[aria-pressed="true"] {
   border-color: color-mix(in srgb, var(--primary) 60%, transparent);
-  background: color-mix(in srgb, var(--primary) 14%, var(--bg));
-  color: var(--primary-ink);
+  background: var(--primary-soft); color: var(--primary-ink);
 }
 .archviz__regimenote {
   margin: 8px 0 0; font-size: var(--fs-fine); line-height: 1.5; color: var(--fg-dim); min-height: 3.6em;
@@ -1181,6 +1102,10 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
    than it should while the rail is on. Must stay at the end of the file: the
    declarations being overridden come later and match at equal specificity.
    ========================================================================== */
+@media (min-width: 1024px) and (max-width: 1339px) {
+  /* the diagram column is a fixed 452px, so the video takes the whole squeeze */
+  .archviz { grid-template-columns: 1fr; }
+}
 @media (min-width: 1024px) and (max-width: 1207px) {
   .vgrid--3, .vgrid--4 { grid-template-columns: repeat(2, 1fr); }
   .explorer__body { grid-template-columns: 1fr; }
