@@ -175,18 +175,12 @@
   </div>
 
   <div class="wrap wrap--wide reveal introvid" style="margin-top:30px">
-    <div class="player" data-player data-caption="Overview reel across the real-robot task suite. Placeholder footage — see the notice below.">
-      <span class="player__badge">Placeholder footage</span>
+    <div class="player" data-player data-caption="Overview reel across the real-robot task suite.">
       <video src="assets/videos/intro.mp4" poster="assets/videos/intro.jpg"
              loop muted playsinline preload="metadata" data-autoplay
              aria-label="An overview reel cutting between teleoperated data collection, plate placement, utensil sorting, a bimanual handover, a fine insertion and screw driving"></video>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
-    <p class="placeholder-notice" style="margin-top:14px">
-      <b>Placeholder footage.</b> Clips on this page stand in for layout while our own recordings are prepared —
-      they come from public robotics project pages and do <b>not</b> show Flex-π rollouts. Every number quoted
-      alongside them is from the paper.
-    </p>
   </div>
 </section>
 
@@ -202,12 +196,57 @@
     trained is in <a href="#method">How it works</a>.</p>
   </div>
 
+  <!-- the three streams side by side: the same observation, three representations.
+       This block teaches the vocabulary (what V / D / P look like); the configurator
+       card below then plays with which of them are observed and generated. -->
   <div class="wrap wrap--wide reveal" style="margin-top:30px">
-    <div class="archviz" id="archviz" data-active="rgb">
+    <div class="vgrid vgrid--3">
+      <figure>
+        <div class="player" data-player data-caption="The observation as a normal colour image — the appearance stream. Placeholder footage.">
+          <video src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay
+                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-rgb)"></span>RGB &middot; appearance</b>The observation image, encoded by a frozen Wan-2.2 VAE into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</figcaption>
+      </figure>
+      <figure>
+        <div class="player" data-player data-caption="The same observation as a patch-resolution feature map — the semantics stream. Placeholder footage; an illustrative rendering, not model output.">
+          <video src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay
+                 aria-label="The same scene as a patch-resolution PCA feature map, illustrating object-level semantics"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-dino)"></span>DINO &middot; object semantics</b>Object-level tokens from a frozen DINOv3 encoder, folded 2&times;2 into the channel dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.</figcaption>
+      </figure>
+      <figure>
+        <div class="player" data-player data-caption="The same observation as a false-colour depth map — the geometry stream. Placeholder footage; an illustrative rendering, not model output.">
+          <video src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay
+                 aria-label="The same scene as a false-colour depth map, illustrating the 3D pointmap stream"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-3d)"></span>Pointmap &middot; 3D geometry</b>A 3D pointmap pushed through the same frozen VAE &mdash; an encoder trained only on RGB reconstructs pointmaps at 38&nbsp;dB PSNR on the paper&rsquo;s example, so the latent space carries scene geometry directly.</figcaption>
+      </figure>
+    </div>
+    <p class="archviz__note archviz__note--fine" style="margin-top:14px">How these panels were made: <b>RGB</b> is the source clip.
+    <b>Pointmap</b> is a false-colour ramp over image luminance and height &mdash; it mimics the look of Figure 3 but
+    carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
+    than DINOv3&rsquo;s 768-D features. None of these are model output; the paper&rsquo;s real
+    VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
+  </div>
+
+  <!-- the configurator: which streams the model reads and generates -->
+  <div class="wrap wrap--wide reveal" style="margin-top:20px">
+    <div class="archviz" id="archviz">
+      <div class="archviz__head">
+        <div class="archviz__label">Multi-stream world-action model</div>
+      </div>
+      <div class="archviz__body">
 
       <!-- left: animated architecture that reflects the masks -->
       <div class="archviz__diagram">
-        <div class="archviz__label">Multi-stream world-action model</div>
+        <div class="archviz__figrow">
         <svg viewBox="0 0 400 320" role="img" id="av-svg"
              aria-label="Architecture diagram. Three observed input streams on the left — RGB and pointmap through one shared frozen Wan-2.2 VAE, DINO through a frozen DINOv3 encoder — feed a shared Multi-Stream Mixture-of-Transformers trunk in the centre. The trunk emits one future latent per stream on the right, mirroring the inputs, and drives an action expert below it that outputs the action chunk. Streams that are not observed, and futures that are not generated, are drawn dashed.">
 
@@ -289,8 +328,12 @@
               <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.6s"><mpath href="#av-o-act" xlink:href="#av-o-act"/></animateMotion></rect>
           </g>
         </svg>
+          <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
+        </div>
+      </div>
 
-        <div class="maskctl2">
+      <!-- right: masks and regimes -->
+      <div class="archviz__ctl maskctl2">
           <div class="maskline maskline--quick">
             <span class="maskline__lab">jump to</span>
             <span class="maskline__set maskline__set--wrap">
@@ -328,40 +371,7 @@
             <button class="regimechip" type="button" id="av-draw">Random draw</button>
             <span class="maskctl2__count">configuration <span id="av-combo">1</span> of 56</span>
           </div>
-        </div>
       </div>
-
-      <!-- right: the selected stream -->
-      <div class="archviz__stage">
-        <div class="archviz__stagerow">
-        <div class="player" data-player data-caption="The same observation viewed as each of the streams Flex-π consumes. Placeholder footage; the pointmap and DINO panels are illustrative renderings, not model output.">
-          <span class="player__badge" id="av-badge">RGB &middot; appearance</span>
-          <video id="av-v-rgb" src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
-                 muted playsinline preload="metadata" data-autoplay
-                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
-          <video id="av-v-p3d" src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
-                 muted playsinline preload="metadata" data-autoplay hidden
-                 aria-label="The same scene as a false-colour depth map, illustrating the 3D pointmap stream"></video>
-          <video id="av-v-dino" src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg"
-                 muted playsinline preload="metadata" data-autoplay hidden
-                 aria-label="The same scene as a patch-resolution PCA feature map, illustrating object-level semantics"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-          </div>
-          <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
-        </div>
-
-        <div class="archviz__chips" role="group" aria-label="Choose a stream to view">
-          <button class="streamchip" type="button" data-stream="rgb"  style="--dot:var(--s-rgb)"  aria-pressed="true"><span class="dot"></span>RGB</button>
-          <button class="streamchip" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false"><span class="dot"></span>DINO</button>
-          <button class="streamchip" type="button" data-stream="p3d"  style="--dot:var(--s-3d)"   aria-pressed="false"><span class="dot"></span>Pointmap</button>
-        </div>
-        <p class="archviz__note" id="av-note">Appearance. The observation image, encoded by a frozen Wan-2.2 VAE
-        into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</p>
-        <p class="archviz__note archviz__note--fine">How these panels were made: <b>RGB</b> is the source clip.
-        <b>Pointmap</b> is a false-colour ramp over image luminance and height — it mimics the look of Figure 3 but
-        carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
-        than DINOv3's 768-D features. The <b>action</b> strip beside them is a schematic. None of these are model output; the paper's real
-        VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
       </div>
     </div>
   </div>

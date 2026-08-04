@@ -676,38 +676,38 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* ==========================================================================
    dynamic architecture + live stream view
    ========================================================================== */
+/* One shared card, like the explorer below: a head strip names the unit, the
+   body holds the two coupled halves — the diagram-as-controller on the left
+   and the stream view it drives on the right. */
 .archviz {
-  display: grid; grid-template-columns: minmax(320px, 452px) minmax(0, 1fr);
-  gap: clamp(18px, 2.6vw, 34px); align-items: stretch;
-}
-@media (max-width: 900px) { .archviz { grid-template-columns: 1fr; } }
-
-.archviz__diagram {
   border: 1px solid var(--border-soft); border-radius: var(--radius);
-  background: var(--surface); padding: 16px 16px 12px;
-  display: flex; flex-direction: column;
+  background: var(--surface); overflow: hidden;
+}
+.archviz__head {
+  padding: 14px clamp(16px, 2.4vw, 26px);
+  border-bottom: 1px solid var(--border-faint);
 }
 .archviz__label {
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
-  text-transform: uppercase; color: var(--fg-faint); margin-bottom: 10px;
+  text-transform: uppercase; color: var(--fg-faint);
 }
-.archviz__diagram svg { width: 100%; height: 100%; flex: 1 1 auto; min-height: 190px; }
-
-.archviz__stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-
-.archviz__chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.streamchip {
-  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  padding: 8px 13px; border-radius: var(--radius-pill);
-  border: 1px solid var(--border-soft); background: var(--surface);
-  color: var(--fg-muted); font-size: 14.5px; line-height: 1.2;
-  transition: background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease);
+.archviz__body {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 336px);
+  gap: clamp(18px, 2.6vw, 34px); align-items: start;
+  padding: clamp(18px, 2.6vw, 28px) clamp(16px, 2.4vw, 26px);
 }
-.streamchip:hover { background: var(--surface-2); color: var(--fg); }
-.streamchip .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--dot); flex: none; }
-.streamchip[aria-pressed="true"] {
-  border-color: var(--dot); color: var(--dot);
-  background: color-mix(in srgb, var(--dot) 12%, transparent);
+@media (max-width: 900px) { .archviz__body { grid-template-columns: 1fr; } }
+
+.archviz__diagram { min-width: 0; }
+/* diagram plus the always-on action readout; the SVG's aspect ratio sets the
+   row height and the strip stretches to match */
+.archviz__figrow { display: flex; gap: 14px; align-items: stretch; }
+.archviz__figrow svg { flex: 1 1 auto; min-width: 0; height: auto; aspect-ratio: 400 / 320; }
+.archviz__ctl { min-width: 0; }
+/* colour key in the triptych captions, matching the diagram's stream colours */
+.vcard__cap .capdot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+  background: var(--dot); margin-right: 7px;
 }
 .archviz__note { font-size: 14px; line-height: 1.55; color: var(--fg-dim); margin: 0; }
 
@@ -734,11 +734,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .av-row[data-on="false"], .av-out[data-on="false"] { opacity: .34; }
 .av-row[data-on="false"] .av-box, .av-out[data-on="false"] .av-box { stroke-dasharray: 3.5 3; fill: none; }
 .av-row[data-on="false"] .av-token, .av-out[data-on="false"] .av-token { display: none; }
-/* the stream currently shown on the right gets a light emphasis */
-.av-row.is-sel .av-box, .av-out.is-sel .av-box { stroke-width: 2; }
-
 /* free mask toggles: any subset in, any subset out */
-.maskctl2 { margin-top: 14px; }
 .maskline { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
 .maskline__lab {
   font-family: var(--ff-body); font-size: 13px; color: var(--fg-dim);
@@ -792,24 +788,14 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   margin: 8px 0 0; font-size: var(--fs-fine); line-height: 1.5; color: var(--fg-dim); min-height: 3.6em;
 }
 
-/* the modality view and a permanent narrow action readout, side by side */
-/* The player's aspect ratio sets the row height and the strip is taken out of flow,
-   otherwise the strip's SVG viewBox dictates the height through its intrinsic ratio
-   and the video ends up sitting in a tall box with dead space under it. */
-.archviz__stagerow { position: relative; padding-right: 118px; min-width: 0; }
-.archviz__stagerow .player { width: 100%; aspect-ratio: 16 / 9; }
-.archviz__stagerow .player video {
-  width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover;
-}
+/* the always-on action readout beside the diagram; its inner SVG uses
+   preserveAspectRatio: none, so it stretches to whatever height the row has */
 .actionstrip {
-  position: absolute; right: 0; top: 0; bottom: 0; width: 108px;
+  flex: 0 0 96px;
   background: #0c0c0c; border: 1px solid var(--border-faint);
   border-radius: var(--radius); overflow: hidden;
 }
-@media (max-width: 560px) {
-  .archviz__stagerow { padding-right: 84px; }
-  .actionstrip { width: 76px; }
-}
+@media (max-width: 560px) { .actionstrip { flex-basis: 72px; } }
 .actionstrip svg { width: 100%; height: 100%; display: block; }
 .actionstrip .ac-trace { fill: none; stroke-width: 1.2; opacity: .9; vector-effect: non-scaling-stroke; }
 .actionstrip .ac-sep   { stroke: rgba(255,255,255,.16); stroke-width: 1; vector-effect: non-scaling-stroke; }
@@ -1103,8 +1089,8 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
    declarations being overridden come later and match at equal specificity.
    ========================================================================== */
 @media (min-width: 1024px) and (max-width: 1339px) {
-  /* the diagram column is a fixed 452px, so the video takes the whole squeeze */
-  .archviz { grid-template-columns: 1fr; }
+  /* diagram and controls no longer fit side by side once the rail takes its cut */
+  .archviz__body { grid-template-columns: 1fr; }
 }
 @media (min-width: 1024px) and (max-width: 1207px) {
   .vgrid--3, .vgrid--4 { grid-template-columns: repeat(2, 1fr); }

@@ -791,21 +791,9 @@
   }
 
   /* ---------------------------------------------------------------------
-     dynamic architecture: mask state, regimes, and the stream panel
+     dynamic architecture: mask state and regimes. The three stream clips are
+     plain looping videos in the triptych above — no JS switching involved.
      --------------------------------------------------------------------- */
-  var STREAM_INFO = {
-    rgb:  { badge: 'RGB · appearance',
-            note: 'Appearance. The observation image, encoded by a frozen Wan-2.2 VAE into latent tokens that ' +
-                  'inherit spatiotemporal priors from internet-scale video pre-training.' },
-    p3d:  { badge: 'Pointmap · 3D geometry',
-            note: 'Geometry. A 3D pointmap pushed through the same frozen VAE — an encoder trained only on RGB ' +
-                  'reconstructs pointmaps at 38 dB PSNR on the paper’s example, so the latent space carries scene ' +
-                  'geometry directly.' },
-    dino: { badge: 'DINO · object semantics',
-            note: 'Semantics. Object-level tokens from a frozen DINOv3 encoder, folded 2×2 into the channel ' +
-                  'dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.' }
-  };
-
   /* --- narrow, always-on action readout: 14 joint traces over a 32-step chunk --- */
   function buildActionStrip(host) {
     var W = 108, H = 320, padT = 26, padB = 20, padL = 5, padR = 5;
@@ -853,49 +841,10 @@
   function initArchviz() {
     var root = document.getElementById('archviz');
     if (!root) return;
-    var chips   = Array.prototype.slice.call(root.querySelectorAll('.streamchip'));
-    var badge   = document.getElementById('av-badge');
-    var note    = document.getElementById('av-note');
-    var rnote   = document.getElementById('av-regime-note');
-    var strip   = document.getElementById('av-strip');
-    var panels  = { rgb: document.getElementById('av-v-rgb'), dino: document.getElementById('av-v-dino'),
-                    p3d: document.getElementById('av-v-p3d') };
-    var order   = ['rgb', 'dino', 'p3d'];
-    var touched = false, current = 'rgb', onScreen = false;
+    var rnote = document.getElementById('av-regime-note');
+    var strip = document.getElementById('av-strip');
 
     if (strip) buildActionStrip(strip);
-
-    function nextStream() {
-      if (touched) return;
-      showStream(order[(order.indexOf(current) + 1) % order.length]);
-    }
-
-    function showStream(key) {
-      current = key;
-      root.setAttribute('data-active', key);
-      chips.forEach(function (c) {
-        c.setAttribute('aria-pressed', c.getAttribute('data-stream') === key ? 'true' : 'false');
-      });
-      order.forEach(function (k) {
-        var node = panels[k];
-        if (!node) return;
-        var on = (k === key);
-        node.hidden = !on;
-        if (node.tagName === 'VIDEO') {
-          if (on) {
-            try { node.currentTime = 0; } catch (e) {}
-            node.play().catch(function () {});
-          } else { node.pause(); }
-        }
-      });
-      root.querySelectorAll('.av-row, .av-out').forEach(function (g) {
-        var s = g.getAttribute('data-s') || g.getAttribute('data-o');
-        g.classList.toggle('is-sel', s === key);
-      });
-      if (badge && STREAM_INFO[key]) badge.textContent = STREAM_INFO[key].badge;
-      if (note && STREAM_INFO[key]) note.textContent = STREAM_INFO[key].note;
-
-    }
 
     /* --- mask state: any subset observed, any subset generated --------------
        The two masks are independent, exactly as in training, so cross-modality
@@ -1015,45 +964,12 @@
       });
     }
 
-    /* auto-advance when the current clip finishes; a click hands control over for good */
-    order.forEach(function (k) {
-      var v = panels[k];
-      if (!v) return;
-      v.loop = false;
-      v.addEventListener('ended', function () {
-        if (touched) { v.play().catch(function () {}); return; }
-        if (onScreen) nextStream();
-      });
-    });
-
-    function takeOver() {
-      touched = true;
-      order.forEach(function (k) { if (panels[k]) panels[k].loop = true; });
-    }
-
-    chips.forEach(function (c) {
-      c.addEventListener('click', function () {
-        takeOver();
-        showStream(c.getAttribute('data-stream'));
-      });
-    });
-
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (es) {
-        es.forEach(function (e) {
-          onScreen = e.isIntersecting;
-        });
-      }, { threshold: 0.3 }).observe(root);
-    } else { onScreen = true; }
-
     if (reduceMotion) {
       var svg = document.getElementById('av-svg');
       if (svg && svg.pauseAnimations) svg.pauseAnimations();
-      takeOver();
     }
 
     paintMasks();
-    showStream('rgb');
   }
 
   /* ---------------------------------------------------------------------
