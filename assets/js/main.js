@@ -690,17 +690,23 @@
   /* Two things key off "has the reader left the hero yet": the rail, which is
      fixed and would otherwise sit on top of the full-bleed video, and the top
      bar's condensed title, which is redundant while the real title is on
-     screen. One observer, both consumers. */
+     screen. One observer, both consumers. The sentinel is the paper title:
+     both stay hidden until it has scrolled off the top of the viewport, so
+     the rail never overlaps the video or the masthead. */
   function initRail() {
     var targets = [document.querySelector('.rail'), document.querySelector('.nav')]
       .filter(Boolean);
-    var stage = document.querySelector('.stage');
+    var title = document.querySelector('.hero__title') || document.querySelector('.stage');
     if (!targets.length) return;
     function set(v) { targets.forEach(function (t) { t.setAttribute('data-over-hero', v); }); }
-    if (!stage || !('IntersectionObserver' in window)) { set('false'); return; }
+    if (!title || !('IntersectionObserver' in window)) { set('false'); return; }
     new IntersectionObserver(function (es) {
-      set(es[0].isIntersecting ? 'true' : 'false');
-    }, { threshold: 0, rootMargin: '-40% 0px 0px 0px' }).observe(stage);
+      var e = es[0];
+      /* "past the hero" means the title left through the TOP -- if it is
+         merely below the fold (reader still on the video), stay hidden */
+      var past = !e.isIntersecting && e.boundingClientRect.bottom <= 0;
+      set(past ? 'false' : 'true');
+    }, { threshold: 0 }).observe(title);
   }
 
   function initNav() {
