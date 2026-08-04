@@ -489,13 +489,13 @@
       latNote.innerHTML = hit.latNote;
       srNote.innerHTML = hit.srNote;
     } else {
-      latEl.innerHTML = '&mdash;';
+      latEl.innerHTML = '68&ndash;398<span class="unit">ms</span>';
       srEl.innerHTML = '&mdash;';
       modeEl.textContent = 'Deployable, but not benchmarked';
       descEl.textContent = 'The checkpoint supports this combination — stream masks are runtime arguments, not ' +
         'architectural choices — but the paper reports the four configurations on the cumulative ladder. ' +
         'Click a point on the chart below to jump to a measured one.';
-      latNote.innerHTML = 'No published measurement.';
+      latNote.innerHTML = 'Bracketed by the measured endpoints; not benchmarked individually.';
       srNote.innerHTML = 'No published measurement.';
     }
 
@@ -973,6 +973,37 @@
   }
 
   /* ---------------------------------------------------------------------
+     juxtapose slider (Figure 3): wipe between two pixel-aligned layers.
+     Pointer drags anywhere on the image; arrow keys move it when focused.
+     --------------------------------------------------------------------- */
+  function initJuxta() {
+    document.querySelectorAll('[data-juxta]').forEach(function (j) {
+      function set(pct) {
+        pct = Math.max(0, Math.min(100, pct));
+        j.style.setProperty('--x', pct + '%');
+        j.setAttribute('aria-valuenow', String(Math.round(pct)));
+      }
+      function fromX(clientX) {
+        var r = j.getBoundingClientRect();
+        set((clientX - r.left) / r.width * 100);
+      }
+      j.addEventListener('pointerdown', function (e) {
+        j.setPointerCapture(e.pointerId);
+        fromX(e.clientX);
+      });
+      j.addEventListener('pointermove', function (e) {
+        if (e.buttons) fromX(e.clientX);
+      });
+      j.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowLeft' ? -4 : e.key === 'ArrowRight' ? 4 : 0;
+        if (!d) return;
+        e.preventDefault();
+        set((parseFloat(j.style.getPropertyValue('--x')) || 50) + d);
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
      theme toggle — the page ships "day" (cream) like the ENPIRE anchor;
      both themes are fully authored, so this is a token swap. Charts read
      their colors from CSS custom properties, so they are re-rendered.
@@ -1000,6 +1031,7 @@
     initMaskDemo();
     initVideos();
     initArchviz();
+    initJuxta();
     initLightbox();
     initNav();
     initRail();

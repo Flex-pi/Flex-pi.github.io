@@ -179,6 +179,7 @@
       <video src="assets/videos/intro.mp4" poster="assets/videos/intro.jpg"
              loop muted playsinline preload="metadata" data-autoplay
              aria-label="An overview reel cutting between teleoperated data collection, plate placement, utensil sorting, a bimanual handover, a fine insertion and screw driving"></video>
+      <span class="player__badge player__badge--bl">Autonomous, 1.7x speed</span>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
   </div>
@@ -886,9 +887,8 @@
       <div class="stream" style="--dot:var(--s-3d)">
         <div class="stream__key"><span class="swatch"></span>Stream P</div>
         <h5 class="stream__name">Pointmap &mdash; 3D geometry</h5>
-        <p class="stream__desc">A 3D pointmap pushed through the <em>same</em> frozen VAE. Surprisingly, an encoder
-        trained only on RGB reconstructs pointmaps well — 38&nbsp;dB PSNR on the example in Figure 3 — so its latent
-        space is immediately useful for encoding scene geometry.</p>
+        <p class="stream__desc">A 3D pointmap pushed through the <em>same</em> frozen VAE. An encoder trained only
+        on RGB already reconstructs pointmaps well (Figure&nbsp;3), so no geometry-specific encoder is needed.</p>
         <p class="stream__src">Enc(p<sub>t</sub>) &middot; shared VAE weights</p>
       </div>
     </div>
@@ -920,12 +920,26 @@
 
   <div class="wrap wrap--mid reveal" style="margin-top:34px">
     <figure>
-      <div class="plate">
-        <img src="assets/figures/fig3_vae.png" alt="Three panels side by side: an RGB observation, the ground-truth pointmap, and the Wan-VAE reconstruction of that pointmap, which closely matches the ground truth." loading="lazy" style="min-width:380px">
+      <div class="plate vaefig">
+        <div class="vaefig__cell">
+          <img class="vaefig__rgb" src="assets/figures/fig3_rgb.png" loading="lazy"
+               alt="The RGB observation the pointmap corresponds to: two robot arms over a wooden table with a pink bowl.">
+          <span class="juxta__tag">RGB</span>
+        </div>
+        <div class="juxta" data-juxta tabindex="0" role="slider"
+             aria-label="Comparison slider: ground-truth pointmap versus its VAE reconstruction. Use arrow keys to move the divider."
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+          <img src="assets/figures/fig3_recon.png" alt="VAE reconstruction of the pointmap" loading="lazy" draggable="false">
+          <div class="juxta__top"><img src="assets/figures/fig3_gt.png" alt="Ground-truth pointmap" loading="lazy" draggable="false"></div>
+          <div class="juxta__bar" aria-hidden="true"><span class="juxta__grip">&#9664;&#9654;</span></div>
+          <span class="juxta__tag">GT pointmap</span>
+          <span class="juxta__tag juxta__tag--r">VAE reconstruction</span>
+        </div>
       </div>
       <figcaption class="figcap"><span class="tag">Figure 3</span><b>A video VAE trained only on RGB already encodes 3D.</b>
-      Encoding and then decoding a pointmap with the frozen Wan-2.2 VAE yields a very accurate reconstruction
-      (PSNR 38&nbsp;dB, MSE 1&times;10<sup>&minus;4</sup>).</figcaption>
+      Drag the divider: left of it is the ground-truth pointmap, right of it the frozen Wan-2.2 VAE&rsquo;s
+      reconstruction &mdash; sweep across and almost nothing changes
+      (PSNR 38&nbsp;dB, MSE 1&times;10<sup>&minus;4</sup>). The RGB panel is the scene the pointmap encodes.</figcaption>
     </figure>
   </div>
 
@@ -1044,17 +1058,14 @@
           <button class="toggle" type="button" data-stream="rgb" style="--dot:var(--s-rgb)" aria-pressed="false">
             <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
             <span class="toggle__txt">Future RGB latents <small>Appearance — stream V</small></span>
-            <span class="toggle__cost">step 1</span>
           </button>
           <button class="toggle" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false">
             <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
             <span class="toggle__txt">Future DINO semantics <small>Object semantics — stream D</small></span>
-            <span class="toggle__cost">step 2</span>
           </button>
           <button class="toggle" type="button" data-stream="p3d" style="--dot:var(--s-3d)" aria-pressed="false">
             <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
             <span class="toggle__txt">Future 3D pointmaps <small>Geometry — stream P</small></span>
-            <span class="toggle__cost">step 3</span>
           </button>
           <p class="toggles__note">The paper benchmarks four configurations, adding streams in this order:
           <b>68&nbsp;&rarr; 139&nbsp;&rarr; 280&nbsp;&rarr; 398&nbsp;ms</b>. Per-stream costs are not reported

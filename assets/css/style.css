@@ -423,16 +423,19 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .hero { padding-top: clamp(38px, 6vw, 72px); text-align: center; }
 .hero .links { justify-content: center; }
 .hero .affils { justify-content: center; }
-/* DO NOT put this back up to 58px. Source Serif 4 is a variable font with an
-   opsz 8..60 axis and font-optical-sizing defaults to auto, so font-size alone
-   drives the optical axis: at 58px the browser renders the 60pt DISPLAY master
-   -- high stroke contrast, hairline serifs, tightened fit -- which reads as
-   decorative rather than formal. At 38px it stays in the text/subhead range.
-   ManiFlow sets its title at 2.5vw (= 36px at 1440) for the same reason. */
+/* Size and optical size are decoupled on purpose. Source Serif 4 has an opsz
+   8..60 axis and font-optical-sizing defaults to auto, so font-size alone
+   would drive the optical axis: near 58px the browser renders the 60pt
+   DISPLAY master -- high stroke contrast, hairline serifs, tightened fit --
+   which reads as decorative rather than formal (the reason this was once
+   capped at 38px). Pinning opsz to the 36pt text master keeps the formal
+   letterforms at any size, so the title can take display scale safely. */
 .hero__title {
-  font-size: clamp(27px, 2.6vw, 38px);
+  font-size: clamp(28px, 3.4vw, 48px);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 36;
   font-weight: 700;
-  line-height: 1.2; letter-spacing: 0;
+  line-height: 1.16; letter-spacing: -.008em;
   text-wrap: balance; margin-bottom: .34em;
 }
 .hero__title .mark { color: var(--primary-ink); font-style: normal; }
@@ -536,6 +539,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   color: rgba(255,255,255,.84); border: 1px solid rgba(255,255,255,.15); line-height: 1.5;
 }
 .player__badge--ours { color: #b6f0cd; border-color: rgba(87,201,139,.44); background: rgba(14,40,26,.76); }
+.player__badge--bl { top: auto; bottom: 8px; }
 
 .vgrid { display: grid; gap: clamp(14px, 2vw, 22px); }
 .vgrid--2 { grid-template-columns: repeat(2, 1fr); }
@@ -658,15 +662,11 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   border-radius: var(--radius); overflow: hidden;
 }
 @media (max-width: 780px) { .streams { grid-template-columns: 1fr; } }
-.stream { background: var(--bg); padding: 22px 20px; position: relative; }
-.stream::before {
-  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-  background: var(--dot, var(--fg-faint));
-}
+.stream { background: var(--bg); padding: 22px 20px; }
 .stream__key {
   display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
-  text-transform: uppercase; color: var(--dot);
+  text-transform: uppercase; color: var(--fg-faint);
 }
 .stream__key .swatch { width: 9px; height: 9px; border-radius: 2px; background: var(--dot); flex: none; }
 .stream__name { font-size: 19px; margin-bottom: 7px; letter-spacing: -.008em; }
@@ -846,7 +846,6 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .toggle[aria-pressed="true"] .toggle__box svg { opacity: 1; }
 .toggle__txt { flex: 1; line-height: 1.3; }
 .toggle__txt small { display: block; font-size: 12.5px; color: var(--fg-dim); margin-top: 2px; }
-.toggle__cost { font-family: var(--ff-mono); font-size: var(--fs-meta); color: var(--fg-faint); }
 .toggle--locked { cursor: default; }
 .toggle--locked:hover { background: var(--surface); }
 .toggle--locked .toggle__box { background: var(--dot); border-color: var(--dot); }
@@ -1079,6 +1078,51 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
 
+
+/* ==========================================================================
+   juxtapose slider -- Figure 3's GT-pointmap vs VAE-reconstruction wipe.
+   The two layers are pixel-aligned crops of the same figure, so the wipe
+   revealing "no visible change" IS the 38 dB claim, made tangible.
+   ========================================================================== */
+.vaefig { display: flex; gap: 10px; align-items: stretch; }
+.vaefig img { min-width: 0; }             /* out-specify .plate img's 460px floor */
+.vaefig__cell { position: relative; flex: 1 1 0; min-width: 0; }
+.vaefig__rgb { width: 100%; height: auto; border-radius: 3px; }
+.vaefig .juxta { flex: 1 1 0; }
+@media (max-width: 560px) { .vaefig { flex-direction: column; } }
+
+/* corner tags replacing the labels burned into the source figure (those clash
+   where the wipe crosses them, so the crops exclude them) */
+.juxta__tag {
+  position: absolute; top: 8px; left: 8px; z-index: 1; pointer-events: none;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta);
+  text-transform: uppercase; line-height: 1;
+  padding: 4px 7px; border-radius: 3px;
+  background: rgba(12,12,12,.58); color: rgba(255,255,255,.92);
+}
+.juxta__tag--r { left: auto; right: 8px; }
+
+.juxta {
+  --x: 50%;
+  position: relative; min-width: 0; overflow: hidden; border-radius: 3px;
+  cursor: ew-resize; touch-action: pan-y;
+  user-select: none; -webkit-user-select: none;
+}
+.juxta > img { width: 100%; height: auto; display: block; }
+.juxta__top { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--x)) 0 0); }
+.juxta__top img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.juxta__bar {
+  position: absolute; top: 0; bottom: 0; left: var(--x); width: 0;
+  border-left: 2px solid rgba(255,255,255,.92); transform: translateX(-1px);
+}
+.juxta__grip {
+  position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%);
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(12,12,12,.55); border: 1.5px solid rgba(255,255,255,.92);
+  color: #fff; font-size: 10px; letter-spacing: 2px; text-indent: 2px;
+}
+.juxta:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 
 /* ==========================================================================
    rail-aware layout guards
