@@ -44,7 +44,7 @@
       <a href="#abstract">Abstract</a>
       <a href="#precision">Precision</a>
       <a href="#real-robot">Dexterity</a>
-      <a href="#generalization">Generalization</a>
+      <a href="#generalization">Cluttered Scenes</a>
       <a href="#streams">Architecture</a>
       <a href="#method">Method</a>
       <a href="#explorer" class="nav-hide">Flexibility</a>
@@ -72,7 +72,7 @@
     <a data-level="1" href="#part-1">What Flex-π does</a>
     <a data-level="2" data-part="part-1" href="#precision">Precision</a>
     <a data-level="2" data-part="part-1" href="#real-robot">Dexterity</a>
-    <a data-level="2" data-part="part-1" href="#generalization">Generalization</a>
+    <a data-level="2" data-part="part-1" href="#generalization">Cluttered scenes</a>
     <a data-level="1" href="#part-2">How it works</a>
     <a data-level="2" data-part="part-2" href="#method">One latent space</a>
     <a data-level="2" data-part="part-2" href="#predictions">Predicted futures</a>
@@ -230,13 +230,14 @@
         </div>
         <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-3d)"></span>Pointmap &middot; 3D geometry</b>A 3D pointmap pushed through the same frozen VAE &mdash; an encoder trained only on RGB reconstructs pointmaps at 38&nbsp;dB PSNR on the paper&rsquo;s example, so the latent space carries scene geometry directly.</figcaption>
       </figure>
-      <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
+      <div class="actionstrip" id="av-strip" aria-label="The action chunk: fourteen real joint-and-gripper trajectories from one episode, left arm above and right arm below, always predicted"></div>
     </div>
     <p class="archviz__note archviz__note--fine" style="margin-top:14px">How these panels were made: <b>RGB</b> is the source clip.
     <b>Pointmap</b> is a false-colour ramp over image luminance and height &mdash; it mimics the look of Figure 3 but
     carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
-    than DINOv3&rsquo;s 768-D features. The <b>action</b> strip beside them is a schematic. None of these are model output;
-    the paper&rsquo;s real VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
+    than DINOv3&rsquo;s 768-D features. The <b>action</b> strip beside them plots the real 14-DoF trajectories of one
+    recorded episode. None of the visual panels are model output; the paper&rsquo;s real VAE pointmap reconstruction
+    is in Figure&nbsp;3 below.</p>
   </div>
 
   <!-- the configurator: which streams the model reads and generates -->
@@ -409,7 +410,7 @@
 
   <div class="wrap wrap--wide reveal vfeature">
     <div class="player" data-player data-caption="Driving the screw home — the tightest stage of the sequence at ±0.25 mm. Placeholder footage.">
-      <span class="player__badge">Placeholder footage</span>
+      <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
       <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg"
              loop muted playsinline preload="metadata" data-autoplay
              aria-label="Robot arm driving a fastener into a part held on a tray"></video>
@@ -518,27 +519,6 @@
     </div>
   </div>
 
-  <div class="wrap wrap--wide reveal" style="margin-top:34px">
-    <div class="vgrid vgrid--2">
-      <figure>
-        <div class="player" data-player data-caption="Seating the replacement gripper into its holder. Placeholder footage.">
-          <span class="player__badge">Seating</span>
-          <video src="assets/videos/task-selfrepair-b.mp4" poster="assets/videos/task-selfrepair-b.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper seating a part into a holder"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
-        <figcaption class="vcard__cap"><b>Seating the replacement</b>Stage 3.</figcaption>
-      </figure>
-      <figure>
-        <div class="player" data-player data-caption="Recovering after a misaligned fastening attempt. Placeholder footage.">
-          <span class="player__badge">Recovery</span>
-          <video src="assets/videos/task-selfrepair-a.mp4" poster="assets/videos/task-selfrepair-a.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper re-approaching a fastener after a failed attempt"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
-        <figcaption class="vcard__cap"><b>Recovering mid-chain</b>Eight dependent stages: one unrecovered slip ends the episode.</figcaption>
-      </figure>
-    </div>
-  </div>
-
   <div class="wrap wrap--wide reveal" style="margin-top:38px">
     <div class="chartbox">
       <div class="chartbox__head">
@@ -564,13 +544,7 @@
   </div>
 
   <div class="wrap wrap--wide reveal vfeature">
-    <div class="player" data-player data-caption="Key unlocking: a sub-millimetre insertion where neither object is fixed to the workspace. Placeholder footage.">
-      <span class="player__badge">Placeholder footage</span>
-      <video src="assets/videos/task-key-unlock.mp4" poster="assets/videos/task-key-unlock.jpg"
-             loop muted playsinline preload="metadata" data-autoplay
-             aria-label="Close-up of two robot grippers aligning a small part for a fine insertion"></video>
-      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-    </div>
+    <div class="player player--todo" role="img" aria-label="Placeholder — key unlocking video not ready yet"></div>
     <div class="vfeature__meta">
       <div>
         <h4 class="vfeature__name">One episode, end to end</h4>
@@ -594,27 +568,15 @@
   <div class="wrap wrap--wide reveal" style="margin-top:40px">
     <div class="vgrid vgrid--3">
       <figure>
-        <div class="player" data-player data-caption="Fine insertion close-up. Placeholder footage.">
-          <span class="player__badge">Insertion detail</span>
-          <video src="assets/videos/precision-insertion.mp4" poster="assets/videos/precision-insertion.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arms performing a fine insertion on a dark mat"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
+        <div class="player player--todo" role="img" aria-label="Placeholder — insertion detail video not ready yet"></div>
         <figcaption class="vcard__cap"><b>Below the pixel scale</b>Residual misalignment sits at or below the single-pixel scale of the policy's input — it must be inferred from sub-pixel and temporal cues, not observed.</figcaption>
       </figure>
       <figure>
-        <div class="player" data-player data-caption="Recovering from a misaligned first attempt. Placeholder footage.">
-          <span class="player__badge">Closed-loop recovery</span>
-          <video src="assets/videos/dex-recovery-a.mp4" poster="assets/videos/dex-recovery-a.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arm re-approaching a part after a failed first attempt"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
+        <div class="player player--todo" role="img" aria-label="Placeholder — recovery video not ready yet"></div>
         <figcaption class="vcard__cap"><b>Retry, don't commit</b>The paper tracks insertion attempts per rollout precisely to measure this.</figcaption>
       </figure>
       <figure>
-        <div class="player" data-player data-caption="Re-approaching after contact. Placeholder footage.">
-          <span class="player__badge">Closed-loop recovery</span>
-          <video src="assets/videos/dex-recovery-b.mp4" poster="assets/videos/dex-recovery-b.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Bimanual arms re-aligning an object after contact"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
+        <div class="player player--todo" role="img" aria-label="Placeholder — recovery video not ready yet"></div>
         <figcaption class="vcard__cap"><b>Correcting mid-episode</b>Recovering from a misaligned approach rather than losing the episode.</figcaption>
       </figure>
     </div>
@@ -673,8 +635,8 @@
       <p class="figcap" style="margin-top:8px;font-size:13px">Sourcing: Flex-π's per-task scores and the
       +12/+5/+45 deltas are stated in the paper; the <em>Average</em> group is the unweighted mean of the three
       per-task scores rather than a value the paper prints. π<sub>0.5</sub>'s scores on Put Plate on the Rack and
-      Sort Utensils are read from the paper's Figure 8, which carries no data labels — only its Handover + Rack
-      value (15%) is given in prose.</p>
+      Sort Utensils are read from the paper's Figure 8, which carries no data labels — only its Clean the Kitchen
+      Rack value (15%) is given in prose.</p>
     </div>
   </div>
 
@@ -684,23 +646,15 @@
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="vgrid vgrid--2">
       <figure>
-        <div class="player" data-player data-caption="The bimanual YAM workcell used for all real-robot experiments. Placeholder footage.">
+        <div class="player player--todo" role="img" aria-label="Placeholder — workcell platform video not ready yet">
           <span class="player__badge">Platform</span>
-          <video src="assets/videos/platform-yam.mp4" poster="assets/videos/platform-yam.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
-                 aria-label="A person teleoperating the bimanual YAM robot arms"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Teleoperated data collection</b>
         Demonstrations are recorded at 30&nbsp;Hz on the same workcell used for evaluation.</figcaption>
       </figure>
       <figure>
-        <div class="player player--contain" data-player data-caption="Three camera views tiled into a single composite canvas so all views cost one VAE pass. Placeholder footage.">
+        <div class="player player--todo" role="img" aria-label="Placeholder — multi-view composite canvas video not ready yet">
           <span class="player__badge">Multi-view input</span>
-          <video src="assets/videos/streams-viz.mp4" poster="assets/videos/streams-viz.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
-                 aria-label="Multiple camera panels shown side by side with an overlay visualization"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>One composite canvas</b>
         An overhead ZED&nbsp;2i plus a ZED&nbsp;Mini on each wrist, tiled into one canvas — three views, one VAE
@@ -715,10 +669,10 @@
 <!-- ====================== generalization ====================== -->
 <section class="sec" id="generalization">
   <div class="wrap reveal">
-    <h3 class="sec__title"><span class="sec__no">03</span>Generalization to unseen conditions</h3>
-    <p class="sec__sub">We re-run the same three tasks under conditions never seen during fine-tuning: novel
-    distractor objects in every scene, and — for Put Plate on the Rack — an unseen plate and rack of a different
-    type.</p>
+    <h3 class="sec__title"><span class="sec__no">03</span>Robustness in cluttered scenes</h3>
+    <p class="sec__sub">Deployment scenes are rarely clean. We re-run the same three tasks with the workspace
+    deliberately cluttered — novel distractor objects, never seen during fine-tuning, filling every scene — and,
+    for Put Plate on the Rack, an unseen plate and rack of a different type. Flex-π keeps performing.</p>
   </div>
 
   <!-- task 1 -->
@@ -769,19 +723,20 @@
 
   <!-- task 3 -->
   <div class="wrap wrap--wide reveal vfeature">
-    <div class="player" data-player data-caption="Handover plus Rack — the most contact- and coordination-intensive task. Placeholder footage.">
+    <div class="player" data-player data-caption="Clean the Kitchen Rack — the most contact- and coordination-intensive task. Placeholder footage.">
       <span class="player__badge">Placeholder footage</span>
       <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg"
              loop muted playsinline preload="metadata" data-autoplay
-             aria-label="One robot arm handing an object across to the other arm before placing it"></video>
+             aria-label="Two robot arms loading plates, bowls and spoons into a kitchen rack, handing far plates across mid-air"></video>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
     <div class="vfeature__meta">
       <div>
-        <h4 class="vfeature__name">Handover + Rack <span class="tag-todo">Needs update</span></h4>
-        <p class="vfeature__desc">The hardest of the three: one arm passes the object to the other mid-air, so a slip
-        anywhere in the exchange loses the episode. This is where the baseline collapses and the world-action
-        objective pays for itself — <b>+45 points</b> from enabling joint visual generation alone.
+        <h4 class="vfeature__name">Clean the Kitchen Rack</h4>
+        <p class="vfeature__desc">The hardest of the three: plates, bowls and spoons scattered across the table all
+        have to end up in the kitchen rack. Plates on the far side must first be handed across mid-air from one arm
+        to the other, so a slip anywhere in the exchange loses the episode. This is where the baseline collapses and
+        the world-action objective pays for itself — <b>+45 points</b> from enabling joint visual generation alone.
         <span class="demos">360 teleoperated demonstrations</span></p>
       </div>
       <div class="scoreboard">
@@ -792,6 +747,7 @@
   </div>
 
 
+  <!-- TEMPORARILY HIDDEN: no real content yet ("Where the baseline breaks" + "Four held-out variations")
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">Where the baseline breaks</h4>
     <p class="sub__lede">π<sub>0.5</sub> degrades severely once appearance cues stop being reliable. Flex-π holds,
@@ -818,7 +774,7 @@
         <div class="vcompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">completes the handover</span></div>
       </div>
     </div>
-    <p class="figcap" style="margin-top:12px"><b>Handover + Rack with distractors.</b> π<sub>0.5</sub> collapses to
+    <p class="figcap" style="margin-top:12px"><b>Clean the Kitchen Rack with distractors.</b> π<sub>0.5</sub> collapses to
     <b>~5%</b>; Flex-π (Joint) holds at <b>~80%</b>. The action-only path reaches ~45%, so joint visual generation is
     worth a further 35 points here — substantially more than it is worth in-distribution.</p>
 
@@ -879,22 +835,23 @@
         <span class="metric">70% &nbsp;<span class="vs">vs. 40%</span></span></figcaption>
       </figure>
       <figure>
-        <div class="player" data-player data-caption="Handover plus Rack with unseen distractor objects — the setting where the baseline collapses. Placeholder footage.">
+        <div class="player" data-player data-caption="Clean the Kitchen Rack with unseen distractor objects — the setting where the baseline collapses. Placeholder footage.">
           <span class="player__badge player__badge--ours">80%</span>
-          <video src="assets/videos/gen-handover-distractor.mp4" poster="assets/videos/gen-handover-distractor.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Handover task with additional unfamiliar coloured objects present"></video>
+          <video src="assets/videos/gen-handover-distractor.mp4" poster="assets/videos/gen-handover-distractor.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Kitchen rack task with additional unfamiliar coloured objects present"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b>Handover + distractors</b>Where π<sub>0.5</sub> collapses.
+        <figcaption class="vcard__cap"><b>Kitchen Rack + distractors</b>Where π<sub>0.5</sub> collapses.
         <span class="metric">80% &nbsp;<span class="vs">vs. 5%</span></span></figcaption>
       </figure>
     </div>
   </div>
+  END TEMPORARILY HIDDEN -->
 
   <div class="wrap wrap--wide reveal" style="margin-top:38px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Generalization to unseen conditions</div>
+          <div class="chartbox__title">Robustness in cluttered scenes</div>
           <div class="chartbox__sub">Success rate on four held-out task variations</div>
         </div>
         <div class="legend" id="lg-gen"></div>
@@ -910,7 +867,7 @@
     <div class="callout">
       <b>Joint generation contributes more out-of-distribution than in.</b> Although the action-only path already
       improves over π<sub>0.5</sub>, full joint generation adds substantially larger gains under perturbation than
-      in the seen setting — lifting Handover + Rack with distractors from ~45% to ~80%. This indicates that it is
+      in the seen setting — lifting Clean the Kitchen Rack with distractors from ~45% to ~80%. This indicates that it is
       Flex-π's flexibly fused, 3D-aware world model, and not appearance matching, that drives robustness when the
       test distribution shifts.
     </div>
@@ -1170,9 +1127,9 @@
       </figure>
 
       <figure class="predpair" style="--dot:var(--s-3d)">
-        <div class="player" data-player data-caption="Handover + Rack — the real rollout. Placeholder footage.">
+        <div class="player" data-player data-caption="Clean the Kitchen Rack — the real rollout. Placeholder footage.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="One robot arm handing an object across to the other arm before placing it"></video>
+          <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="One robot arm handing a far plate across to the other arm before racking it"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player predpair__gen" data-player data-caption="Flex-π's predicted 3D-pointmap future for this episode. Placeholder footage.">

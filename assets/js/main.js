@@ -325,7 +325,7 @@
         groups: [
           { label: 'Bimanual Put Plate|on the Rack', values: [74, 82, 94] },
           { label: 'Sort Utensils',   values: [45, 70, 75] },
-          { label: 'Handover + Rack', values: [15, 50, 95] },
+          { label: 'Clean the|Kitchen Rack', values: [15, 50, 95] },
           { label: 'Average',         values: [44.7, 67.3, 88.0] }
         ],
         max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
@@ -348,7 +348,7 @@
           { label: 'Plate:|big plate',        values: [70, 85, 98] },
           { label: 'Plate:|distractor',       values: [75, 85, 92] },
           { label: 'Sort:|distractor',        values: [40, 70, 70] },
-          { label: 'Handover:|distractor',    values: [5, 45, 80] }
+          { label: 'Kitchen Rack:|distractor', values: [5, 45, 80] }
         ],
         max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
         tickFmt: function (t) { return t + '%'; }, valFmt: function (v) { return String(v); },
@@ -794,37 +794,43 @@
      dynamic architecture: mask state and regimes. The three stream clips are
      plain looping videos in the triptych above — no JS switching involved.
      --------------------------------------------------------------------- */
-  /* --- narrow, always-on action readout: 14 joint traces over a 32-step chunk --- */
+  /* --- narrow, always-on action readout: real 14-DoF traces from one episode --- */
   function buildActionStrip(host) {
     var W = 108, H = 320, padT = 26, padB = 20, padL = 5, padR = 5;
-    var DOF = 14, STEPS = 32;
-    var plotW = W - padL - padR, plotH = H - padT - padB, lane = plotH / DOF;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    /* the source render is 580×2380 with its own title block; map only the
+       trace region below the title onto the plot area, and redraw the labels
+       as SVG text so they stay crisp at strip size */
+    var SRC = 'assets/figures/fig-action_14dof_ep349.png';
+    var IMG_W = 580, IMG_H = 2380, CROP_TOP = 100, SEP_Y = 1237;
+    var s = plotH / (IMG_H - CROP_TOP);
+    var mx = function (xi) { return padL + xi / IMG_W * plotW; };
+    var my = function (yi) { return padT + (yi - CROP_TOP) * s; };
 
     var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'none',
                           role: 'img', 'aria-label': host.getAttribute('aria-label') || 'action chunk' });
+    var defs = el('defs', {});
+    var clip = el('clipPath', { id: 'ac-clip' });
+    clip.appendChild(el('rect', { x: padL, y: padT, width: plotW, height: plotH }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
     svg.appendChild(el('text', { 'class': 'ac-lab', x: padL, y: 13 }, 'action'));
-    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: 22 }, '32 × 14 DoF'));
+    svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: 22, style: 'font-size:8px' }, '14 DoF (joints + gripper)'));
     svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: padL, y: H - 7 }, 'always on'));
 
-    for (var d = 0; d < DOF; d++) {
-      var cy = padT + lane * (d + 0.5), amp = lane * 0.40, pts = [];
-      for (var k = 0; k <= STEPS; k++) {
-        var u = k / STEPS;
-        var v = Math.sin(u * 3.1 + d * 0.9) * 0.55
-              + Math.sin(u * 6.7 + d * 2.3) * 0.28
-              + Math.sin(u * 11.3 + d * 1.7) * 0.14;
-        if (d === 6 || d === 13) v = Math.tanh(Math.sin(u * 2.2 + d) * 3) * 0.85;   /* grippers switch */
-        pts.push([padL + u * plotW, cy - v * amp]);
-      }
-      svg.appendChild(el('path', {
-        'class': 'ac-trace',
-        d: pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' '),
-        stroke: d < 7 ? 'var(--s-action)' : 'var(--s-3d)'
-      }));
-    }
-    /* divider between the two arms */
-    var sy = padT + lane * 7;
-    svg.appendChild(el('line', { 'class': 'ac-sep', x1: padL, y1: sy, x2: W - padR, y2: sy }));
+    svg.appendChild(el('image', { href: SRC, x: padL, y: padT - CROP_TOP * s,
+                                  width: plotW, height: IMG_H * s,
+                                  preserveAspectRatio: 'none', 'clip-path': 'url(#ac-clip)' }));
+
+    /* mask the render's own tiny arm labels (illegible at strip size) with its
+       background colour, then redraw them as crisp text over the divider */
+    [1186, 1245].forEach(function (yi) {
+      svg.appendChild(el('rect', { x: mx(528), y: my(yi), width: mx(562) - mx(528),
+                                   height: 38 * s, fill: '#0b0b0d' }));
+    });
+    var sy = my(SEP_Y);
     svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: sy - 3, 'text-anchor': 'end' }, 'L'));
     svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: sy + 9, 'text-anchor': 'end' }, 'R'));
 

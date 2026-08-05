@@ -541,6 +541,15 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   border-radius: var(--radius); border: 1px solid var(--border-faint); line-height: 0;
 }
 .player video { width: 100%; height: auto; display: block; background: #000; }
+.player--todo {
+  aspect-ratio: 16 / 9; background: #b9b9b9;
+  display: grid; place-items: center; line-height: 1.5;
+}
+.player--todo::after {
+  content: "TODO — footage not ready";
+  font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(0, 0, 0, .45);
+}
 .player__expand {
   position: absolute; right: 8px; bottom: 8px; z-index: 2;
   width: 30px; height: 30px; display: grid; place-items: center;
@@ -786,7 +795,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
    row 1 and the captions row 2 — that is what lets the strip stretch to exactly
    the players' height; the captions' own margin-top provides the row gap. */
 .streamrow { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(14px, 2vw, 22px); }
-.streamrow .actionstrip { height: 190px; }
+/* stacked layout: the strip embeds a raster render, so keep it near its own
+   proportions rather than stretching it into a landscape box */
+.streamrow .actionstrip { width: clamp(120px, 40vw, 156px); aspect-ratio: 108 / 320; justify-self: center; }
 @media (min-width: 621px) {
   .streamrow {
     grid-template-columns: repeat(3, minmax(0, 1fr)) clamp(72px, 7vw, 104px);
@@ -797,7 +808,10 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   .streamrow figure .vcard__cap { grid-row: 2; }
   /* the strip's SVG carries an intrinsic 320px height; absolutely positioning
      it keeps the strip from inflating the row past the players' height */
-  .streamrow .actionstrip { grid-row: 1; height: auto; position: relative; }
+  .streamrow .actionstrip {
+    grid-row: 1; width: auto; height: auto; aspect-ratio: auto;
+    justify-self: stretch; position: relative;
+  }
   .streamrow .actionstrip svg { position: absolute; inset: 0; }
 }
 .archviz__note { font-size: 14px; line-height: 1.55; color: var(--fg-dim); margin: 0; }
