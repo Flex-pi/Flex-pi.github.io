@@ -618,6 +618,11 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   margin-top: 14px; font-family: var(--ff-mono); font-size: 12px;
 }
 .lb__cap { flex: 1 1 260px; font-family: var(--ff-body); font-size: 15px; color: rgba(255,255,255,.76); }
+.lb__badge {
+  font-size: 12.5px; padding: 2px 8px; border-radius: var(--radius); white-space: nowrap;
+  background: rgba(12,12,12,.66); color: rgba(255,255,255,.84);
+  border: 1px solid rgba(255,255,255,.15); line-height: 1.5;
+}
 .lb__speeds { display: flex; gap: 4px; }
 .lb__speeds button {
   font-family: var(--ff-mono); font-size: var(--fs-meta); padding: 5px 9px;

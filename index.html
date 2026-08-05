@@ -651,8 +651,8 @@
         <div class="acompare__tag"><span class="who">π<sub>0.5</sub></span> <span class="what">fails to unzip the bag</span></div>
       </div>
       <div class="acompare__side acompare__side--ours">
-        <div class="player" data-player data-caption="Flex-π unzipping the bag. Placeholder footage.">
-          <span class="player__badge player__badge--ours">Placeholder footage</span>
+        <div class="player" data-player data-caption="Flex-π unzipping the bag.">
+          <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
           <video src="assets/videos/putpen-unzip-ours.mp4" poster="assets/videos/putpen-unzip-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π unzipping the bag"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
@@ -673,8 +673,8 @@
         <div class="acompare__tag"><span class="who">ManiFlow</span> <span class="what">fails to zip the bag closed</span></div>
       </div>
       <div class="acompare__side acompare__side--ours">
-        <div class="player" data-player data-caption="Flex-π zipping the bag closed. Placeholder footage.">
-          <span class="player__badge player__badge--ours">Placeholder footage</span>
+        <div class="player" data-player data-caption="Flex-π zipping the bag closed.">
+          <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
           <video src="assets/videos/putpen-zipclose-ours.mp4" poster="assets/videos/putpen-zipclose-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π zipping the bag closed"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
@@ -1505,12 +1505,9 @@
   <div class="lb__stage">
     <video id="lb-video" controls loop muted playsinline aria-label="Expanded video"></video>
     <div class="lb__bar">
+      <span class="lb__badge" id="lb-badge" hidden></span>
       <span class="lb__cap" id="lb-cap"></span>
-      <span class="lb__speeds" role="group" aria-label="Playback speed">
-        <button type="button" data-rate="0.5">0.5×</button>
-        <button type="button" data-rate="1" aria-pressed="true">1×</button>
-        <button type="button" data-rate="2">2×</button>
-      </span>
+      <span class="lb__speeds" id="lb-speeds" role="group" aria-label="Playback speed, in real-world time"></span>
       <button class="lb__close" type="button" id="lb-close">Close (Esc)</button>
     </div>
   </div>

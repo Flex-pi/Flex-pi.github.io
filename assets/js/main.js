@@ -627,16 +627,59 @@
     if (!lb) return;
     var lv = document.getElementById('lb-video');
     var cap = document.getElementById('lb-cap');
+    var badge = document.getElementById('lb-badge');
+    var speeds = document.getElementById('lb-speeds');
     var lastFocus = null;
+    var native = 1; /* the clip's baked speed — real-world speed at playbackRate 1 */
 
-    function open(src, poster, caption) {
+    /* clips are exported at varied speeds (1×, 1.7×, 2× …) — the speed lives in
+       the player's badge (or an explicit data-speed override), so the lightbox
+       can offer real-world rates instead of file-relative ones */
+    function bakedRate(p) {
+      if (!p) return 1;
+      var ds = parseFloat(p.getAttribute('data-speed'));
+      if (ds > 0) return ds;
+      var m = speedBadge(p);
+      return m ? parseFloat(m.text.match(/([\d.]+)\s*[×x]/)[1]) || 1 : 1;
+    }
+    function speedBadge(p) {
+      if (!p) return null;
+      var bs = p.querySelectorAll('.player__badge');
+      for (var i = 0; i < bs.length; i++) {
+        var t = bs[i].textContent.trim();
+        if (/[\d.]+\s*[×x]/.test(t)) return { text: t };
+      }
+      return null;
+    }
+    function fmtRate(r) { return (Math.round(r * 100) / 100) + '×'; }
+    function buildSpeeds() {
+      var opts = [1, 2];
+      if (opts.indexOf(native) === -1) opts.push(native);
+      opts.sort(function (a, b) { return a - b; });
+      speeds.innerHTML = '';
+      opts.forEach(function (r) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('data-real', r);
+        b.title = r === 1 ? 'real-world speed' : fmtRate(r) + ' real-world speed';
+        b.textContent = fmtRate(r);
+        speeds.appendChild(b);
+      });
+    }
+
+    function open(src, poster, caption, p) {
       lastFocus = document.activeElement;
       lv.src = src;
       if (poster) lv.poster = poster;
       cap.textContent = caption || '';
+      native = bakedRate(p);
+      var sb = speedBadge(p);
+      badge.textContent = sb ? sb.text : '';
+      badge.hidden = !sb;
+      buildSpeeds();
       lb.setAttribute('data-open', 'true');
       document.body.style.overflow = 'hidden';
-      setRate(1);
+      setRate(native); /* open at the baked speed so the pressed button matches the badge */
       lv.play().catch(function () {});
       document.getElementById('lb-close').focus();
     }
@@ -646,10 +689,11 @@
       document.body.style.overflow = '';
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
+    /* r is the real-world speed; the file itself is `native`× already */
     function setRate(r) {
-      lv.playbackRate = r;
-      lb.querySelectorAll('.lb__speeds button').forEach(function (b) {
-        b.setAttribute('aria-pressed', parseFloat(b.getAttribute('data-rate')) === r ? 'true' : 'false');
+      lv.playbackRate = Math.max(0.25, r / native);
+      speeds.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', parseFloat(b.getAttribute('data-real')) === r ? 'true' : 'false');
       });
     }
 
@@ -660,7 +704,7 @@
         e.stopPropagation();
         var v = p.querySelector('video:not([hidden])') || p.querySelector('video');
         if (!v) return;
-        open(v.currentSrc || v.src, v.getAttribute('poster'), p.getAttribute('data-caption'));
+        open(v.currentSrc || v.src, v.getAttribute('poster'), p.getAttribute('data-caption'), p);
       });
     });
 
@@ -670,12 +714,15 @@
     if (se && sv) {
       se.addEventListener('click', function () {
         open(sv.currentSrc || sv.src, sv.getAttribute('poster'),
-          'Flex-π on a stationary bimanual YAM workcell. Placeholder footage — see the note in the footer.');
+          'Flex-π on a stationary bimanual YAM workcell. Placeholder footage — see the note in the footer.',
+          sv.closest('.stage'));
       });
     }
 
-    lb.querySelectorAll('.lb__speeds button').forEach(function (b) {
-      b.addEventListener('click', function () { setRate(parseFloat(b.getAttribute('data-rate'))); });
+    /* buttons are rebuilt per clip — delegate */
+    speeds.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (b) setRate(parseFloat(b.getAttribute('data-real')));
     });
     document.getElementById('lb-close').addEventListener('click', close);
     lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
