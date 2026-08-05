@@ -171,6 +171,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   line-height: 1.18; letter-spacing: -.012em;
   margin-bottom: .5em; text-wrap: balance;
 }
+/* Part-1 sections carry 01/02/03 so the three read as an ordered sequence */
+.sec__no {
+  display: inline-block; margin-right: .6em;
+  font-family: var(--ff-mono); font-size: .58em; font-weight: 500;
+  letter-spacing: .08em; color: var(--primary-ink);
+  transform: translateY(-.22em);
+}
 .sec__sub {
   font-size: clamp(17px, 1.8vw, 20px);
   color: var(--fg-muted); line-height: 1.58; max-width: 70ch;
@@ -196,21 +203,26 @@ section[id], .part[id] { scroll-margin-top: 80px; }
    part dividers -- the page is in three parts and says which is which
    ========================================================================== */
 .part { margin-block: calc(var(--gap-sec) * 1.1) var(--gap-sec); }
+/* The label gets its own full row; the title and the description are then
+   siblings in the flex row, so `baseline` aligns the TITLE's baseline with the
+   description's first line (with the wrapper as one item, flexbox would use the
+   tiny label's baseline instead and the title would hang unaligned). */
 .part__in {
   border-top: 1px solid var(--border);
   padding-top: 20px; display: flex; align-items: baseline;
-  gap: 10px clamp(20px, 4vw, 46px); flex-wrap: wrap;
+  gap: 14px clamp(20px, 4vw, 46px); flex-wrap: wrap;
 }
-.part__head { flex: 0 1 auto; }
+.part__head { display: contents; }
 .part__n {
+  flex-basis: 100%;
   font-family: var(--ff-mono); font-size: var(--fs-meta);
   letter-spacing: var(--ls-meta); text-transform: uppercase;
-  color: var(--primary-ink); margin-bottom: 7px;
+  color: var(--primary-ink);
 }
 .part__t { font-size: clamp(22px, 2.4vw, 29px); letter-spacing: -.014em; line-height: 1.16; }
 .part__d {
   flex: 1 1 300px; font-size: 15.5px; line-height: 1.55;
-  color: var(--fg-dim); max-width: 58ch; margin: 0;
+  color: var(--fg-dim); margin: 0;
 }
 
 /* ==========================================================================
@@ -507,6 +519,14 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
   text-transform: uppercase; color: var(--fg-faint); margin-right: 8px;
 }
+/* red editorial marker for copy that still needs rewriting */
+.tag-todo {
+  display: inline-block; vertical-align: 3px; margin-left: 10px;
+  font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
+  text-transform: uppercase; line-height: 1.6; padding: 1px 7px;
+  color: #c03030; border: 1px solid rgba(192,48,48,.45);
+  background: rgba(192,48,48,.08); border-radius: var(--radius);
+}
 .scrollhint {
   display: none; font-family: var(--ff-mono); font-size: var(--fs-meta);
   letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--fg-faint); margin-top: 8px;
@@ -540,6 +560,21 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .player__badge--ours { color: #b6f0cd; border-color: rgba(87,201,139,.44); background: rgba(14,40,26,.76); }
 .player__badge--bl { top: auto; bottom: 8px; }
+
+/* predicted-future pairs (#predictions) — the real rollout stacked over the
+   future the model generated for that episode, one stream per task. --dot is
+   set per pair to the stream colour and tints the prediction player. */
+.predgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 2vw, 22px); }
+@media (max-width: 900px) { .predgrid { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; } }
+.predpair { display: flex; flex-direction: column; gap: 8px; }
+.predpair .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
+.predpair__gen { border-color: color-mix(in srgb, var(--dot) 42%, transparent); }
+.predpair__badge {
+  color: #fff; border-color: color-mix(in srgb, var(--dot) 55%, transparent);
+  background: color-mix(in srgb, var(--dot) 26%, rgba(12,12,12,.72));
+}
+.predpair__cap { margin-top: 3px; font-size: 14px; line-height: 1.5; color: var(--fg-muted); }
+.predpair__cap b { display: block; color: var(--fg); font-weight: 600; font-size: 15px; margin-bottom: 2px; }
 
 .vgrid { display: grid; gap: clamp(14px, 2vw, 22px); }
 .vgrid--2 { grid-template-columns: repeat(2, 1fr); }
@@ -654,6 +689,44 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 
 /* ==========================================================================
+   per-action three-way comparison: the two baselines (π0.5, ManiFlow)
+   stacked on the left at half size, ours large on the right, stretched to
+   the full height of the stack so the two columns align exactly
+   ========================================================================== */
+.acompare-block { margin-top: clamp(28px, 4vw, 40px); }
+.acompare__name {
+  font-family: var(--ff-display); font-size: 17px; font-weight: 600;
+  letter-spacing: -.005em; margin-bottom: 12px;
+}
+.acompare__name .stageno {
+  font-family: var(--ff-mono); font-size: 11px; font-weight: 400;
+  color: var(--fg-faint); letter-spacing: var(--ls-meta); margin-right: 8px;
+}
+.acompare__name .tol { font-weight: 400; color: var(--fg-dim); font-size: 14px; }
+.acompare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.6vw, 18px); }
+@media (max-width: 680px) { .acompare { grid-template-columns: 1fr; } }
+.acompare__side { display: flex; flex-direction: column; }
+.acompare .player video { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+.acompare__side--ours .player { flex: 1; border-color: color-mix(in srgb, var(--c-ours) 42%, transparent); }
+@media (min-width: 681px) {
+  /* keep the ours clip the same height as the baseline clip beside it */
+  .acompare__side--ours .player video { aspect-ratio: auto; height: 100%; position: absolute; inset: 0; }
+  .acompare__side--ours .player { position: relative; min-height: 200px; }
+}
+.acompare__side--pi .player { border-color: color-mix(in srgb, var(--c-base2) 34%, transparent); }
+.acompare__side--mf .player { border-color: color-mix(in srgb, var(--c-base3) 45%, transparent); }
+.acompare__tag {
+  display: flex; align-items: baseline; gap: 9px; margin-top: 10px; flex-wrap: wrap;
+}
+.acompare__tag .who {
+  font-family: var(--ff-display); font-size: 15px; font-weight: 600; letter-spacing: -.005em;
+}
+.acompare__side--ours .acompare__tag { color: var(--c-ours); }
+.acompare__side--pi .acompare__tag { color: var(--c-base2); }
+.acompare__side--mf .acompare__tag { color: var(--c-base3); }
+.acompare__tag .what { font-size: 13.5px; color: var(--fg-dim); }
+
+/* ==========================================================================
    stream cards
    ========================================================================== */
 .streams {
@@ -693,14 +766,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .archviz__body {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 336px);
-  gap: clamp(18px, 2.6vw, 34px); align-items: start;
+  column-gap: clamp(36px, 5vw, 84px); row-gap: clamp(18px, 2.6vw, 34px);
+  align-items: start;
   padding: clamp(18px, 2.6vw, 28px) clamp(16px, 2.4vw, 26px);
 }
 @media (max-width: 900px) { .archviz__body { grid-template-columns: 1fr; } }
 
 .archviz__diagram { min-width: 0; }
-/* diagram plus the always-on action readout; the SVG's aspect ratio sets the
-   row height and the strip stretches to match */
 .archviz__figrow { display: flex; gap: 14px; align-items: stretch; }
 .archviz__figrow svg { flex: 1 1 auto; min-width: 0; height: auto; aspect-ratio: 400 / 320; }
 .archviz__ctl { min-width: 0; }
@@ -708,6 +780,25 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .vcard__cap .capdot {
   display: inline-block; width: 9px; height: 9px; border-radius: 2px;
   background: var(--dot); margin-right: 7px;
+}
+/* the three stream clips with the always-on action readout as a fourth, narrow
+   column. The figures dissolve (display: contents) so all players share grid
+   row 1 and the captions row 2 — that is what lets the strip stretch to exactly
+   the players' height; the captions' own margin-top provides the row gap. */
+.streamrow { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(14px, 2vw, 22px); }
+.streamrow .actionstrip { height: 190px; }
+@media (min-width: 621px) {
+  .streamrow {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) clamp(72px, 7vw, 104px);
+    row-gap: 0;
+  }
+  .streamrow figure { display: contents; }
+  .streamrow .player { grid-row: 1; min-width: 0; }
+  .streamrow figure .vcard__cap { grid-row: 2; }
+  /* the strip's SVG carries an intrinsic 320px height; absolutely positioning
+     it keeps the strip from inflating the row past the players' height */
+  .streamrow .actionstrip { grid-row: 1; height: auto; position: relative; }
+  .streamrow .actionstrip svg { position: absolute; inset: 0; }
 }
 .archviz__note { font-size: 14px; line-height: 1.55; color: var(--fg-dim); margin: 0; }
 
@@ -745,6 +836,8 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .maskline__set--wrap { flex-wrap: wrap; gap: 5px; }
 .maskline--quick { align-items: flex-start; margin-bottom: 11px; }
 .maskline--quick .maskline__lab { padding-top: 5px; }
+/* the four regime shortcuts stack as one column, in the ladder's cost order */
+.maskline--quick .maskline__set { flex-direction: column; align-items: stretch; }
 .maskbtn {
   width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; padding: 0;
   font-family: var(--ff-mono); font-size: 12px; font-weight: 500;
@@ -788,14 +881,12 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   margin: 8px 0 0; font-size: var(--fs-fine); line-height: 1.5; color: var(--fg-dim); min-height: 3.6em;
 }
 
-/* the always-on action readout beside the diagram; its inner SVG uses
-   preserveAspectRatio: none, so it stretches to whatever height the row has */
+/* the always-on action readout; its inner SVG uses preserveAspectRatio: none,
+   so it stretches to whatever box the streamrow gives it */
 .actionstrip {
-  flex: 0 0 96px;
   background: #0c0c0c; border: 1px solid var(--border-faint);
   border-radius: var(--radius); overflow: hidden;
 }
-@media (max-width: 560px) { .actionstrip { flex-basis: 72px; } }
 .actionstrip svg { width: 100%; height: 100%; display: block; }
 .actionstrip .ac-trace { fill: none; stroke-width: 1.2; opacity: .9; vector-effect: non-scaling-stroke; }
 .actionstrip .ac-sep   { stroke: rgba(255,255,255,.16); stroke-width: 1; vector-effect: non-scaling-stroke; }

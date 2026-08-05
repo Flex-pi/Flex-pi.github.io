@@ -1,3 +1,5 @@
 # The paper draft is not published from this repo — it still contains
 # in-progress [TODO] markers and unfinished result tables.
 *.pdf
+
+.DS_Store

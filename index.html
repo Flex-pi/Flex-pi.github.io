@@ -42,8 +42,8 @@
     <span class="nav__title" aria-hidden="true">A Latent and 3D World-Action Model with Compute Flexibility</span>
     <div class="nav__links">
       <a href="#abstract">Abstract</a>
-      <a href="#real-robot">Dexterity</a>
       <a href="#precision">Precision</a>
+      <a href="#real-robot">Dexterity</a>
       <a href="#generalization">Generalization</a>
       <a href="#streams">Architecture</a>
       <a href="#method">Method</a>
@@ -70,11 +70,12 @@
     <a data-level="1" href="#overview">Overview</a>
     <a data-level="1" href="#streams">Architecture</a>
     <a data-level="1" href="#part-1">What Flex-π does</a>
-    <a data-level="2" data-part="part-1" href="#real-robot">Dexterity</a>
     <a data-level="2" data-part="part-1" href="#precision">Precision</a>
+    <a data-level="2" data-part="part-1" href="#real-robot">Dexterity</a>
     <a data-level="2" data-part="part-1" href="#generalization">Generalization</a>
     <a data-level="1" href="#part-2">How it works</a>
     <a data-level="2" data-part="part-2" href="#method">One latent space</a>
+    <a data-level="2" data-part="part-2" href="#predictions">Predicted futures</a>
     <a data-level="2" data-part="part-2" href="#explorer">Compute flexibility</a>
     <a data-level="1" href="#part-3">How it compares</a>
     <a data-level="2" data-part="part-3" href="#simulation">Benchmarks</a>
@@ -201,7 +202,7 @@
        This block teaches the vocabulary (what V / D / P look like); the configurator
        card below then plays with which of them are observed and generated. -->
   <div class="wrap wrap--wide reveal" style="margin-top:30px">
-    <div class="vgrid vgrid--3">
+    <div class="streamrow">
       <figure>
         <div class="player" data-player data-caption="The observation as a normal colour image — the appearance stream. Placeholder footage.">
           <video src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
@@ -229,12 +230,13 @@
         </div>
         <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-3d)"></span>Pointmap &middot; 3D geometry</b>A 3D pointmap pushed through the same frozen VAE &mdash; an encoder trained only on RGB reconstructs pointmaps at 38&nbsp;dB PSNR on the paper&rsquo;s example, so the latent space carries scene geometry directly.</figcaption>
       </figure>
+      <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
     </div>
     <p class="archviz__note archviz__note--fine" style="margin-top:14px">How these panels were made: <b>RGB</b> is the source clip.
     <b>Pointmap</b> is a false-colour ramp over image luminance and height &mdash; it mimics the look of Figure 3 but
     carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
-    than DINOv3&rsquo;s 768-D features. None of these are model output; the paper&rsquo;s real
-    VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
+    than DINOv3&rsquo;s 768-D features. The <b>action</b> strip beside them is a schematic. None of these are model output;
+    the paper&rsquo;s real VAE pointmap reconstruction is in Figure&nbsp;3 below.</p>
   </div>
 
   <!-- the configurator: which streams the model reads and generates -->
@@ -329,7 +331,6 @@
               <animateMotion dur="2.6s" repeatCount="indefinite" begin="1.6s"><mpath href="#av-o-act" xlink:href="#av-o-act"/></animateMotion></rect>
           </g>
         </svg>
-          <div class="actionstrip" id="av-strip" aria-label="Schematic of the action chunk: fourteen joint trajectories over thirty-two future steps, always predicted"></div>
         </div>
       </div>
 
@@ -338,9 +339,9 @@
           <div class="maskline maskline--quick">
             <span class="maskline__lab">jump to</span>
             <span class="maskline__set maskline__set--wrap">
-              <button class="regimechip" type="button" data-preset="joint"  aria-pressed="true">Full joint</button>
               <button class="regimechip" type="button" data-preset="action" aria-pressed="false">Action-only</button>
               <button class="regimechip" type="button" data-preset="p3d"    aria-pressed="false">3D + action</button>
+              <button class="regimechip" type="button" data-preset="joint"  aria-pressed="true">Full joint</button>
               <button class="regimechip" type="button" data-preset="xmod"   aria-pressed="false">Cross-modality</button>
             </span>
           </div>
@@ -386,157 +387,176 @@
         <div class="part__n">Part I</div>
         <h2 class="part__t">What Flex-π does</h2>
       </div>
-      <p class="part__d">One checkpoint on a bimanual YAM workcell: three contact-rich tasks, a sub-millimetre insertion, an eight-stage self-repair, and four conditions it was never fine-tuned on.</p>
+      <p class="part__d">One checkpoint on a bimanual YAM workcell: a sub-millimetre insertion, an eight-stage self-repair, three contact-rich tasks, and four conditions it was never fine-tuned on.</p>
     </div>
   </div>
 </div>
 
-<!-- ====================== real robot: dexterity ====================== -->
-<section class="sec" id="real-robot">
-  <div class="wrap reveal">
-    <h3 class="sec__title">Dexterity in the real world</h3>
-    <p class="sec__sub">Three contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, 14
-    commanded degrees of freedom, three calibrated stereo cameras. Each demands precise bimanual coordination and
-    sustained contact. Rollouts are scored under a partial-credit rubric, averaged over 10 rollouts per task.</p>
-  </div>
-
-  <!-- task 1 -->
-  <div class="wrap wrap--wide reveal vfeature">
-    <div class="player" data-player data-caption="Bimanual Put Plate on the Rack. Placeholder footage.">
-      <span class="player__badge">Placeholder footage</span>
-      <video src="assets/videos/task-plate-rack.mp4" poster="assets/videos/task-plate-rack.jpg"
-             loop muted playsinline preload="metadata" data-autoplay
-             aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
-      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-    </div>
-    <div class="vfeature__meta">
-      <div>
-        <h4 class="vfeature__name">Bimanual Put Plate on the Rack</h4>
-        <p class="vfeature__desc">A flat, low-friction plate, seated in a rack without tipping — the grasp has to
-        hold through the whole placement.
-        <span class="demos">300 teleoperated demonstrations</span></p>
-      </div>
-      <div class="scoreboard">
-        <div class="score score--base"><div class="score__v">74<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-        <div class="score score--ours"><div class="score__v">94<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- task 2 -->
-  <div class="wrap wrap--wide reveal vfeature">
-    <div class="player" data-player data-caption="Sort Utensils. Placeholder footage.">
-      <span class="player__badge">Placeholder footage</span>
-      <video src="assets/videos/task-sort-utensils.mp4" poster="assets/videos/task-sort-utensils.jpg"
-             loop muted playsinline preload="metadata" data-autoplay
-             aria-label="Two robot arms sorting utensil-like objects into position on a table"></video>
-      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-    </div>
-    <div class="vfeature__meta">
-      <div>
-        <h4 class="vfeature__name">Sort Utensils</h4>
-        <p class="vfeature__desc">Thin, near-flat objects that must be singulated from a cluttered surface and routed
-        to the right destination — where you grasp matters as much as where you place.
-        <span class="demos">300 teleoperated demonstrations</span></p>
-      </div>
-      <div class="scoreboard">
-        <div class="score score--base"><div class="score__v">45<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-        <div class="score score--ours"><div class="score__v">75<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- task 3 -->
-  <div class="wrap wrap--wide reveal vfeature">
-    <div class="player" data-player data-caption="Handover plus Rack — the most contact- and coordination-intensive task. Placeholder footage.">
-      <span class="player__badge">Placeholder footage</span>
-      <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg"
-             loop muted playsinline preload="metadata" data-autoplay
-             aria-label="One robot arm handing an object across to the other arm before placing it"></video>
-      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-    </div>
-    <div class="vfeature__meta">
-      <div>
-        <h4 class="vfeature__name">Handover + Rack</h4>
-        <p class="vfeature__desc">The hardest of the three: one arm passes the object to the other mid-air, so a slip
-        anywhere in the exchange loses the episode. This is where the baseline collapses and the world-action
-        objective pays for itself — <b>+45 points</b> from enabling joint visual generation alone.
-        <span class="demos">360 teleoperated demonstrations</span></p>
-      </div>
-      <div class="scoreboard">
-        <div class="score score--base"><div class="score__v">15<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-        <div class="score score--ours"><div class="score__v">95<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">Scored against π<sub>0.5</sub></h4>
-  </div>
-  <div class="wrap wrap--wide reveal" style="margin-top:20px">
-    <div class="chartbox">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">In-distribution performance</div>
-          <div class="chartbox__sub">Normalized partial-credit score, 10 rollouts per task</div>
-        </div>
-        <div class="legend" id="lg-real"></div>
-      </div>
-      <div data-chart="real"></div>
-      <p class="figcap" style="margin-top:10px">The fast action-only path already beats π<sub>0.5</sub> on every
-      task while matching its latency; enabling joint visual generation adds a further <b>+12, +5 and +45</b>
-      points. Averaged over the three tasks, Flex-π (Joint) reaches <b>88.0%</b> against 44.7% — nearly 2&times;.</p>
-      <p class="figcap" style="margin-top:8px;font-size:13px">Sourcing: Flex-π's per-task scores and the
-      +12/+5/+45 deltas are stated in the paper; the <em>Average</em> group is the unweighted mean of the three
-      per-task scores rather than a value the paper prints. π<sub>0.5</sub>'s scores on Put Plate on the Rack and
-      Sort Utensils are read from the paper's Figure 8, which carries no data labels — only its Handover + Rack
-      value (15%) is given in prose.</p>
-    </div>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">The workcell</h4>
-  </div>
-  <div class="wrap wrap--wide reveal" style="margin-top:20px">
-    <div class="vgrid vgrid--2">
-      <figure>
-        <div class="player" data-player data-caption="The bimanual YAM workcell used for all real-robot experiments. Placeholder footage.">
-          <span class="player__badge">Platform</span>
-          <video src="assets/videos/platform-yam.mp4" poster="assets/videos/platform-yam.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
-                 aria-label="A person teleoperating the bimanual YAM robot arms"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
-        <figcaption class="vcard__cap"><b>Teleoperated data collection</b>
-        Demonstrations are recorded at 30&nbsp;Hz on the same workcell used for evaluation.</figcaption>
-      </figure>
-      <figure>
-        <div class="player player--contain" data-player data-caption="Three camera views tiled into a single composite canvas so all views cost one VAE pass. Placeholder footage.">
-          <span class="player__badge">Multi-view input</span>
-          <video src="assets/videos/streams-viz.mp4" poster="assets/videos/streams-viz.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
-                 aria-label="Multiple camera panels shown side by side with an overlay visualization"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
-        <figcaption class="vcard__cap"><b>One composite canvas</b>
-        An overhead ZED&nbsp;2i plus a ZED&nbsp;Mini on each wrist, tiled into one canvas — three views, one VAE
-        pass.</figcaption>
-      </figure>
-    </div>
-  </div>
-</section>
-
-<hr class="rule">
-
 <!-- ====================== precision & long horizon ====================== -->
 <section class="sec" id="precision">
   <div class="wrap reveal">
-    <h3 class="sec__title">Precision and long horizons</h3>
-    <p class="sec__sub">Two tasks push past what the three above ask for: a sub-millimetre insertion held between
+    <h3 class="sec__title"><span class="sec__no">01</span>Precision and long horizons</h3>
+    <p class="sec__sub">The evaluation opens with its two hardest tasks: a sub-millimetre insertion held between
     two moving hands, and an eight-stage repair in which the tolerances tighten as the sequence advances.</p>
   </div>
 
+  <!-- long horizon -->
   <div class="wrap reveal" style="margin-top:52px">
+    <h4 class="sub__title">Self-repair gripper</h4>
+    <p class="sub__lede">The robot repairs its own gripper over eight stages that must be completed <em>in order</em>,
+    split between the two arms, and the tolerance chain tightens as the sequence advances.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal vfeature">
+    <div class="player" data-player data-caption="Driving the screw home — the tightest stage of the sequence at ±0.25 mm. Placeholder footage.">
+      <span class="player__badge">Placeholder footage</span>
+      <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg"
+             loop muted playsinline preload="metadata" data-autoplay
+             aria-label="Robot arm driving a fastener into a part held on a tray"></video>
+      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+    </div>
+    <div class="vfeature__meta">
+      <div>
+        <h4 class="vfeature__name">Driving the screw — the tightest stage</h4>
+        <p class="vfeature__desc">A 4&nbsp;mm bit must enter a 4.5&nbsp;mm socket, the same ±0.25&nbsp;mm clearance
+        the keyway allows. Grasping the driver depresses its trigger, so the bit is <em>already turning</em> as the
+        arm approaches — there is no separate actuation channel to learn and no torque to regulate.
+        <span class="demos">802 demonstrations (11.8 h) + 660 ManiFlow-derived corrections</span></p>
+      </div>
+      <div class="scoreboard">
+        <div class="score score--base"><div class="score__v">5<span class="unit">%</span></div><div class="score__k">ManiFlow</div></div>
+        <div class="score score--ours"><div class="score__v">55<span class="unit">%</span></div><div class="score__k">Flex-π full task</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap wrap--mid reveal" style="margin-top:36px">
+    <div class="stages">
+      <div class="stage-row"><span class="stage-row__i">1</span><span class="stage-row__name"><b>Return to pose</b><small>the pose every episode opens from</small></span><span class="stage-row__pts">0.25</span></div>
+      <div class="stage-row"><span class="stage-row__i">2</span><span class="stage-row__name"><b>Pick gripper</b></span><span class="stage-row__pts">0.25</span></div>
+      <div class="stage-row stage-row--tight"><span class="stage-row__i">3</span><span class="stage-row__name"><b>Insert / seat gripper</b><small>19 mm part into a 20 mm holder — ±0.5 mm</small></span><span class="stage-row__pts">0.50</span></div>
+      <div class="stage-row"><span class="stage-row__i">4</span><span class="stage-row__name"><b>Pick screw</b></span><span class="stage-row__pts">0.50</span></div>
+      <div class="stage-row stage-row--tight"><span class="stage-row__i">5</span><span class="stage-row__name"><b>Insert / start screw</b><small>4.5 mm M5 shank into an 8 mm hole — ±1.75 mm</small></span><span class="stage-row__pts">0.25</span></div>
+      <div class="stage-row"><span class="stage-row__i">6</span><span class="stage-row__name"><b>Pick driver</b></span><span class="stage-row__pts">0.25</span></div>
+      <div class="stage-row stage-row--tight"><span class="stage-row__i">7</span><span class="stage-row__name"><b>Screw in</b><small>4 mm bit into a 4.5 mm socket — ±0.25 mm, the tightest stage</small></span><span class="stage-row__pts">0.75</span></div>
+      <div class="stage-row"><span class="stage-row__i">8</span><span class="stage-row__name"><b>Pick &amp; place</b><small>clear the table by placing a vegetable in the bucket</small></span><span class="stage-row__pts">0.25</span></div>
+    </div>
+    <p class="figcap" style="margin-top:12px">Highlighted: the three insertion and fastening stages carry half of
+    the 3.0 points, so transport alone scores poorly.</p>
+  </div>
+
+  <div class="wrap reveal" style="margin-top:56px">
+    <h4 class="sub__title">Action by action, against the baselines</h4>
+    <p class="sub__lede">The three insertion and fastening actions that carry the points. For each, a baseline
+    attempts the same action Flex-π completes — the tolerance tightens from ±0.5&nbsp;mm to ±0.25&nbsp;mm as the
+    sequence advances.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal acompare-block">
+    <h5 class="acompare__name"><span class="stageno">STAGE 3</span>Insert gripper <span class="tol">— 19 mm part into a 20 mm holder, ±0.5 mm</span></h5>
+    <div class="acompare">
+      <div class="acompare__side acompare__side--pi">
+        <div class="player" data-player data-caption="π0.5 attempting to seat the gripper. Placeholder footage.">
+          <span class="player__badge">Placeholder footage</span>
+          <video src="assets/videos/selfrepair-insert-gripper-pi05.mp4" poster="assets/videos/selfrepair-insert-gripper-pi05.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to seat the gripper in its holder"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="acompare__tag"><span class="who">π<sub>0.5</sub></span> <span class="what">misses the holder</span></div>
+      </div>
+      <div class="acompare__side acompare__side--ours">
+        <div class="player" data-player data-caption="Flex-π seating the replacement gripper into its holder. Placeholder footage.">
+          <span class="player__badge player__badge--ours">Placeholder footage</span>
+          <video src="assets/videos/selfrepair-insert-gripper-ours.mp4" poster="assets/videos/selfrepair-insert-gripper-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π seating the replacement gripper into its holder"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">seats the gripper</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap wrap--wide reveal acompare-block">
+    <h5 class="acompare__name"><span class="stageno">STAGE 5</span>Insert screw <span class="tol">— 4.5 mm M5 shank into an 8 mm hole, ±1.75 mm</span></h5>
+    <div class="acompare">
+      <div class="acompare__side acompare__side--mf">
+        <div class="player" data-player data-caption="ManiFlow attempting the screw insertion. Placeholder footage.">
+          <span class="player__badge">Placeholder footage</span>
+          <video src="assets/videos/selfrepair-insert-screw-maniflow.mp4" poster="assets/videos/selfrepair-insert-screw-maniflow.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to align the screw shank"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="acompare__tag"><span class="who">ManiFlow</span> <span class="what">cannot align the shank</span></div>
+      </div>
+      <div class="acompare__side acompare__side--ours">
+        <div class="player" data-player data-caption="Flex-π starting the screw in its hole. Placeholder footage.">
+          <span class="player__badge player__badge--ours">Placeholder footage</span>
+          <video src="assets/videos/selfrepair-insert-screw-ours.mp4" poster="assets/videos/selfrepair-insert-screw-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π starting the screw in the hole"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">starts the screw</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap wrap--wide reveal acompare-block">
+    <h5 class="acompare__name"><span class="stageno">STAGE 7</span>Screw in <span class="tol">— 4 mm bit into a 4.5 mm socket, ±0.25 mm, the tightest stage</span></h5>
+    <div class="acompare">
+      <div class="acompare__side acompare__side--mf">
+        <div class="player" data-player data-caption="ManiFlow at the tightest stage. Placeholder footage.">
+          <span class="player__badge">Placeholder footage</span>
+          <video src="assets/videos/selfrepair-screw-in-maniflow.mp4" poster="assets/videos/selfrepair-screw-in-maniflow.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to seat the driver bit"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="acompare__tag"><span class="who">ManiFlow</span> <span class="what">never seats the bit</span></div>
+      </div>
+      <div class="acompare__side acompare__side--ours">
+        <div class="player" data-player data-caption="Flex-π driving the screw home — the tightest stage at ±0.25 mm. Placeholder footage.">
+          <span class="player__badge player__badge--ours">Placeholder footage</span>
+          <video src="assets/videos/selfrepair-screw-in-ours.mp4" poster="assets/videos/selfrepair-screw-in-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π driving the screw home"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">drives the screw home</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:34px">
+    <div class="vgrid vgrid--2">
+      <figure>
+        <div class="player" data-player data-caption="Seating the replacement gripper into its holder. Placeholder footage.">
+          <span class="player__badge">Seating</span>
+          <video src="assets/videos/task-selfrepair-b.mp4" poster="assets/videos/task-selfrepair-b.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper seating a part into a holder"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b>Seating the replacement</b>Stage 3.</figcaption>
+      </figure>
+      <figure>
+        <div class="player" data-player data-caption="Recovering after a misaligned fastening attempt. Placeholder footage.">
+          <span class="player__badge">Recovery</span>
+          <video src="assets/videos/task-selfrepair-a.mp4" poster="assets/videos/task-selfrepair-a.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper re-approaching a fastener after a failed attempt"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b>Recovering mid-chain</b>Eight dependent stages: one unrecovered slip ends the episode.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:38px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Self-repair gripper</div>
+          <div class="chartbox__sub">20 rollouts per method, identical training data</div>
+        </div>
+        <div class="legend" id="lg-selfrepair"></div>
+      </div>
+      <div data-chart="selfrepair"></div>
+      <p class="figcap" style="margin-top:10px">Clearing each stage nine times in ten still finishes the whole
+      episode only 43% of the time, so partial credit alone cannot separate a policy that nearly finishes from one
+      that finishes. Action-only → full joint generation adds <b>21.9 points of partial credit but 40 points of
+      full-task success</b> (15% → 55%).</p>
+    </div>
+  </div>
+
+  <div class="wrap reveal" style="margin-top:72px">
     <h4 class="sub__title">Key unlocking</h4>
     <p class="sub__lede">The robot hands the key to its other arm, then inserts it into a <em>handheld</em> padlock —
     so what the policy controls is the relative pose of two independently actuated end-effectors, under in-hand pose
@@ -603,87 +623,89 @@
       reported here; the task specification above is final.
     </div>
   </div>
+</section>
 
-  <!-- long horizon -->
-  <div class="wrap reveal" style="margin-top:72px">
-    <h4 class="sub__title">Self-repair gripper</h4>
-    <p class="sub__lede">The robot repairs its own gripper over eight stages that must be completed <em>in order</em>,
-    split between the two arms, and the tolerance chain tightens as the sequence advances.</p>
+<hr class="rule">
+
+<!-- ====================== real robot: dexterity ====================== -->
+<section class="sec" id="real-robot">
+  <div class="wrap reveal">
+    <h3 class="sec__title"><span class="sec__no">02</span>Dexterity in the real world</h3>
+    <p class="sec__sub">Three contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, 14
+    commanded degrees of freedom, three calibrated stereo cameras. Each demands precise bimanual coordination and
+    sustained contact. Rollouts are scored under a partial-credit rubric, averaged over 10 rollouts per task.</p>
   </div>
 
+  <!-- task: putting into bag -- placeholder, real footage coming -->
   <div class="wrap wrap--wide reveal vfeature">
-    <div class="player" data-player data-caption="Driving the screw home — the tightest stage of the sequence at ±0.25 mm. Placeholder footage.">
-      <span class="player__badge">Placeholder footage</span>
-      <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg"
+    <div class="player" data-player data-caption="Putting items into a bag. Footage coming soon.">
+      <span class="player__badge">Footage coming soon</span>
+      <video src="assets/videos/task-put-in-bag.mp4" poster="assets/videos/task-put-in-bag.jpg"
              loop muted playsinline preload="metadata" data-autoplay
-             aria-label="Robot arm driving a fastener into a part held on a tray"></video>
+             aria-label="Two robot arms placing items into a bag"></video>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
     <div class="vfeature__meta">
       <div>
-        <h4 class="vfeature__name">Driving the screw — the tightest stage</h4>
-        <p class="vfeature__desc">A 4&nbsp;mm bit must enter a 4.5&nbsp;mm socket, the same ±0.25&nbsp;mm clearance
-        the keyway allows. Grasping the driver depresses its trigger, so the bit is <em>already turning</em> as the
-        arm approaches — there is no separate actuation channel to learn and no torque to regulate.
-        <span class="demos">802 demonstrations (11.8 h) + 660 ManiFlow-derived corrections</span></p>
-      </div>
-      <div class="scoreboard">
-        <div class="score score--base"><div class="score__v">5<span class="unit">%</span></div><div class="score__k">ManiFlow</div></div>
-        <div class="score score--ours"><div class="score__v">55<span class="unit">%</span></div><div class="score__k">Flex-π full task</div></div>
+        <h4 class="vfeature__name">Putting into Bag <span class="tag-todo">Needs update</span></h4>
+        <p class="vfeature__desc">Placeholder &mdash; description and footage for the putting-into-bag task will
+        be added here.</p>
       </div>
     </div>
   </div>
 
-  <div class="wrap wrap--mid reveal" style="margin-top:36px">
-    <div class="stages">
-      <div class="stage-row"><span class="stage-row__i">1</span><span class="stage-row__name"><b>Return to pose</b><small>the pose every episode opens from</small></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row"><span class="stage-row__i">2</span><span class="stage-row__name"><b>Pick gripper</b></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row stage-row--tight"><span class="stage-row__i">3</span><span class="stage-row__name"><b>Insert / seat gripper</b><small>19 mm part into a 20 mm holder — ±0.5 mm</small></span><span class="stage-row__pts">0.50</span></div>
-      <div class="stage-row"><span class="stage-row__i">4</span><span class="stage-row__name"><b>Pick screw</b></span><span class="stage-row__pts">0.50</span></div>
-      <div class="stage-row stage-row--tight"><span class="stage-row__i">5</span><span class="stage-row__name"><b>Insert / start screw</b><small>4.5 mm M5 shank into an 8 mm hole — ±1.75 mm</small></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row"><span class="stage-row__i">6</span><span class="stage-row__name"><b>Pick driver</b></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row stage-row--tight"><span class="stage-row__i">7</span><span class="stage-row__name"><b>Screw in</b><small>4 mm bit into a 4.5 mm socket — ±0.25 mm, the tightest stage</small></span><span class="stage-row__pts">0.75</span></div>
-      <div class="stage-row"><span class="stage-row__i">8</span><span class="stage-row__name"><b>Pick &amp; place</b><small>clear the table by placing a vegetable in the bucket</small></span><span class="stage-row__pts">0.25</span></div>
-    </div>
-    <p class="figcap" style="margin-top:12px">Highlighted: the three insertion and fastening stages carry half of
-    the 3.0 points, so transport alone scores poorly.</p>
+  <div class="wrap reveal" style="margin-top:56px">
+    <h4 class="sub__title">Scored against π<sub>0.5</sub></h4>
   </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:34px">
-    <div class="vgrid vgrid--2">
-      <figure>
-        <div class="player" data-player data-caption="Seating the replacement gripper into its holder. Placeholder footage.">
-          <span class="player__badge">Seating</span>
-          <video src="assets/videos/task-selfrepair-b.mp4" poster="assets/videos/task-selfrepair-b.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper seating a part into a holder"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
-        <figcaption class="vcard__cap"><b>Seating the replacement</b>Stage 3.</figcaption>
-      </figure>
-      <figure>
-        <div class="player" data-player data-caption="Recovering after a misaligned fastening attempt. Placeholder footage.">
-          <span class="player__badge">Recovery</span>
-          <video src="assets/videos/task-selfrepair-a.mp4" poster="assets/videos/task-selfrepair-a.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Close-up of a gripper re-approaching a fastener after a failed attempt"></video>
-          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        </div>
-        <figcaption class="vcard__cap"><b>Recovering mid-chain</b>Eight dependent stages: one unrecovered slip ends the episode.</figcaption>
-      </figure>
-    </div>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:38px">
+  <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Self-repair gripper</div>
-          <div class="chartbox__sub">20 rollouts per method, identical training data</div>
+          <div class="chartbox__title">In-distribution performance</div>
+          <div class="chartbox__sub">Normalized partial-credit score, 10 rollouts per task</div>
         </div>
-        <div class="legend" id="lg-selfrepair"></div>
+        <div class="legend" id="lg-real"></div>
       </div>
-      <div data-chart="selfrepair"></div>
-      <p class="figcap" style="margin-top:10px">Clearing each stage nine times in ten still finishes the whole
-      episode only 43% of the time, so partial credit alone cannot separate a policy that nearly finishes from one
-      that finishes. Action-only → full joint generation adds <b>21.9 points of partial credit but 40 points of
-      full-task success</b> (15% → 55%).</p>
+      <div data-chart="real"></div>
+      <p class="figcap" style="margin-top:10px">The fast action-only path already beats π<sub>0.5</sub> on every
+      task while matching its latency; enabling joint visual generation adds a further <b>+12, +5 and +45</b>
+      points. Averaged over the three tasks, Flex-π (Joint) reaches <b>88.0%</b> against 44.7% — nearly 2&times;.</p>
+      <p class="figcap" style="margin-top:8px;font-size:13px">Sourcing: Flex-π's per-task scores and the
+      +12/+5/+45 deltas are stated in the paper; the <em>Average</em> group is the unweighted mean of the three
+      per-task scores rather than a value the paper prints. π<sub>0.5</sub>'s scores on Put Plate on the Rack and
+      Sort Utensils are read from the paper's Figure 8, which carries no data labels — only its Handover + Rack
+      value (15%) is given in prose.</p>
+    </div>
+  </div>
+
+  <div class="wrap reveal" style="margin-top:56px">
+    <h4 class="sub__title">The workcell</h4>
+  </div>
+  <div class="wrap wrap--wide reveal" style="margin-top:20px">
+    <div class="vgrid vgrid--2">
+      <figure>
+        <div class="player" data-player data-caption="The bimanual YAM workcell used for all real-robot experiments. Placeholder footage.">
+          <span class="player__badge">Platform</span>
+          <video src="assets/videos/platform-yam.mp4" poster="assets/videos/platform-yam.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay
+                 aria-label="A person teleoperating the bimanual YAM robot arms"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b>Teleoperated data collection</b>
+        Demonstrations are recorded at 30&nbsp;Hz on the same workcell used for evaluation.</figcaption>
+      </figure>
+      <figure>
+        <div class="player player--contain" data-player data-caption="Three camera views tiled into a single composite canvas so all views cost one VAE pass. Placeholder footage.">
+          <span class="player__badge">Multi-view input</span>
+          <video src="assets/videos/streams-viz.mp4" poster="assets/videos/streams-viz.jpg"
+                 loop muted playsinline preload="metadata" data-autoplay
+                 aria-label="Multiple camera panels shown side by side with an overlay visualization"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="vcard__cap"><b>One composite canvas</b>
+        An overhead ZED&nbsp;2i plus a ZED&nbsp;Mini on each wrist, tiled into one canvas — three views, one VAE
+        pass.</figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -693,11 +715,82 @@
 <!-- ====================== generalization ====================== -->
 <section class="sec" id="generalization">
   <div class="wrap reveal">
-    <h3 class="sec__title">Generalization to unseen conditions</h3>
+    <h3 class="sec__title"><span class="sec__no">03</span>Generalization to unseen conditions</h3>
     <p class="sec__sub">We re-run the same three tasks under conditions never seen during fine-tuning: novel
     distractor objects in every scene, and — for Put Plate on the Rack — an unseen plate and rack of a different
     type.</p>
   </div>
+
+  <!-- task 1 -->
+  <div class="wrap wrap--wide reveal vfeature">
+    <div class="player" data-player data-caption="Bimanual Put Plate on the Rack. Placeholder footage.">
+      <span class="player__badge">Placeholder footage</span>
+      <video src="assets/videos/task-plate-rack.mp4" poster="assets/videos/task-plate-rack.jpg"
+             loop muted playsinline preload="metadata" data-autoplay
+             aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
+      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+    </div>
+    <div class="vfeature__meta">
+      <div>
+        <h4 class="vfeature__name">Bimanual Put Plate on the Rack</h4>
+        <p class="vfeature__desc">A flat, low-friction plate, seated in a rack without tipping — the grasp has to
+        hold through the whole placement.
+        <span class="demos">300 teleoperated demonstrations</span></p>
+      </div>
+      <div class="scoreboard">
+        <div class="score score--base"><div class="score__v">74<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+        <div class="score score--ours"><div class="score__v">94<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- task 2 -->
+  <div class="wrap wrap--wide reveal vfeature">
+    <div class="player" data-player data-caption="Sort Utensils. Placeholder footage.">
+      <span class="player__badge">Placeholder footage</span>
+      <video src="assets/videos/task-sort-utensils.mp4" poster="assets/videos/task-sort-utensils.jpg"
+             loop muted playsinline preload="metadata" data-autoplay
+             aria-label="Two robot arms sorting utensil-like objects into position on a table"></video>
+      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+    </div>
+    <div class="vfeature__meta">
+      <div>
+        <h4 class="vfeature__name">Sort Utensils</h4>
+        <p class="vfeature__desc">Thin, near-flat objects that must be singulated from a cluttered surface and routed
+        to the right destination — where you grasp matters as much as where you place.
+        <span class="demos">300 teleoperated demonstrations</span></p>
+      </div>
+      <div class="scoreboard">
+        <div class="score score--base"><div class="score__v">45<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+        <div class="score score--ours"><div class="score__v">75<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- task 3 -->
+  <div class="wrap wrap--wide reveal vfeature">
+    <div class="player" data-player data-caption="Handover plus Rack — the most contact- and coordination-intensive task. Placeholder footage.">
+      <span class="player__badge">Placeholder footage</span>
+      <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg"
+             loop muted playsinline preload="metadata" data-autoplay
+             aria-label="One robot arm handing an object across to the other arm before placing it"></video>
+      <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+    </div>
+    <div class="vfeature__meta">
+      <div>
+        <h4 class="vfeature__name">Handover + Rack <span class="tag-todo">Needs update</span></h4>
+        <p class="vfeature__desc">The hardest of the three: one arm passes the object to the other mid-air, so a slip
+        anywhere in the exchange loses the episode. This is where the baseline collapses and the world-action
+        objective pays for itself — <b>+45 points</b> from enabling joint visual generation alone.
+        <span class="demos">360 teleoperated demonstrations</span></p>
+      </div>
+      <div class="scoreboard">
+        <div class="score score--base"><div class="score__v">15<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+        <div class="score score--ours"><div class="score__v">95<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+      </div>
+    </div>
+  </div>
+
 
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">Where the baseline breaks</h4>
@@ -1027,6 +1120,71 @@
       <p class="figcap" style="margin-top:6px">Only the generation rule differs: restricting generation to the streams
       present in the input drops success from 66.4% to 45.2%.</p>
     </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ====================== predicted futures ======================
+     DreamZero-style paired presentation: the real rollout on top, the
+     future Flex-π generated for that episode directly below, one stream
+     per task. The prediction clips are placeholders (stream visualizations);
+     when the decoded predictions are exported, drop them in assets/videos/
+     and point the second player of each pair at them. -->
+<section class="sec" id="predictions">
+  <div class="wrap reveal">
+    <h3 class="sec__title">The futures behind the actions</h3>
+    <p class="sec__sub">Every action chunk is generated jointly with a latent future in each stream. Control never
+    decodes those latents — but decoding them afterwards shows what the policy read while acting. Top: the real
+    rollout. Below it: the future Flex-π imagined for that episode, one stream per task.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:32px">
+    <div class="predgrid">
+      <figure class="predpair" style="--dot:var(--s-rgb)">
+        <div class="player" data-player data-caption="Bimanual Put Plate on the Rack — the real rollout. Placeholder footage.">
+          <span class="player__badge">Real rollout</span>
+          <video src="assets/videos/task-plate-rack.mp4" poster="assets/videos/task-plate-rack.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="player predpair__gen" data-player data-caption="Flex-π's predicted RGB future for this episode, decoded from the generated latents. Placeholder footage.">
+          <span class="player__badge predpair__badge">Predicted future · RGB</span>
+          <video src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="The RGB future the model predicted for this episode, decoded from latents"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="predpair__cap"><b>Put the plate on the rack</b>Stream V — the appearance future, decoded by the shared VAE.</figcaption>
+      </figure>
+
+      <figure class="predpair" style="--dot:var(--s-dino)">
+        <div class="player" data-player data-caption="Sort Utensils — the real rollout. Placeholder footage.">
+          <span class="player__badge">Real rollout</span>
+          <video src="assets/videos/task-sort-utensils.mp4" poster="assets/videos/task-sort-utensils.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms sorting utensil-like objects into position on a table"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="player predpair__gen" data-player data-caption="Flex-π's predicted DINO-semantics future for this episode. Placeholder footage.">
+          <span class="player__badge predpair__badge">Predicted future · DINO</span>
+          <video src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="The DINO-semantics future the model predicted for this episode"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="predpair__cap"><b>Sort the utensils</b>Stream D — the object-semantics future, where appearance stops mattering.</figcaption>
+      </figure>
+
+      <figure class="predpair" style="--dot:var(--s-3d)">
+        <div class="player" data-player data-caption="Handover + Rack — the real rollout. Placeholder footage.">
+          <span class="player__badge">Real rollout</span>
+          <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="One robot arm handing an object across to the other arm before placing it"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="player predpair__gen" data-player data-caption="Flex-π's predicted 3D-pointmap future for this episode. Placeholder footage.">
+          <span class="player__badge predpair__badge">Predicted future · 3D</span>
+          <video src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="The 3D-pointmap future the model predicted for this episode"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="predpair__cap"><b>Hand over, then rack</b>Stream P — the geometry future that carries the exchange.</figcaption>
+      </figure>
+    </div>
+    <p class="figcap" style="margin-top:20px">Prediction clips are placeholders — stream visualizations stand in
+    until the decoded predictions are exported.</p>
   </div>
 </section>
 
