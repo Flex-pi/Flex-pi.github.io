@@ -434,7 +434,7 @@
       { name: 'Fast-WAM',             lat: 86,  sr: 37.2, c: 'var(--c-base)',   dx: 18,  dy: 6,   anchor: 'start' },
       { name: 'ManiFlow',             lat: 103, sr: 51.6, c: 'var(--c-base3)',  dx: 18,  dy: 6,   anchor: 'start' },
       { name: 'Flex-π (action-only)', lat: 60,  sr: 73.9, c: 'var(--c-ours-l)', dx: 20,  dy: -13, anchor: 'start', ours: true },
-      { name: 'Flex-π (full joint)',  lat: 193, sr: 81.2, c: 'var(--c-ours-d)', dx: -20, dy: -38, anchor: 'end',   ours: true }
+      { name: 'Flex-π (full joint)',  lat: 193, sr: 81.2, c: 'var(--c-ours-d)', dx: -20, dy: -16, anchor: 'end',   ours: true }
     ];
     var MAXLAT = 193;
 
@@ -460,9 +460,9 @@
       svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
     });
 
-    /* runway band between the score plot and the x axis; fastest lane on top.
-       Green while the race runs — it will morph into the claret verdict box,
-       and the space it occupied collapses away afterwards. */
+    /* runway band at the bottom of the plot, below the 30% line; fastest lane
+       on top. Green while the race runs — it morphs into the claret verdict
+       box when the race is over. The axes never move. */
     var LANE_GAP = 17, LANE_TOP = Y(yMin) + 24;
     var AXIS_Y = LANE_TOP + 4 * LANE_GAP + 20;
     var band = { x: padL, y: LANE_TOP - 12, w: W - padL - padR, h: (AXIS_Y - 10) - (LANE_TOP - 12) };
@@ -479,26 +479,16 @@
       'text-anchor': 'end' }, 'computing…');
     svg.appendChild(laneLab);
 
-    /* the x axis and everything on it slide up when the runway collapses */
-    var COLLAPSE = AXIS_Y - (Y(yMin) + 14);
-    var yAxis = el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 8, y2: AXIS_Y });
-    svg.appendChild(yAxis);
-    var axisG = el('g', {});
-    axisG.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 8, y2: AXIS_Y }));
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
     [0, 50, 100, 150, 200].forEach(function (t) {
-      axisG.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
-      axisG.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 20, 'text-anchor': 'middle' }, String(t)));
+      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 20, 'text-anchor': 'middle' }, String(t)));
     });
-    axisG.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 44,
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 44,
       'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
-    svg.appendChild(axisG);
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
       transform: 'translate(14,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion (%)'));
-    function setCollapse(p) {
-      axisG.setAttribute('transform', 'translate(0,' + (-COLLAPSE * p) + ')');
-      yAxis.setAttribute('y2', AXIS_Y - COLLAPSE * p);
-      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (H - COLLAPSE * p));
-    }
 
     var clock = el('text', { 'class': 'clock', x: W - padR, y: padT - 14, 'text-anchor': 'end' }, 't = 0 ms');
     svg.appendChild(clock);
@@ -507,7 +497,7 @@
        life as the green runway band — setMorph() carries geometry and color
        from one to the other. */
     var AO = M[3];
-    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: Y(yMin) - Y(AO.sr) };
+    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 8) - Y(AO.sr) };
     var domRect = el('rect', { x: band.x, y: band.y, width: band.w, height: band.h,
       fill: 'var(--primary-soft)', opacity: 0, rx: 3 });
     svg.appendChild(domRect);
@@ -547,13 +537,16 @@
         stroke: 'var(--bg-raise)', 'stroke-width': 2.5 });
       var lab = el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: X(m.lat) + m.dx,
         y: Y(m.sr) + m.dy, 'text-anchor': m.anchor, opacity: 0 }, m.name);
+      /* exact numbers only on hover — the picture carries the comparison */
       var val = el('text', { 'class': 'dval', x: X(m.lat) + m.dx, y: Y(m.sr) + m.dy + 18,
         'text-anchor': m.anchor, opacity: 0 }, m.lat + ' ms · ' + m.sr.toFixed(1) + '%');
       var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 24, fill: 'transparent' });
-      hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '% task completion'));
+      var d = { m: m, dot: dot, ring: ring, lab: lab, val: val, phase: 'run', riseT0: null };
+      hit.addEventListener('mouseenter', function () { if (d.phase === 'done') val.setAttribute('opacity', 1); });
+      hit.addEventListener('mouseleave', function () { val.setAttribute('opacity', 0); });
       g.appendChild(ring); g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
       svg.appendChild(g);
-      return { m: m, dot: dot, ring: ring, lab: lab, val: val, phase: 'run', riseT0: null };
+      return d;
     });
 
     mount.appendChild(svg);
@@ -561,13 +554,13 @@
     function setFinal() {
       dots.forEach(function (d) {
         d.dot.setAttribute('cx', X(d.m.lat)); d.dot.setAttribute('cy', Y(d.m.sr));
-        d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1);
+        d.lab.setAttribute('opacity', 1);
         d.m.guide.setAttribute('opacity', 0); d.phase = 'done';
       });
       laneLab.setAttribute('opacity', 0);
       clock.textContent = 't = ' + MAXLAT + ' ms';
       clock.setAttribute('class', 'clock clock--done');
-      setMorph(1); setVerdictTrim(1); setCollapse(1);
+      setMorph(1); setVerdictTrim(1);
     }
 
     function flashRing(d) {
@@ -585,22 +578,21 @@
     }
 
     /* the runway becomes the verdict: morph the green band into the claret
-       box, then collapse the space it occupied so the chart settles into the
-       paper's compact Figure-12 framing */
+       box — geometry and color together — then fade in its dashed edges and
+       label. The axes never move. */
     function finale(done) {
-      var MORPH = 700, FALL = 500, t0 = null;
+      var MORPH = 700, TRIM = 300, t0 = null;
       laneLab.setAttribute('opacity', 0);
       function step(ts) {
         if (!t0) t0 = ts;
         var t = ts - t0;
         if (t < MORPH) {
           setMorph(t / MORPH);
-        } else if (t < MORPH + FALL) {
+        } else if (t < MORPH + TRIM) {
           setMorph(1);
-          var p = easeOut((t - MORPH) / FALL);
-          setCollapse(p); setVerdictTrim(p);
+          setVerdictTrim((t - MORPH) / TRIM);
         } else {
-          setMorph(1); setCollapse(1); setVerdictTrim(1);
+          setMorph(1); setVerdictTrim(1);
           if (done) done();
           return;
         }
@@ -613,7 +605,7 @@
     var raf = null;
     function race() {
       if (raf) cancelAnimationFrame(raf);
-      setMorph(0); setVerdictTrim(0); setCollapse(0);
+      setMorph(0); setVerdictTrim(0);
       clock.setAttribute('class', 'clock');
       laneLab.setAttribute('opacity', 1);
       dots.forEach(function (d) {
@@ -646,7 +638,7 @@
             d.m.guide.setAttribute('opacity', .35 * (1 - p));
             if (p >= 1) {
               d.phase = 'done';
-              d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1);
+              d.lab.setAttribute('opacity', 1);
             }
           }
         });
@@ -679,14 +671,14 @@
           d.dot.setAttribute('cx', X(d.m.lat));
           d.dot.setAttribute('cy', d.m.laneY + (Y(d.m.sr) - d.m.laneY) * easeOut(p));
           d.m.guide.setAttribute('opacity', .35 * (1 - p));
-          if (p >= 1) { d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1); }
+          if (p >= 1) { d.lab.setAttribute('opacity', 1); d.phase = 'done'; }
           else allLanded = false;
         }
       });
       if (allLanded) {
         laneLab.setAttribute('opacity', 0);
         clock.setAttribute('class', 'clock clock--done');
-        if (ft >= 400) { setMorph(1); setVerdictTrim(1); setCollapse(1); }
+        if (ft >= 400) { setMorph(1); setVerdictTrim(1); }
       }
       return;
     }
