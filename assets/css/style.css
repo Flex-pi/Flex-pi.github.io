@@ -790,6 +790,14 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .archviz__figrow { display: flex; gap: 14px; align-items: stretch; }
 .archviz__figrow svg { flex: 1 1 auto; min-width: 0; height: auto; aspect-ratio: 400 / 320; }
 .archviz__ctl { min-width: 0; }
+/* on the two-column layout the control panel stretches to the diagram's height,
+   with the extra space distributed evenly between the control groups */
+@media (min-width: 901px) {
+  .archviz__ctl.maskctl2 {
+    align-self: stretch;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+}
 /* colour key in the triptych captions, matching the diagram's stream colours */
 .vcard__cap .capdot {
   display: inline-block; width: 9px; height: 9px; border-radius: 2px;

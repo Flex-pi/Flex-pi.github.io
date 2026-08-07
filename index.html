@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flex-π: A Latent and 3D World-Action Model with Compute Flexibility</title>
+<title>Flex-π: A Multi-Stream World-Action Model with Compute Flexibility</title>
 <meta name="description" content="Flex-π embeds RGB appearance, 3D pointmap geometry and DINOv3 semantics into one shared pre-trained latent space, yielding a single checkpoint that supports any combination of input and output streams at inference — one policy that slides along the latency–success Pareto frontier without retraining.">
 <meta name="author" content="Ge Yan, Jinghao Liu, Yuzhi Fan, Lei Cai, Minwen Liao, Jesse Zhang, Dieter Fox">
 <link rel="canonical" href="https://flex-pi.github.io/">
 
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://flex-pi.github.io/">
-<meta property="og:title" content="Flex-π: A Latent and 3D World-Action Model with Compute Flexibility">
+<meta property="og:title" content="Flex-π: A Multi-Stream World-Action Model with Compute Flexibility">
 <meta property="og:description" content="One checkpoint, any observed inputs, any generated futures. A world-action model that predicts RGB, 3D and semantic futures in a shared latent space — and lets you pick the speed/accuracy operating point at deployment.">
 <meta property="og:image" content="https://flex-pi.github.io/assets/videos/hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Flex-π: A Latent and 3D World-Action Model with Compute Flexibility">
+<meta name="twitter:title" content="Flex-π: A Multi-Stream World-Action Model with Compute Flexibility">
 <meta name="twitter:description" content="One checkpoint, any observed inputs, any generated futures.">
 <meta name="twitter:image" content="https://flex-pi.github.io/assets/videos/hero.jpg">
 
@@ -39,7 +39,7 @@
 <nav class="nav" aria-label="Page navigation" data-over-hero="true">
   <div class="nav__in">
     <a class="nav__brand" href="#top">Flex-π</a>
-    <span class="nav__title" aria-hidden="true">A Latent and 3D World-Action Model with Compute Flexibility</span>
+    <span class="nav__title" aria-hidden="true">A Multi-Stream World-Action Model with Compute Flexibility</span>
     <div class="nav__links">
       <a href="#abstract">Abstract</a>
       <a href="#precision">Precision</a>
@@ -101,7 +101,7 @@
 <header class="hero">
   <div class="wrap wrap--mid">
     <p class="eyebrow">Preprint &middot; 2026</p>
-    <h1 class="hero__title"><span class="mark">Flex-π</span>: A Latent and 3D World-Action Model with Compute Flexibility</h1>
+    <h1 class="hero__title"><span class="mark">Flex-π</span>: A Multi-Stream World-Action Model with Compute Flexibility</h1>
     <p class="hero__tagline">One checkpoint. Any observed inputs, any generated futures, and a
     <span style="white-space:nowrap">speed&ndash;accuracy</span> operating point you pick at deployment.</p>
 
@@ -428,21 +428,6 @@
         <div class="score score--ours"><div class="score__v">55<span class="unit">%</span></div><div class="score__k">Flex-π full task</div></div>
       </div>
     </div>
-  </div>
-
-  <div class="wrap wrap--mid reveal" style="margin-top:36px">
-    <div class="stages">
-      <div class="stage-row"><span class="stage-row__i">1</span><span class="stage-row__name"><b>Return to pose</b><small>the pose every episode opens from</small></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row"><span class="stage-row__i">2</span><span class="stage-row__name"><b>Pick gripper</b></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row stage-row--tight"><span class="stage-row__i">3</span><span class="stage-row__name"><b>Insert / seat gripper</b><small>19 mm part into a 20 mm holder — ±0.5 mm</small></span><span class="stage-row__pts">0.50</span></div>
-      <div class="stage-row"><span class="stage-row__i">4</span><span class="stage-row__name"><b>Pick screw</b></span><span class="stage-row__pts">0.50</span></div>
-      <div class="stage-row stage-row--tight"><span class="stage-row__i">5</span><span class="stage-row__name"><b>Insert / start screw</b><small>4.5 mm M5 shank into an 8 mm hole — ±1.75 mm</small></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row"><span class="stage-row__i">6</span><span class="stage-row__name"><b>Pick driver</b></span><span class="stage-row__pts">0.25</span></div>
-      <div class="stage-row stage-row--tight"><span class="stage-row__i">7</span><span class="stage-row__name"><b>Screw in</b><small>4 mm bit into a 4.5 mm socket — ±0.25 mm, the tightest stage</small></span><span class="stage-row__pts">0.75</span></div>
-      <div class="stage-row"><span class="stage-row__i">8</span><span class="stage-row__name"><b>Pick &amp; place</b><small>clear the table by placing a vegetable in the bucket</small></span><span class="stage-row__pts">0.25</span></div>
-    </div>
-    <p class="figcap" style="margin-top:12px">Highlighted: the three insertion and fastening stages carry half of
-    the 3.0 points, so transport alone scores poorly.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:56px">
@@ -1475,7 +1460,7 @@
     <div class="bib" style="margin-top:20px">
       <button class="bib__copy" type="button" id="bib-copy">Copy</button>
       <pre id="bib-text">@article{yan2026flexpi,
-  title   = {Flex-$\pi$: A Latent and 3D World-Action Model with Compute Flexibility},
+  title   = {Flex-$\pi$: A Multi-Stream World-Action Model with Compute Flexibility},
   author  = {Yan, Ge and Liu, Jinghao and Fan, Yuzhi and Cai, Lei and
              Liao, Minwen and Zhang, Jesse and Fox, Dieter},
   journal = {Preprint},

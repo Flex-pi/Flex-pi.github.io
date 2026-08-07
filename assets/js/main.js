@@ -881,14 +881,40 @@
     svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: sy - 3, 'text-anchor': 'end' }, 'L'));
     svg.appendChild(el('text', { 'class': 'ac-lab--dim', x: W - padR, y: sy + 9, 'text-anchor': 'end' }, 'R'));
 
-    var head = el('g', {});
+    var head = el('g', { transform: 'translate(' + padL + ',0)' });
     head.appendChild(el('line', { 'class': 'ac-head', x1: 0, y1: padT - 4, x2: 0, y2: padT + plotH + 3 }));
-    head.appendChild(el('animateTransform', { attributeName: 'transform', type: 'translate',
-      from: padL + ',0', to: (padL + plotW) + ',0', dur: '4s', repeatCount: 'indefinite' }));
     svg.appendChild(head);
 
     host.innerHTML = '';
     host.appendChild(svg);
+
+    /* sync the playhead to the stream clips: one sweep = one loop of the
+       triptych. The RGB clip is the master; the other two are nudged back
+       into lockstep whenever they drift, so all four panels read as one
+       synchronized episode. */
+    var vids = Array.prototype.slice.call(document.querySelectorAll('.streamrow video'));
+    var master = vids[0];
+    if (master) {
+      (function tick() {
+        var d = master.duration;
+        if (d && isFinite(d) && d > 0) {
+          var x = padL + (master.currentTime / d) * plotW;
+          head.setAttribute('transform', 'translate(' + x + ',0)');
+          for (var i = 1; i < vids.length; i++) {
+            var v = vids[i];
+            if (v.paused || v.seeking || !v.duration) continue;
+            var drift = Math.abs(v.currentTime - master.currentTime);
+            /* modular distance, so the moment one clip wraps around the
+               loop boundary does not read as a huge drift */
+            if (drift > 0.3 && Math.abs(drift - d) > 0.3) v.currentTime = master.currentTime;
+          }
+        }
+        requestAnimationFrame(tick);
+      })();
+    } else {
+      head.appendChild(el('animateTransform', { attributeName: 'transform', type: 'translate',
+        from: padL + ',0', to: (padL + plotW) + ',0', dur: '4s', repeatCount: 'indefinite' }));
+    }
   }
 
   function initArchviz() {
