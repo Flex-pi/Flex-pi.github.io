@@ -378,15 +378,14 @@
     </div>
   </div>
 
-  <!-- the payoff of the masks above, raced against every baseline in real
-       time. The x axis is latency, i.e. time, so the animation is exact:
-       every dot advances at the same true speed, stops when its inference
-       completes, then climbs to its measured task completion. -->
+  <!-- what the masks above buy on the real robot: the fast path is quicker
+       than every baseline and still more accurate, and the slow path is the
+       most accurate of all. Hover a point for its exact numbers. -->
   <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">The frontier, run in real time</h4>
-    <p class="sub__lede">A new observation arrives and five policies start computing, side by side on the
-    time axis. The moment a policy's inference completes it stops — then climbs to its task-completion
-    score. Flex-π stops first <em>and</em> climbs highest.</p>
+    <h4 class="sub__title">What that costs, and what it buys</h4>
+    <p class="sub__lede">The two deployed operating points against every baseline we compare against.
+    The fast path is quicker than all of them <em>and</em> more accurate; the joint path trades that speed
+    for the highest task completion of all. Hover a point for its exact numbers.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
@@ -394,9 +393,8 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Speed&ndash;accuracy frontier</div>
-          <div class="chartbox__sub">Real-world suite &middot; RTX 5090 &middot; bf16 &middot; 4 denoise steps &middot; slowed 5&times;</div>
+          <div class="chartbox__sub">Real-world suite &middot; RTX 5090 &middot; bf16 &middot; 4 denoise steps</div>
         </div>
-        <button class="regimechip" type="button" id="fr-replay">&#9889; Perturb the scene</button>
       </div>
       <div id="frontier-race"></div>
       <p class="figcap" style="margin-top:10px">Task completion averaged over the real-world suite
