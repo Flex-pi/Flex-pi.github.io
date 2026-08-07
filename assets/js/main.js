@@ -438,7 +438,7 @@
     ];
     var MAXLAT = 193;
 
-    var W = 1000, padL = 60, padR = 34, padT = 40, plotH = 330, H = 560;
+    var W = 1000, padL = 60, padR = 34, padT = 36, plotH = 400, H = 492;
     var plotW = W - padL - padR;
     var xMin = 0, xMax = 215, yMin = 28, yMax = 90;
     function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
@@ -460,12 +460,13 @@
       svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
     });
 
-    /* runway band at the bottom of the plot, below the 30% line; fastest lane
-       on top. Green while the race runs — it morphs into the claret verdict
-       box when the race is over. The axes never move. */
-    var LANE_GAP = 17, LANE_TOP = Y(yMin) + 24;
-    var AXIS_Y = LANE_TOP + 4 * LANE_GAP + 20;
-    var band = { x: padL, y: LANE_TOP - 12, w: W - padL - padR, h: (AXIS_Y - 10) - (LANE_TOP - 12) };
+    /* the chart is compact from the start: the axis IS the plot floor. The
+       runway borrows the lower stripe of the plot itself (~30-42%) during the
+       race; the racers climb out of it and the green band morphs into the
+       claret verdict box, so no region is ever left idle. Fastest lane on top. */
+    var AXIS_Y = Y(yMin);
+    var LANE_GAP = 17, LANE_TOP = AXIS_Y - 16 - 4 * LANE_GAP;
+    var band = { x: padL, y: LANE_TOP - 12, w: W - padL - padR, h: (AXIS_Y - 6) - (LANE_TOP - 12) };
     var greenBand = el('rect', { x: band.x, y: band.y, width: band.w, height: band.h,
       fill: 'var(--c-ours)', opacity: .07, rx: 3 });
     svg.appendChild(greenBand);
@@ -497,7 +498,7 @@
        life as the green runway band — setMorph() carries geometry and color
        from one to the other. */
     var AO = M[3];
-    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 8) - Y(AO.sr) };
+    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 6) - Y(AO.sr) };
     var domRect = el('rect', { x: band.x, y: band.y, width: band.w, height: band.h,
       fill: 'var(--primary-soft)', opacity: 0, rx: 3 });
     svg.appendChild(domRect);
