@@ -460,48 +460,84 @@
       svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
     });
 
-    /* runway band between the score plot and the x axis; fastest lane on top */
+    /* runway band between the score plot and the x axis; fastest lane on top.
+       Green while the race runs — it will morph into the claret verdict box,
+       and the space it occupied collapses away afterwards. */
     var LANE_GAP = 17, LANE_TOP = Y(yMin) + 24;
+    var AXIS_Y = LANE_TOP + 4 * LANE_GAP + 20;
+    var band = { x: padL, y: LANE_TOP - 12, w: W - padL - padR, h: (AXIS_Y - 10) - (LANE_TOP - 12) };
+    var greenBand = el('rect', { x: band.x, y: band.y, width: band.w, height: band.h,
+      fill: 'var(--c-ours)', opacity: .07, rx: 3 });
+    svg.appendChild(greenBand);
     M.slice().sort(function (a, b) { return a.lat - b.lat; }).forEach(function (m, i) {
       m.laneY = LANE_TOP + i * LANE_GAP;
       m.guide = el('line', { x1: padL, x2: W - padR, y1: m.laneY, y2: m.laneY,
-        stroke: 'var(--chart-grid)', 'stroke-width': 1, 'stroke-dasharray': '1 5', opacity: .9 });
+        stroke: 'var(--c-ours)', 'stroke-width': 1, 'stroke-dasharray': '1 5', opacity: .35 });
       svg.appendChild(m.guide);
     });
-    var AXIS_Y = LANE_TOP + 4 * LANE_GAP + 20;
-    var laneLab = el('text', { 'class': 'lanelab', x: W - padR, y: LANE_TOP - 9, 'text-anchor': 'end' }, 'computing…');
+    var laneLab = el('text', { 'class': 'lanelab lanelab--live', x: W - padR, y: band.y - 7,
+      'text-anchor': 'end' }, 'computing…');
     svg.appendChild(laneLab);
 
-    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
-    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 8, y2: AXIS_Y }));
+    /* the x axis and everything on it slide up when the runway collapses */
+    var COLLAPSE = AXIS_Y - (Y(yMin) + 14);
+    var yAxis = el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 8, y2: AXIS_Y });
+    svg.appendChild(yAxis);
+    var axisG = el('g', {});
+    axisG.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
     [0, 50, 100, 150, 200].forEach(function (t) {
-      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
-      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 20, 'text-anchor': 'middle' }, String(t)));
+      axisG.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
+      axisG.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 20, 'text-anchor': 'middle' }, String(t)));
     });
-    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 44,
+    axisG.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 44,
       'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
+    svg.appendChild(axisG);
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
       transform: 'translate(14,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion (%)'));
+    function setCollapse(p) {
+      axisG.setAttribute('transform', 'translate(0,' + (-COLLAPSE * p) + ')');
+      yAxis.setAttribute('y2', AXIS_Y - COLLAPSE * p);
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (H - COLLAPSE * p));
+    }
 
     var clock = el('text', { 'class': 'clock', x: W - padR, y: padT - 14, 'text-anchor': 'end' }, 't = 0 ms');
     svg.appendChild(clock);
 
-    /* dominance shade: everything slower AND lower than the fast path */
+    /* verdict box: everything slower AND lower than the fast path. It starts
+       life as the green runway band — setMorph() carries geometry and color
+       from one to the other. */
     var AO = M[3];
-    var domW = X(xMax) - X(AO.lat), domH = Y(yMin) - Y(AO.sr);
-    var clip = el('clipPath', { id: 'fr-domclip' });
-    var clipRect = el('rect', { x: X(AO.lat), y: Y(AO.sr), width: 0, height: domH });
-    clip.appendChild(clipRect); svg.appendChild(clip);
-    var domG = el('g', { 'clip-path': 'url(#fr-domclip)' });
-    domG.appendChild(el('rect', { x: X(AO.lat), y: Y(AO.sr), width: domW, height: domH, fill: 'var(--primary-soft)' }));
-    domG.appendChild(el('line', { x1: X(AO.lat), x2: X(AO.lat), y1: Y(AO.sr), y2: Y(yMin),
-      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
-    domG.appendChild(el('line', { x1: X(AO.lat), x2: X(xMax), y1: Y(AO.sr), y2: Y(AO.sr),
-      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
-    svg.appendChild(domG);
+    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: Y(yMin) - Y(AO.sr) };
+    var domRect = el('rect', { x: band.x, y: band.y, width: band.w, height: band.h,
+      fill: 'var(--primary-soft)', opacity: 0, rx: 3 });
+    svg.appendChild(domRect);
+    var domEdgeV = el('line', { x1: dom.x, x2: dom.x, y1: dom.y, y2: dom.y + dom.h,
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: 0 });
+    var domEdgeH = el('line', { x1: dom.x, x2: dom.x + dom.w, y1: dom.y, y2: dom.y,
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: 0 });
+    svg.appendChild(domEdgeV); svg.appendChild(domEdgeH);
     var domT = el('text', { 'class': 'domlab', x: X(207), y: Y(66), 'text-anchor': 'end', opacity: 0 },
       'every baseline: slower and lower');
     svg.appendChild(domT);
+
+    function lerp(a, b, p) { return a + (b - a) * p; }
+    function setMorph(p) {
+      var e = easeOut(p);
+      var x = lerp(band.x, dom.x, e), y = lerp(band.y, dom.y, e);
+      var w = lerp(band.w, dom.w, e), h = lerp(band.h, dom.h, e);
+      [greenBand, domRect].forEach(function (r) {
+        r.setAttribute('x', x); r.setAttribute('y', y);
+        r.setAttribute('width', w); r.setAttribute('height', h);
+        r.setAttribute('rx', 3 * (1 - p));
+      });
+      greenBand.setAttribute('opacity', .07 * (1 - p));
+      domRect.setAttribute('opacity', p);
+    }
+    function setVerdictTrim(p) {
+      domEdgeV.setAttribute('opacity', .5 * p);
+      domEdgeH.setAttribute('opacity', .5 * p);
+      domT.setAttribute('opacity', p);
+    }
 
     var dots = M.map(function (m) {
       var g = el('g', {});
@@ -531,8 +567,7 @@
       laneLab.setAttribute('opacity', 0);
       clock.textContent = 't = ' + MAXLAT + ' ms';
       clock.setAttribute('class', 'clock clock--done');
-      clipRect.setAttribute('width', domW);
-      domT.setAttribute('opacity', 1);
+      setMorph(1); setVerdictTrim(1); setCollapse(1);
     }
 
     function flashRing(d) {
@@ -549,13 +584,27 @@
       requestAnimationFrame(step);
     }
 
-    function sweep() {
-      var t0 = null, DUR = 1000;
+    /* the runway becomes the verdict: morph the green band into the claret
+       box, then collapse the space it occupied so the chart settles into the
+       paper's compact Figure-12 framing */
+    function finale(done) {
+      var MORPH = 700, FALL = 500, t0 = null;
+      laneLab.setAttribute('opacity', 0);
       function step(ts) {
         if (!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / DUR);
-        clipRect.setAttribute('width', domW * easeOut(p));
-        if (p < 1) requestAnimationFrame(step); else domT.setAttribute('opacity', 1);
+        var t = ts - t0;
+        if (t < MORPH) {
+          setMorph(t / MORPH);
+        } else if (t < MORPH + FALL) {
+          setMorph(1);
+          var p = easeOut((t - MORPH) / FALL);
+          setCollapse(p); setVerdictTrim(p);
+        } else {
+          setMorph(1); setCollapse(1); setVerdictTrim(1);
+          if (done) done();
+          return;
+        }
+        requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
@@ -564,14 +613,14 @@
     var raf = null;
     function race() {
       if (raf) cancelAnimationFrame(raf);
-      clipRect.setAttribute('width', 0); domT.setAttribute('opacity', 0);
+      setMorph(0); setVerdictTrim(0); setCollapse(0);
       clock.setAttribute('class', 'clock');
       laneLab.setAttribute('opacity', 1);
       dots.forEach(function (d) {
         d.phase = 'run'; d.riseT0 = null;
         d.dot.setAttribute('cx', padL); d.dot.setAttribute('cy', d.m.laneY);
         d.lab.setAttribute('opacity', 0); d.val.setAttribute('opacity', 0);
-        d.m.guide.setAttribute('opacity', .9);
+        d.m.guide.setAttribute('opacity', .35);
       });
       if (btn) btn.disabled = true;
       var t0 = performance.now(), sweepAt = null;
@@ -594,7 +643,7 @@
           if (d.phase === 'rise') {
             var p = Math.min(1, (now - d.riseT0) / RISE);
             d.dot.setAttribute('cy', d.m.laneY + (Y(d.m.sr) - d.m.laneY) * easeOut(p));
-            d.m.guide.setAttribute('opacity', .9 * (1 - p));
+            d.m.guide.setAttribute('opacity', .35 * (1 - p));
             if (p >= 1) {
               d.phase = 'done';
               d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1);
@@ -602,10 +651,9 @@
           }
         });
         if (allDone) {
-          laneLab.setAttribute('opacity', 0);
           clock.setAttribute('class', 'clock clock--done');
           if (sweepAt === null) sweepAt = now + HOLD;
-          if (now >= sweepAt) { sweep(); if (btn) btn.disabled = false; return; }
+          if (now >= sweepAt) { finale(function () { if (btn) btn.disabled = false; }); return; }
         }
         raf = requestAnimationFrame(step);
       }
@@ -630,7 +678,7 @@
           var p = Math.min(1, (ft - d.m.lat) * SLOW / RISE);
           d.dot.setAttribute('cx', X(d.m.lat));
           d.dot.setAttribute('cy', d.m.laneY + (Y(d.m.sr) - d.m.laneY) * easeOut(p));
-          d.m.guide.setAttribute('opacity', .9 * (1 - p));
+          d.m.guide.setAttribute('opacity', .35 * (1 - p));
           if (p >= 1) { d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1); }
           else allLanded = false;
         }
@@ -638,7 +686,7 @@
       if (allLanded) {
         laneLab.setAttribute('opacity', 0);
         clock.setAttribute('class', 'clock clock--done');
-        if (ft > MAXLAT + (RISE + HOLD) / SLOW) { clipRect.setAttribute('width', domW); domT.setAttribute('opacity', 1); }
+        if (ft >= 400) { setMorph(1); setVerdictTrim(1); setCollapse(1); }
       }
       return;
     }

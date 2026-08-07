@@ -1047,6 +1047,7 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 
 /* frontier race (streams section) — same .chart token system */
 .chart .lanelab { fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta); text-transform: uppercase; }
+.chart .lanelab--live { fill: var(--c-ours); }
 .chart .clock { fill: var(--fg-dim); font-family: var(--ff-mono); font-size: 14px; }
 .chart .clock--done { fill: var(--fg-faint); }
 .chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 16px; }

@@ -399,14 +399,9 @@
         <button class="regimechip" type="button" id="fr-replay">&#9889; Perturb the scene</button>
       </div>
       <div id="frontier-race"></div>
-      <p class="figcap" style="margin-top:10px"><b>The fast ones stop almost together &mdash; then look who climbs
-      where.</b> At the deployed four denoise steps, Flex-π's action-only path completes in <b>60&nbsp;ms, before
-      every baseline</b> &mdash; π<sub>0.5</sub> (66&nbsp;ms), Fast-WAM (86&nbsp;ms), ManiFlow (103&nbsp;ms) &mdash;
-      and climbs 22.3 points above the strongest of them; a beat later, full joint generation stops at 193&nbsp;ms
-      and climbs highest of all. Both Flex-π points are the <em>same checkpoint</em>, differing only in the output
-      mask <b>m</b><sup>out</sup>; intermediate configurations are deployable from the same weights and are not
-      separately evaluated. Task completion is averaged over every evaluated condition of the real-world suite
-      (Figure&nbsp;12); latency is a single inference on an RTX&nbsp;5090.</p>
+      <p class="figcap" style="margin-top:10px">Task completion averaged over the real-world suite
+      (Figure&nbsp;12); latency is a single RTX&nbsp;5090 inference at the deployed 4 denoise steps. Both Flex-π
+      points are one checkpoint &mdash; only <b>m</b><sup>out</sup> differs.</p>
     </div>
   </div>
 </section>
