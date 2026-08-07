@@ -248,9 +248,11 @@
       p3d: css('--s-3d') || '#6aa9f0',
       dino: css('--s-dino') || '#57c98b',
       ours: css('--c-ours') || '#57c98b',
+      oursL: css('--c-ours-l') || '#8fd9b0',
       oursD: css('--c-ours-d') || '#2f8f5b',
       base: css('--c-base') || '#9a9a9a',
       base2: css('--c-base2') || '#e0b04a',
+      base3: css('--c-base3') || '#7b8b9e',
       blue: '#6aa9f0'
     };
     var pct = function (v) { return v.toFixed(1); };
@@ -393,23 +395,262 @@
       });
     }
 
-    /* real-robot latency */
+    /* real-robot latency (Figure 12, all at the deployed 4 denoise steps) */
     if ((m = find('latency'))) {
       barChart(m, {
         groups: [
           { label: 'π₀.₅|baseline', values: [66], colors: [C.base2] },
-          { label: 'Action-only|4 steps', values: [118], colors: ['#8fd9b0'] },
-          { label: 'Action-only|10 steps', values: [152], colors: ['#8fd9b0'] },
-          { label: 'Joint + skips|10 steps', values: [600], colors: [C.oursD] },
-          { label: 'Joint|10 steps', values: [1857], colors: [C.oursD] }
+          { label: 'ManiFlow|baseline', values: [103], colors: [C.base3] },
+          { label: 'Fast-WAM|baseline', values: [86], colors: [C.base] },
+          { label: 'Flex-π|action-only', values: [60], colors: [C.oursL] },
+          { label: 'Flex-π|full joint', values: [193], colors: [C.oursD] }
         ],
         series: [{ name: 'Latency' }],
-        max: 2000, yTicks: [0, 500, 1000, 1500, 2000], plotH: 230,
+        max: 210, yTicks: [0, 50, 100, 150, 200], plotH: 230,
         valFmt: function (v) { return String(v); },
         yLabel: 'Latency (ms)',
-        ariaLabel: 'Measured latency: 66 ms for π0.5, 118 to 152 ms for Flex-π action-only, 600 ms for joint with skips and 1857 ms for full joint.'
+        ariaLabel: 'Measured latency at four denoise steps: 60 ms for Flex-π action-only — under π0.5 at 66 ms, Fast-WAM at 86 ms and ManiFlow at 103 ms — and 193 ms for full joint generation.'
       });
     }
+  }
+
+  /* ---------------------------------------------------------------------
+     the real-world frontier, run as a race (streams section)
+     The x axis is latency, i.e. time, so the animation is physically exact:
+     five dots launch together in parallel runway lanes and advance at the
+     same true speed (slowed 5×); each stops the moment its inference
+     completes, then climbs to its measured task completion. Colors are
+     var() references so the chart follows the theme without re-rendering —
+     which also means it is built once and never re-run on toggle/resize.
+     ?freeze=<real ms> renders that instant statically (paper/slide frames).
+     --------------------------------------------------------------------- */
+  function initFrontierRace() {
+    var mount = document.getElementById('frontier-race');
+    if (!mount) return;
+
+    var SLOW = 5, RISE = 500, HOLD = 500;
+    var M = [
+      { name: 'π₀.₅',                 lat: 66,  sr: 45.2, c: 'var(--c-base2)',  dx: 18,  dy: 6,   anchor: 'start' },
+      { name: 'Fast-WAM',             lat: 86,  sr: 37.2, c: 'var(--c-base)',   dx: 18,  dy: 6,   anchor: 'start' },
+      { name: 'ManiFlow',             lat: 103, sr: 51.6, c: 'var(--c-base3)',  dx: 18,  dy: 6,   anchor: 'start' },
+      { name: 'Flex-π (action-only)', lat: 60,  sr: 73.9, c: 'var(--c-ours-l)', dx: 20,  dy: -13, anchor: 'start', ours: true },
+      { name: 'Flex-π (full joint)',  lat: 193, sr: 81.2, c: 'var(--c-ours-d)', dx: -20, dy: -38, anchor: 'end',   ours: true }
+    ];
+    var MAXLAT = 193;
+
+    var W = 1000, padL = 60, padR = 34, padT = 40, plotH = 330, H = 560;
+    var plotW = W - padL - padR;
+    var xMin = 0, xMax = 215, yMin = 28, yMax = 90;
+    function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
+    function Y(v) { return padT + plotH - (v - yMin) / (yMax - yMin) * plotH; }
+    function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
+
+    var svg = el('svg', {
+      'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': 'Animated scatter plot of task completion versus inference latency. Five dots race ' +
+        'rightward in parallel lanes along the time axis; each stops when its inference completes, then ' +
+        'climbs to its task-completion score. Flex-π action-only stops first at 60 ms and climbs to 73.9%; ' +
+        'π0.5 stops at 66 ms, 45.2%; Fast-WAM at 86 ms, 37.2%; ManiFlow at 103 ms, 51.6%; Flex-π full ' +
+        'joint stops last at 193 ms but climbs highest, to 81.2%.'
+    });
+
+    [30, 40, 50, 60, 70, 80, 90].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
+    });
+
+    /* runway band between the score plot and the x axis; fastest lane on top */
+    var LANE_GAP = 17, LANE_TOP = Y(yMin) + 24;
+    M.slice().sort(function (a, b) { return a.lat - b.lat; }).forEach(function (m, i) {
+      m.laneY = LANE_TOP + i * LANE_GAP;
+      m.guide = el('line', { x1: padL, x2: W - padR, y1: m.laneY, y2: m.laneY,
+        stroke: 'var(--chart-grid)', 'stroke-width': 1, 'stroke-dasharray': '1 5', opacity: .9 });
+      svg.appendChild(m.guide);
+    });
+    var AXIS_Y = LANE_TOP + 4 * LANE_GAP + 20;
+    var laneLab = el('text', { 'class': 'lanelab', x: W - padR, y: LANE_TOP - 9, 'text-anchor': 'end' }, 'computing…');
+    svg.appendChild(laneLab);
+
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 8, y2: AXIS_Y }));
+    [0, 50, 100, 150, 200].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 20, 'text-anchor': 'middle' }, String(t)));
+    });
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 44,
+      'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
+    svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
+      transform: 'translate(14,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion (%)'));
+
+    var clock = el('text', { 'class': 'clock', x: W - padR, y: padT - 14, 'text-anchor': 'end' }, 't = 0 ms');
+    svg.appendChild(clock);
+
+    /* dominance shade: everything slower AND lower than the fast path */
+    var AO = M[3];
+    var domW = X(xMax) - X(AO.lat), domH = Y(yMin) - Y(AO.sr);
+    var clip = el('clipPath', { id: 'fr-domclip' });
+    var clipRect = el('rect', { x: X(AO.lat), y: Y(AO.sr), width: 0, height: domH });
+    clip.appendChild(clipRect); svg.appendChild(clip);
+    var domG = el('g', { 'clip-path': 'url(#fr-domclip)' });
+    domG.appendChild(el('rect', { x: X(AO.lat), y: Y(AO.sr), width: domW, height: domH, fill: 'var(--primary-soft)' }));
+    domG.appendChild(el('line', { x1: X(AO.lat), x2: X(AO.lat), y1: Y(AO.sr), y2: Y(yMin),
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
+    domG.appendChild(el('line', { x1: X(AO.lat), x2: X(xMax), y1: Y(AO.sr), y2: Y(AO.sr),
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
+    svg.appendChild(domG);
+    var domT = el('text', { 'class': 'domlab', x: X(207), y: Y(66), 'text-anchor': 'end', opacity: 0 },
+      'every baseline: slower and lower');
+    svg.appendChild(domT);
+
+    var dots = M.map(function (m) {
+      var g = el('g', {});
+      var ring = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 11, fill: 'none',
+        stroke: m.c, 'stroke-width': 2.5, opacity: 0 });
+      var dot = el('circle', { cx: padL, cy: m.laneY, r: m.ours ? 11 : 10, fill: m.c,
+        stroke: 'var(--bg-raise)', 'stroke-width': 2.5 });
+      var lab = el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: X(m.lat) + m.dx,
+        y: Y(m.sr) + m.dy, 'text-anchor': m.anchor, opacity: 0 }, m.name);
+      var val = el('text', { 'class': 'dval', x: X(m.lat) + m.dx, y: Y(m.sr) + m.dy + 18,
+        'text-anchor': m.anchor, opacity: 0 }, m.lat + ' ms · ' + m.sr.toFixed(1) + '%');
+      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 24, fill: 'transparent' });
+      hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '% task completion'));
+      g.appendChild(ring); g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
+      svg.appendChild(g);
+      return { m: m, dot: dot, ring: ring, lab: lab, val: val, phase: 'run', riseT0: null };
+    });
+
+    mount.appendChild(svg);
+
+    function setFinal() {
+      dots.forEach(function (d) {
+        d.dot.setAttribute('cx', X(d.m.lat)); d.dot.setAttribute('cy', Y(d.m.sr));
+        d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1);
+        d.m.guide.setAttribute('opacity', 0); d.phase = 'done';
+      });
+      laneLab.setAttribute('opacity', 0);
+      clock.textContent = 't = ' + MAXLAT + ' ms';
+      clock.setAttribute('class', 'clock clock--done');
+      clipRect.setAttribute('width', domW);
+      domT.setAttribute('opacity', 1);
+    }
+
+    function flashRing(d) {
+      d.ring.setAttribute('cx', X(d.m.lat));
+      d.ring.setAttribute('cy', d.m.laneY);
+      var t0 = null, DUR = 460;
+      function step(ts) {
+        if (!t0) t0 = ts;
+        var p = Math.min(1, (ts - t0) / DUR);
+        d.ring.setAttribute('r', 11 + p * 15);
+        d.ring.setAttribute('opacity', (1 - p) * .7);
+        if (p < 1) requestAnimationFrame(step); else d.ring.setAttribute('opacity', 0);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function sweep() {
+      var t0 = null, DUR = 1000;
+      function step(ts) {
+        if (!t0) t0 = ts;
+        var p = Math.min(1, (ts - t0) / DUR);
+        clipRect.setAttribute('width', domW * easeOut(p));
+        if (p < 1) requestAnimationFrame(step); else domT.setAttribute('opacity', 1);
+      }
+      requestAnimationFrame(step);
+    }
+
+    var btn = document.getElementById('fr-replay');
+    var raf = null;
+    function race() {
+      if (raf) cancelAnimationFrame(raf);
+      clipRect.setAttribute('width', 0); domT.setAttribute('opacity', 0);
+      clock.setAttribute('class', 'clock');
+      laneLab.setAttribute('opacity', 1);
+      dots.forEach(function (d) {
+        d.phase = 'run'; d.riseT0 = null;
+        d.dot.setAttribute('cx', padL); d.dot.setAttribute('cy', d.m.laneY);
+        d.lab.setAttribute('opacity', 0); d.val.setAttribute('opacity', 0);
+        d.m.guide.setAttribute('opacity', .9);
+      });
+      if (btn) btn.disabled = true;
+      var t0 = performance.now(), sweepAt = null;
+      function step(now) {
+        var tms = (now - t0) / SLOW;                 /* elapsed, in real ms */
+        clock.textContent = 't = ' + Math.floor(Math.min(tms, MAXLAT)) + ' ms';
+        var allDone = true;
+        dots.forEach(function (d) {
+          if (d.phase === 'done') return;
+          allDone = false;
+          if (d.phase === 'run') {
+            if (tms >= d.m.lat) {
+              d.phase = 'rise'; d.riseT0 = now;
+              d.dot.setAttribute('cx', X(d.m.lat));
+              flashRing(d);
+            } else {
+              d.dot.setAttribute('cx', X(tms));
+            }
+          }
+          if (d.phase === 'rise') {
+            var p = Math.min(1, (now - d.riseT0) / RISE);
+            d.dot.setAttribute('cy', d.m.laneY + (Y(d.m.sr) - d.m.laneY) * easeOut(p));
+            d.m.guide.setAttribute('opacity', .9 * (1 - p));
+            if (p >= 1) {
+              d.phase = 'done';
+              d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1);
+            }
+          }
+        });
+        if (allDone) {
+          laneLab.setAttribute('opacity', 0);
+          clock.setAttribute('class', 'clock clock--done');
+          if (sweepAt === null) sweepAt = now + HOLD;
+          if (now >= sweepAt) { sweep(); if (btn) btn.disabled = false; return; }
+        }
+        raf = requestAnimationFrame(step);
+      }
+      raf = requestAnimationFrame(step);
+    }
+
+    if (btn) btn.addEventListener('click', race);
+
+    /* static frame for screenshots: ?freeze=<real ms> */
+    var freeze = new URLSearchParams(location.search).get('freeze');
+    if (freeze !== null) {
+      /* frames are shot headless, where smooth anchor scrolling never lands */
+      document.documentElement.style.scrollBehavior = 'auto';
+      var ft = Math.max(0, parseFloat(freeze) || 0);
+      clock.textContent = 't = ' + Math.floor(Math.min(ft, MAXLAT)) + ' ms';
+      var allLanded = true;
+      dots.forEach(function (d) {
+        if (ft < d.m.lat) {
+          d.dot.setAttribute('cx', X(ft)); d.dot.setAttribute('cy', d.m.laneY);
+          allLanded = false;
+        } else {
+          var p = Math.min(1, (ft - d.m.lat) * SLOW / RISE);
+          d.dot.setAttribute('cx', X(d.m.lat));
+          d.dot.setAttribute('cy', d.m.laneY + (Y(d.m.sr) - d.m.laneY) * easeOut(p));
+          d.m.guide.setAttribute('opacity', .9 * (1 - p));
+          if (p >= 1) { d.lab.setAttribute('opacity', 1); d.val.setAttribute('opacity', 1); }
+          else allLanded = false;
+        }
+      });
+      if (allLanded) {
+        laneLab.setAttribute('opacity', 0);
+        clock.setAttribute('class', 'clock clock--done');
+        if (ft > MAXLAT + (RISE + HOLD) / SLOW) { clipRect.setAttribute('width', domW); domT.setAttribute('opacity', 1); }
+      }
+      return;
+    }
+
+    if (reduceMotion) { setFinal(); return; }
+
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) { race(); io.disconnect(); }
+      });
+    }, { threshold: .45 });
+    io.observe(svg);
   }
 
   /* ---------------------------------------------------------------------
@@ -1106,6 +1347,7 @@
   function boot() {
     initTheme();
     renderCharts();
+    initFrontierRace();
     initExplorer();
     initMaskDemo();
     initVideos();

@@ -377,6 +377,38 @@
       </div>
     </div>
   </div>
+
+  <!-- the payoff of the masks above, raced against every baseline in real
+       time. The x axis is latency, i.e. time, so the animation is exact:
+       every dot advances at the same true speed, stops when its inference
+       completes, then climbs to its measured task completion. -->
+  <div class="wrap reveal" style="margin-top:56px">
+    <h4 class="sub__title">The frontier, run in real time</h4>
+    <p class="sub__lede">A new observation arrives and five policies start computing, side by side on the
+    time axis. The moment a policy's inference completes it stops — then climbs to its task-completion
+    score. Flex-π stops first <em>and</em> climbs highest.</p>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:20px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Speed&ndash;accuracy frontier</div>
+          <div class="chartbox__sub">Real-world suite &middot; RTX 5090 &middot; bf16 &middot; 4 denoise steps &middot; slowed 5&times;</div>
+        </div>
+        <button class="regimechip" type="button" id="fr-replay">&#9889; Perturb the scene</button>
+      </div>
+      <div id="frontier-race"></div>
+      <p class="figcap" style="margin-top:10px"><b>The fast ones stop almost together &mdash; then look who climbs
+      where.</b> At the deployed four denoise steps, Flex-π's action-only path completes in <b>60&nbsp;ms, before
+      every baseline</b> &mdash; π<sub>0.5</sub> (66&nbsp;ms), Fast-WAM (86&nbsp;ms), ManiFlow (103&nbsp;ms) &mdash;
+      and climbs 22.3 points above the strongest of them; a beat later, full joint generation stops at 193&nbsp;ms
+      and climbs highest of all. Both Flex-π points are the <em>same checkpoint</em>, differing only in the output
+      mask <b>m</b><sup>out</sup>; intermediate configurations are deployable from the same weights and are not
+      separately evaluated. Task completion is averaged over every evaluated condition of the real-world suite
+      (Figure&nbsp;12); latency is a single inference on an RTX&nbsp;5090.</p>
+    </div>
+  </div>
 </section>
 
 <!-- ====================== part I ====================== -->
@@ -1287,13 +1319,14 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Measured inference latency on the real robot</div>
-          <div class="chartbox__sub">Single RTX 5090, bfloat16, torch.compile</div>
+          <div class="chartbox__sub">Single RTX 5090, bfloat16, torch.compile &middot; 4 denoise steps</div>
         </div>
       </div>
       <div data-chart="latency"></div>
-      <p class="figcap" style="margin-top:10px">Flex-π's action-only path (118–152 ms) stays close enough to the
-      π<sub>0.5</sub> baseline (66 ms) to drive the same 30 Hz robot — chunked execution decouples inference rate
-      from control rate, one query per 32-step chunk — while full joint generation trades speed for precision.</p>
+      <p class="figcap" style="margin-top:10px">Flex-π's action-only path (60&nbsp;ms) <b>undercuts every
+      baseline</b> — π<sub>0.5</sub> (66&nbsp;ms), Fast-WAM (86&nbsp;ms), ManiFlow (103&nbsp;ms) — while full
+      joint generation (193&nbsp;ms) trades speed for the highest task completion. Chunked execution decouples
+      inference rate from control rate on the 30&nbsp;Hz robot — one query per 32-step chunk.</p>
     </div>
   </div>
 </section>
@@ -1442,9 +1475,9 @@
     <div class="limits">
       <div class="limit"><b>Still data-hungry</b><span>Although markedly more demonstration-efficient than the
       baselines we compare against, Flex-π remains data-hungry in absolute terms.</span></div>
-      <div class="limit"><b>Joint generation is slower than a comparable VLA</b><span>The full joint generation mode
-      trades latency for accuracy. The action-only path exists precisely to recover VLA-level speed, but the two
-      cannot be had at once.</span></div>
+      <div class="limit"><b>Joint generation trades latency for accuracy</b><span>Full joint generation costs about
+      3&times; the latency of the action-only path (193 vs. 60&nbsp;ms on an RTX 5090). The action-only path is
+      faster than every baseline we compare against, but the two operating points cannot be had at once.</span></div>
       <div class="limit"><b>Synchronous inference client</b><span>Our current client is synchronous, so the arms hold
       position at each chunk boundary while the next chunk is computed. Reported wall-clock episode times therefore
       include this idle time and give an upper bound; overlapping inference with execution of the preceding chunk

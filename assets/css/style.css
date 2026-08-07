@@ -1045,6 +1045,17 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
 
+/* frontier race (streams section) — same .chart token system */
+.chart .lanelab { fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta); text-transform: uppercase; }
+.chart .clock { fill: var(--fg-dim); font-family: var(--ff-mono); font-size: 14px; }
+.chart .clock--done { fill: var(--fg-faint); }
+.chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 16px; }
+.chart .dlab--hi { fill: var(--fg); font-weight: 600; }
+.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 13px; }
+.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 15px; }
+.regimechip[disabled] { opacity: .45; cursor: default; }
+.regimechip[disabled]:hover { background: var(--surface); color: var(--fg-muted); }
+
 /* ==========================================================================
    tables
    ========================================================================== */
