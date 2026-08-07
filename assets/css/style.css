@@ -1045,6 +1045,29 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
 
+/* pareto entrance: line draws itself, points pop in as it reaches them,
+   the Fast-WAM baseline fades in last. Armed via data-anim="wait", fired
+   by an IntersectionObserver flipping it to "in"; skipped entirely under
+   prefers-reduced-motion (the attribute is never set). */
+.chart--pareto[data-anim] .pline { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.chart--pareto[data-anim] .panim { opacity: 0; }
+.chart--pareto[data-anim] .pareto__pt.panim {
+  transform: scale(.4); transform-box: fill-box; transform-origin: center;
+}
+.chart--pareto[data-anim="in"] .pline {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.15s cubic-bezier(.4, 0, .2, 1) .15s;
+}
+.chart--pareto[data-anim="in"] .panim {
+  opacity: 1;
+  transition: opacity .45s var(--ease) var(--ad, 0s);
+}
+.chart--pareto[data-anim="in"] .pareto__pt.panim {
+  transform: scale(1);
+  transition: opacity .45s var(--ease) var(--ad, 0s),
+              transform .5s cubic-bezier(.2, .9, .3, 1.35) var(--ad, 0s);
+}
+
 /* ==========================================================================
    tables
    ========================================================================== */
