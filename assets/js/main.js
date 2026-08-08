@@ -758,6 +758,24 @@
   }
 
   /* ---------------------------------------------------------------------
+     predicted futures: the prediction row is hidden until asked for
+     --------------------------------------------------------------------- */
+  function initPredReveal() {
+    var strip = document.getElementById('predstrip');
+    var btn = document.getElementById('pred-toggle');
+    var note = document.getElementById('pred-note');
+    if (!strip || !btn) return;
+    btn.addEventListener('click', function () {
+      var hidden = strip.getAttribute('data-pred') === 'hidden';
+      strip.setAttribute('data-pred', hidden ? 'shown' : 'hidden');
+      btn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
+      var label = btn.lastChild;
+      label.textContent = hidden ? ' Hide the predicted futures' : ' Reveal the predicted futures';
+      if (note) note.hidden = hidden;
+    });
+  }
+
+  /* ---------------------------------------------------------------------
      nav current-section highlight
      --------------------------------------------------------------------- */
   /* Two things key off "has the reader left the hero yet": the rail, which is
@@ -1137,6 +1155,7 @@
     initVideos();
     initArchviz();
     initJuxta();
+    initPredReveal();
     initLightbox();
     initNav();
     initRail();

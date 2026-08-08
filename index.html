@@ -1132,58 +1132,91 @@
 
 <!-- ====================== predicted futures ======================
      DreamZero-style paired presentation: the real rollout on top, the
-     future Flex-π generated for that episode directly below, one stream
-     per task. The prediction slots are grey static placeholders for now;
-     when the decoded predictions are exported, drop them in assets/videos/
-     and swap each player--todo div back to a video player. -->
+     future Flex-π generated for that episode directly below. The strip
+     scrolls horizontally; the prediction row stays hidden until the
+     reveal button is pressed. Prediction slots are grey placeholders —
+     when the decoded predictions are exported, drop them in
+     assets/videos/ and swap each player--todo div for a video player. -->
 <section class="sec" id="predictions">
   <div class="wrap reveal">
     <h3 class="sec__title">The futures behind the actions</h3>
     <p class="sec__sub">Every action chunk is generated jointly with a latent future in each stream. Control never
-    decodes those latents — but decoding them afterwards shows what the policy read while acting. Top: the real
-    rollout. Below it: the future Flex-π imagined for that episode, one stream per task.</p>
+    decodes those latents — but decoding them afterwards shows what the policy read while acting. Watch the real
+    rollouts first, then reveal the futures Flex-π imagined for each episode.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
-    <div class="predgrid">
+    <div class="predstrip" id="predstrip" data-pred="hidden">
+      <!-- 1: self repair -->
       <figure class="predpair" style="--dot:var(--s-rgb)">
-        <div class="player" data-player data-caption="Bimanual Put Plate on the Rack — the real rollout. Placeholder footage.">
+        <div class="player" data-player data-caption="Self-repair — the real rollout.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/task-plate-rack.mp4" poster="assets/videos/task-plate-rack.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
+          <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded RGB future for this episode is not exported yet">
-          <span class="player__badge predpair__badge">Predicted future · RGB</span>
+        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
+          <span class="player__badge predpair__badge">Predicted future</span>
         </div>
-        <figcaption class="predpair__cap"><b>Put the plate on the rack</b>Stream V — the appearance future, decoded by the shared VAE.</figcaption>
+        <figcaption class="predpair__cap"><b>Self-repair</b>The gripper-repair sequence.</figcaption>
+      </figure>
+
+      <!-- 2: prepare -->
+      <figure class="predpair" style="--dot:var(--s-rgb)">
+        <div class="player player--todo" role="img" aria-label="Placeholder — the prepare rollout video is not ready yet">
+          <span class="player__badge">Real rollout</span>
+        </div>
+        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
+          <span class="player__badge predpair__badge">Predicted future</span>
+        </div>
+        <figcaption class="predpair__cap"><b>Prepare</b>The preparation sequence.</figcaption>
+      </figure>
+
+      <!-- 3–5: kitchen tasks -->
+      <figure class="predpair" style="--dot:var(--s-rgb)">
+        <div class="player" data-player data-caption="Bimanual Put Plate on the Rack — the real rollout. Autonomous, 2.5× speed.">
+          <span class="player__badge">Real rollout</span>
+          <video src="assets/videos/clutter-platerack-demo.mp4" poster="assets/videos/clutter-platerack-demo.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
+          <span class="player__badge predpair__badge">Predicted future</span>
+        </div>
+        <figcaption class="predpair__cap"><b>Put the plate on the rack</b>A flat plate seated in the rack without tipping.</figcaption>
       </figure>
 
       <figure class="predpair" style="--dot:var(--s-dino)">
-        <div class="player" data-player data-caption="Sort Utensils — the real rollout. Placeholder footage.">
+        <div class="player" data-player data-caption="Sort Utensils — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/task-sort-utensils.mp4" poster="assets/videos/task-sort-utensils.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms sorting utensil-like objects into position on a table"></video>
+          <video src="assets/videos/clutter-clean-demo.mp4" poster="assets/videos/clutter-clean-demo.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms sorting utensil-like objects into position on a table"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded DINO-semantics future for this episode is not exported yet">
-          <span class="player__badge predpair__badge">Predicted future · DINO</span>
+        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
+          <span class="player__badge predpair__badge">Predicted future</span>
         </div>
-        <figcaption class="predpair__cap"><b>Sort the utensils</b>Stream D — the object-semantics future, where appearance stops mattering.</figcaption>
+        <figcaption class="predpair__cap"><b>Sort the utensils</b>Singulating thin objects from clutter.</figcaption>
       </figure>
 
       <figure class="predpair" style="--dot:var(--s-3d)">
-        <div class="player" data-player data-caption="Clean the Kitchen Rack — the real rollout. Placeholder footage.">
+        <div class="player" data-player data-caption="Clean the Kitchen Rack — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="One robot arm handing a far plate across to the other arm before racking it"></video>
+          <video src="assets/videos/clutter-kitchen-demo.mp4" poster="assets/videos/clutter-kitchen-demo.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms loading plates and bowls into a kitchen rack, handing far plates across mid-air"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded 3D-pointmap future for this episode is not exported yet">
-          <span class="player__badge predpair__badge">Predicted future · 3D</span>
+        <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
+          <span class="player__badge predpair__badge">Predicted future</span>
         </div>
-        <figcaption class="predpair__cap"><b>Hand over, then rack</b>Stream P — the geometry future that carries the exchange.</figcaption>
+        <figcaption class="predpair__cap"><b>Clean the kitchen rack</b>The mid-air handover episode.</figcaption>
       </figure>
     </div>
-    <p class="figcap" style="margin-top:20px">Predicted futures will appear here once the decoded predictions are
-    exported.</p>
+
+    <div class="predreveal">
+      <button class="btn" type="button" id="pred-toggle" aria-expanded="false" aria-controls="predstrip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Reveal the predicted futures
+      </button>
+      <p class="figcap" id="pred-note" style="margin:10px 0 0">What did the policy imagine while it acted? Press to
+      find out — the decoded future appears under each rollout.</p>
+    </div>
   </div>
 </section>
 
