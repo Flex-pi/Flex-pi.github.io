@@ -68,11 +68,17 @@
   --fs-fine: 13px;   /* fine print: notes, hints, sub-captions */
 
   /* measure */
+  /* Two tiers in the flow, and only two: text (prose, tables, callouts) and
+     media (video, charts, figure plates). --col-mid is the centred title block
+     only -- anything else on a third width read as an accident. */
   --col-text: 812px;   /* ~722px of text once padding is removed: ~76 chars at 19px */
   --col-mid:  940px;
   --col-wide: 1140px;
   --col-full: 1340px;
   --pad:      clamp(18px, 4vw, 44px);
+  /* the text tier's inner measure: any capped run of text is as wide as prose in
+     the text column, instead of taking a ch-value of its own */
+  --measure:  calc(var(--col-text) - 2 * var(--pad));
   --gap-sec:  clamp(60px, 7.5vw, 112px);
 
   --radius:      4px;
@@ -180,7 +186,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .sec__sub {
   font-size: clamp(17px, 1.8vw, 20px);
-  color: var(--fg-muted); line-height: 1.58; max-width: 70ch;
+  color: var(--fg-muted); line-height: 1.58; max-width: var(--measure);
 }
 /* cross-references in a standfirst get the same treatment as prose links,
    rather than the browser's default underline */
@@ -194,9 +200,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-size: clamp(19px, 1.9vw, 23px);
   line-height: 1.28; margin: 0 0 .45em; letter-spacing: -.008em;
 }
-/* No max-width: 72ch at 16px is ~575px, well inside the 724px text column, and
-   the short measure made every sub-point read narrower than the prose under it. */
-.sub__lede { font-size: 16.5px; line-height: 1.6; color: var(--fg-muted); margin: 0; }
+/* One level below .sec__sub and one above the caption text on a clip: this is
+   the opening paragraph of a sub-section, not an annotation. */
+.sub__lede { font-size: 18px; line-height: 1.62; color: var(--fg-muted); margin: 0; }
 .rule { height: 1px; background: var(--border-soft); border: 0; margin: 0; }
 
 /* ==========================================================================
@@ -511,7 +517,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .plate--wide img { min-width: 620px; }
 .figcap {
   margin-top: 13px; font-size: 14.5px; line-height: 1.55; color: var(--fg-dim);
-  max-width: 78ch; margin-inline: auto; text-align: center;
+  max-width: var(--measure); margin-inline: auto; text-align: center;
   text-wrap: pretty;
 }
 .figcap b, .figcap strong { color: var(--fg-muted); font-weight: 600; }
@@ -536,11 +542,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* ==========================================================================
    video player + lightbox
    ========================================================================== */
+/* light-gray chrome: on the cream theme a dark background would peek out
+   around the video edge and rounded corners and read as a black stroke */
 .player {
-  position: relative; background: #101010; overflow: hidden;
+  position: relative; background: var(--muted); overflow: hidden;
   border-radius: var(--radius); border: 1px solid var(--border-faint); line-height: 0;
 }
-.player video { width: 100%; height: auto; display: block; background: #000; }
+.player video { width: 100%; height: auto; display: block; background: var(--muted); }
 .player--todo {
   aspect-ratio: 16 / 9; background: #b9b9b9;
   display: grid; place-items: center; line-height: 1.5;
@@ -671,18 +679,40 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .vfeature { margin-top: clamp(28px, 4vw, 44px); }
 .vfeature .player { border-radius: var(--radius); }
 .vfeature .player video { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+
+/* seen/unseen switch: one per task, right-aligned over that task's clip.
+   Each .vfeature[data-taskswitch] owns its own state -- the three tasks never
+   move together. */
+.vfeature__bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.seg {
+  display: inline-flex; gap: 2px; padding: 2px;
+  border: 1px solid var(--border-soft); border-radius: var(--radius);
+  background: var(--surface);
+}
+.seg__btn {
+  font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
+  text-transform: uppercase; padding: 6px 15px;
+  border: 0; border-radius: 2px; background: transparent; color: var(--fg-faint);
+  cursor: pointer; white-space: nowrap;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.seg__btn:hover { color: var(--fg-muted); }
+.seg__btn[aria-selected="true"] { background: var(--surface-3); color: var(--fg); }
 .vfeature__meta {
   display: grid; grid-template-columns: minmax(0,1fr) auto;
   gap: 14px clamp(20px, 4vw, 40px); align-items: start; margin-top: 16px;
 }
 @media (max-width: 720px) { .vfeature__meta { grid-template-columns: 1fr; } }
+/* This labels one clip, so it sits at the same level as .acompare__name -- below
+   a .sub__title, which opens a whole sub-section. At the old clamp it grew to
+   24px and outranked the headings it was nested under. */
 .vfeature__name {
-  font-family: var(--ff-display); font-size: clamp(19px, 2.1vw, 24px);
-  font-weight: 600; letter-spacing: -.01em; line-height: 1.25; margin-bottom: 6px;
+  font-family: var(--ff-display); font-size: 18px;
+  font-weight: 600; letter-spacing: -.01em; line-height: 1.3; margin-bottom: 5px;
 }
-.vfeature__desc { font-size: 16px; line-height: 1.6; color: var(--fg-muted); max-width: 70ch; }
+.vfeature__desc { font-size: 15px; line-height: 1.62; color: var(--fg-dim); max-width: var(--measure); }
 .vfeature__desc .demos {
-  display: block; margin-top: 8px; font-size: 14px; color: var(--fg-faint);
+  display: block; margin-top: 8px; font-size: 13.5px; color: var(--fg-faint);
 }
 .scoreboard { display: flex; gap: 22px; align-items: flex-start; }
 .score { text-align: right; min-width: 74px; }
@@ -759,6 +789,19 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .acompare__side--pi .acompare__tag { color: var(--c-base2); }
 .acompare__side--mf .acompare__tag { color: var(--c-base3); }
 .acompare__tag .what { font-size: 13.5px; color: var(--fg-dim); }
+
+/* soft colored frame: a thick 10%-tint rounded stroke around the whole
+   video, like a halo — red for the baselines, green for ours */
+.acompare__side .player {
+  border-width: 8px; border-radius: 14px;
+}
+.acompare__side--mf .player,
+.acompare__side--pi .player {
+  border-color: color-mix(in srgb, var(--s-action) 10%, var(--bg));
+}
+.acompare__side--ours .player {
+  border-color: color-mix(in srgb, var(--c-ours) 10%, var(--bg));
+}
 
 /* ==========================================================================
    stream cards

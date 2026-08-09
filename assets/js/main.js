@@ -646,6 +646,50 @@
   }
 
   /* ---------------------------------------------------------------------
+     seen / unseen switch  (#generalization)
+
+     One switch per task block; the three blocks share no state. Everything
+     inside a block carrying data-cond -- player, description, scoreboard --
+     is shown for the selected condition and hidden otherwise. The hidden
+     clip is paused so only one video per block is ever decoding.
+     --------------------------------------------------------------------- */
+  function initTaskSwitch() {
+    document.querySelectorAll('[data-taskswitch]').forEach(function (block) {
+      var btns = Array.prototype.slice.call(block.querySelectorAll('.seg__btn[data-cond]'));
+      if (btns.length < 2) return;
+      var panes = Array.prototype.slice.call(block.querySelectorAll('[data-cond]'))
+        .filter(function (n) { return btns.indexOf(n) === -1; });
+
+      function show(cond) {
+        btns.forEach(function (b) {
+          b.setAttribute('aria-selected', b.getAttribute('data-cond') === cond ? 'true' : 'false');
+        });
+        panes.forEach(function (n) {
+          var on = n.getAttribute('data-cond') === cond;
+          n.hidden = !on;
+          var v = n.tagName === 'VIDEO' ? n : n.querySelector('video');
+          if (!v) return;
+          /* the IntersectionObserver in initVideos() only fires on visibility
+             changes it can see, so drive playback explicitly here */
+          if (on) { v.play().catch(function () {}); } else { v.pause(); }
+        });
+      }
+
+      btns.forEach(function (b, i) {
+        b.addEventListener('click', function () { show(b.getAttribute('data-cond')); });
+        b.addEventListener('keydown', function (e) {
+          var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          if (!d) return;
+          e.preventDefault();
+          var next = btns[(i + d + btns.length) % btns.length];
+          next.focus();
+          show(next.getAttribute('data-cond'));
+        });
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
      lightbox
      --------------------------------------------------------------------- */
   function initLightbox() {
@@ -1153,6 +1197,7 @@
     initExplorer();
     initMaskDemo();
     initVideos();
+    initTaskSwitch();
     initArchviz();
     initJuxta();
     initPredReveal();

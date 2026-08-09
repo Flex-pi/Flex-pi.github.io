@@ -142,7 +142,6 @@ Replace them by dropping real files over the same paths in `assets/videos/`
 
 Deliberately omitted because the paper does not yet report them:
 
-- **Key unlocking** (Table 3) — task spec is final, quantitative results pending.
 - **Flex-π on LIBERO-Plus** — evaluation in progress.
 
 The `Paper` and `Code` buttons are rendered as disabled "soon" chips; wire them
