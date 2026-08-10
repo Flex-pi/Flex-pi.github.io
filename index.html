@@ -337,8 +337,9 @@
       <!-- right: masks and regimes -->
       <div class="archviz__ctl maskctl2">
           <!-- what the configuration below costs and buys, measured on our own
-               hardware. Only the two modes we deploy have been benchmarked; the
-               other six output masks read as not yet measured. -->
+               hardware. All eight output masks are timed; only the two modes we
+               deploy have been scored, so the other six read task completion as
+               not yet measured. -->
           <div class="readout readout--av">
             <div class="readout__cell">
               <div class="readout__lab">Inference latency</div>
@@ -642,6 +643,23 @@
         </div>
         <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">zips the bag closed</span></div>
       </div>
+    </div>
+  </div>
+
+  <div class="wrap wrap--wide reveal" style="margin-top:38px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Soft-Bag Zipping</div>
+          <div class="chartbox__sub">20 rollouts per method per condition</div>
+        </div>
+        <div class="legend" id="lg-softbag"></div>
+      </div>
+      <div data-chart="softbag"></div>
+      <p class="figcap" style="margin-top:10px">Held out against bags of unseen colour and pattern, the baselines
+      lose most of what they had &mdash; π<sub>0.5</sub> falls from 42.8% to 17.2%, ManiFlow from 31.9% to 6.9%.
+      Flex-π (full joint) gives up <b>6.7 points</b>, because the zip is found by geometry and contact rather than
+      by the look of the fabric. Fast-WAM was not run on this task.</p>
     </div>
   </div>
 
@@ -950,15 +968,16 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">What the shift costs each policy</div>
+          <div class="chartbox__title">Robustness in cluttered scenes</div>
           <div class="chartbox__sub">Number above each pair = the drop</div>
         </div>
         <div class="legend" id="lg-gen"></div>
       </div>
       <div data-chart="gen"></div>
-      <p class="figcap" style="margin-top:10px"><b>The drop matters, not the height.</b> Flex-π (full joint)
-      gives up 2.5, 5.0 and 6.7 points; ManiFlow gives up 32.5, 22.5 and 25.0. Put Plate on the Rack pools its
-      two held-out conditions — unseen big plate, unseen distractors — into one bar.</p>
+      <p class="figcap" style="margin-top:10px">The advantage is most pronounced exactly where appearance cues
+      become unreliable and success demands <b>geometric and physical rather than appearance-based</b>
+      generalization — echoing the LIBERO-Plus trend. Put Plate on the Rack pools its two held-out conditions —
+      unseen big plate, unseen distractors — into one bar.</p>
     </div>
   </div>
 

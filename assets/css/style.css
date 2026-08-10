@@ -49,6 +49,10 @@
   --c-ours-d: #3f9e52;   /* Flex-π full joint  */
   --chart-grid: rgba(255,255,255,.075);
   --chart-axis: rgba(255,255,255,.28);
+  /* Error whiskers sit on top of saturated bars, so they need more presence
+     than the axis but must not read as white ink. A neutral at 45% clears the
+     lightest bar and still recedes behind it. */
+  --chart-err:  rgba(255,255,255,.45);
   --plate-bg:  var(--figure-cream);
 
   /* hero stage is dark in BOTH themes */
@@ -121,6 +125,7 @@
   --c-ours-d: #2e7d3e;   /* Flex-π full joint  */
   --chart-grid: rgba(12,12,12,.10);
   --chart-axis: rgba(12,12,12,.34);
+  --chart-err:  rgba(12,12,12,.46);
   --plate-bg:  #ffffff;
 }
 
@@ -894,10 +899,27 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .archviz__figrow { display: flex; gap: 14px; align-items: stretch; }
 .archviz__figrow svg { flex: 1 1 auto; min-width: 0; height: auto; aspect-ratio: 400 / 320; }
 .archviz__ctl { min-width: 0; }
-/* on the two-column layout the control panel stretches to the diagram's height,
-   with the extra space distributed evenly between the control groups */
+/* On the two-column layout the control panel stretches to the diagram's height
+   and distributes the slack between the control groups, so the foot — Random
+   draw and the configuration count — sits at a fixed height. The regime note
+   below the masks changes length as you switch configuration; without this the
+   button rides up and down with it. */
 @media (min-width: 901px) {
-  .archviz__ctl.maskctl2 { display: block; }
+  .archviz__ctl.maskctl2 {
+    align-self: stretch;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  /* Space-between only holds the foot still if the column itself is a constant
+     height, and the column is taller than the diagram, so nothing external
+     fixes it. Both prose blocks therefore reserve their worst case: three lines
+     for the two readout notes, five for the regime note (the longest is an
+     intermediate regime with the cross-modality clause appended). Measured
+     across all 56 configurations at 940, 1200 and 1600 px. */
+  .maskctl2 .readout--av .readout__note { min-height: 4.4em; }
+  .maskctl2 .archviz__regimenote { min-height: 7.6em; }
+  /* the cross-modality chip is a hair taller than the name it sits beside, so
+     the row reserves the taller of the two whether or not the chip is shown */
+  .maskctl2 .regimeout { min-height: 26px; }
 }
 /* colour key in the triptych captions, matching the diagram's stream colours */
 .vcard__cap .capdot {
@@ -1078,6 +1100,8 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .alab { fill: var(--fg-dim); font-family: var(--ff-body); font-size: var(--fs-fine); }
 .chart .bar { transition: opacity .16s var(--ease); }
 .chart .bar:hover { opacity: .82; }
+/* binomial standard error whiskers, as in the paper's real-robot figures */
+.chart .ebar line { stroke: var(--chart-err); stroke-width: 1.2; stroke-linecap: butt; }
 .chart .ptlab { fill: var(--fg-muted); font-family: var(--ff-mono); font-size: var(--fs-meta); }
 
 .pareto__pt { cursor: pointer; }
@@ -1098,7 +1122,8 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .readout--av .readout__note { min-height: 3.2em; font-size: 12px; }
 .frontier__read {
   margin: 4px 0 0; font-family: var(--ff-mono); font-size: 13px; color: var(--fg-dim);
-  min-height: 1.4em; text-align: center;
+  min-height: 1.6em; text-align: center;   /* one full line, so the card does
+                                              not breathe as the note appears */
 }
 .frontier__read b { color: var(--c-ours); font-weight: 500; }
 .chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 13px; }

@@ -57,6 +57,30 @@ measure instead. The old "+45 points" framing is gone with it.
 in-distribution against solid for held out, labelled with the drop, because the
 claim there is about how much each policy *loses*, not how tall its bar is.
 
+**Error bars are the paper's own convention**, recovered by measuring the
+whiskers in `real_robot_main.pdf` and `real_robot_gen.pdf` against the JSON:
+
+```
+half-width = sqrt(p(1-p)/n) x 100        p = score/100, n = rollouts behind the bar
+```
+
+the binomial standard error of the completion score. It reproduced all twelve
+whiskers in `real_robot_main` and all seven measurable ones in `real_robot_gen`
+to within a pixel, and rules out both the raw spread and the plain SEM of the
+per-rollout scores, which are off by 2–3×. `seOf()` in `main.js` is that
+formula; a bar states its `n` and gets a whisker, or omits it and gets none —
+never a zero-length one. The Average bars pool every rollout behind them: 90
+across the five tasks, 50 for Fast-WAM's three.
+
+Because five labelled bars per group leaves no room once the whiskers push the
+labels up, the in-distribution chart **stands its value labels on end**, as the
+paper's figure does.
+
+**Soft-Bag Zipping has its own chart** in the dexterity section, under the
+zipping clips: in-distribution against the unseen bag, laid out like the
+self-repair chart. It was pulled out of the generalization chart, which is now
+Put Plate on the Rack and Sort Utensils only.
+
 **The configurator card** carries the real-robot frontier. Its layout is three
 bands: diagram on the left, the two measured readouts over the mask controls on
 the right, and the frontier across the foot. Changing `m`<sup>out</sup> rings
@@ -68,32 +92,45 @@ was a second copy of the configurator over RoboTwin numbers. The section is now
 charts only. `initExplorer`, `paintExplorer`, `setConfig` and the pareto click
 handler went with it.
 
-## Open items
+## Settled
 
-**The paper and the JSON disagree on Flex-π's plate numbers.** Every baseline
-matches to the decimal, but for Put Plate on the Rack:
+**The JSON is the source of truth where it disagrees with the paper.** Every
+baseline matches the v17 figures to the decimal, but Flex-π's own Put Plate on
+the Rack numbers differ:
 
-| | paper v17 figs | JSON |
+| | paper v17 figs | JSON (used) |
 |---|---|---|
 | action-only, in-distribution | 79.2 | **84.2** |
 | full joint, in-distribution | 92.5 | **95.0** |
 | action-only, half data | 67.5 | **80.0** |
 | full joint, half data | 77.5 | **95.0** |
 
-The page uses the JSON. The v17 PDFs are dated *later* than the JSON, so one of
-the two is stale and it is not obvious which — worth resolving before the paper
-and the site have to agree.
+The paper simply has not been updated yet; the JSON is the newer evaluation. The
+page is correct as it stands, and the paper figures are what has to move.
 
-**Kitchen Organization has no scored held-out condition** in the JSON, but
-`unseen-kitchen.mp4` exists. The footage is kept and labelled qualitative-only;
-its former 5% / 80% numbers are removed rather than carried forward. If that
-evaluation does exist somewhere, the numbers can go back in.
+**All eight output masks are timed.** `REAL_MODE` in `main.js` keys on the
+**output** mask — `rgb | dino<<1 | p3d<<2`. What is observed does not change the
+cost, only what is generated does, so there are eight operating points rather
+than the 56 configurations the card can express. And the key is the mask, not
+the count of generated streams: video-only, DINO-only and pointmap-only each
+generate one future and cost 136, 138 and 136 ms.
 
-**Six of the eight output masks are unbenchmarked.** The readout cells show
-measured values for action-only and full joint and em dashes for the rest. When
-the other six are timed on our own hardware, add them to `REAL_MODE` in
-`main.js` — keys are the number of generated visual streams — and the cells
-pick them up with no other change.
+Action-only (60) and full joint (193) keep their published figures; the other
+six are engine p50s from a later sweep, which re-measured those two at 61.1 and
+194.9 — close enough to leave them alone. Both p50 columns for all eight are in
+the comment above `REAL_MODE`. Only the two shipped modes are scored on the
+real-robot suite, so the other six show a latency and an em dash for task
+completion.
+
+**Kitchen Organization is qualitative by design.** There is no scored held-out
+condition because the task is easy enough that the number would not carry
+information — `unseen-kitchen.mp4` is there to show the policy working, not to
+be measured. The old 5% / 80% numbers stay removed. Nothing to chase.
+
+## Open items
 
 **Still placeholders:** the workcell and multi-view clips, and every predicted
 future in the "futures behind the actions" strip.
+
+**The branch is unmerged.** `latency-frontier` is 14 commits ahead of `main` and
+pushed; everything above lives there.

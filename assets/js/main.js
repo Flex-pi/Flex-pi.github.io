@@ -20,13 +20,43 @@
   }
 
   /* ---------------------------------------------------------------------
+     error bars
+     The paper's real-robot figures draw the binomial standard error of the
+     completion score, sqrt(p(1-p)/n), with p the score as a fraction and n the
+     number of rollouts behind that bar. Verified against real_robot_main.pdf
+     and real_robot_gen.pdf by measuring their whiskers. Bars whose rollout
+     count is unknown get no whisker rather than a zero-length one.
+     --------------------------------------------------------------------- */
+  function seOf(v, n) {
+    if (!n || v === null || v === undefined) return 0;
+    var p = v / 100;
+    return Math.sqrt(Math.max(0, p * (1 - p)) / n) * 100;
+  }
+
+  /* Draws the whisker and returns the half-width in data units (0 = none). */
+  function errBar(svg, cx, v, n, barW, y, lo, hi) {
+    var e = seOf(v, n);
+    if (!e) return 0;
+    var top = Math.min(hi, v + e), bot = Math.max(lo, v - e);
+    var cap = Math.min(barW * 0.42, 7);
+    var g = el('g', { 'class': 'ebar' });
+    g.appendChild(el('line', { x1: cx, x2: cx, y1: y(bot), y2: y(top) }));
+    [top, bot].forEach(function (t) {
+      g.appendChild(el('line', { x1: cx - cap, x2: cx + cap, y1: y(t), y2: y(t) }));
+    });
+    g.appendChild(el('title', {}, '±' + e.toFixed(1) + ' points (binomial SE, n=' + n + ')'));
+    svg.appendChild(g);
+    return e;
+  }
+
+  /* ---------------------------------------------------------------------
      grouped / single-series bar chart
      --------------------------------------------------------------------- */
   function barChart(mount, cfg) {
     var W = 1000;
     var padL = cfg.padL != null ? cfg.padL : (cfg.yLabel ? 58 : 46);
     var padR = 14;
-    var padT = 30;
+    var padT = cfg.padT != null ? cfg.padT : 30;
     var padB = cfg.padB != null ? cfg.padB : 52;
     var plotH = cfg.plotH != null ? cfg.plotH : 250;
     var H = padT + plotH + padB;
@@ -62,8 +92,8 @@
 
     var gW = plotW / groups.length;
     var innerFrac = nS === 1 ? 0.42 : 0.78;
-    var bandW = gW * innerFrac;
-    var barW = bandW / nS;
+    var barW = Math.min(gW * innerFrac / nS, cfg.maxBarW || Infinity);
+    var bandW = barW * nS;
 
     groups.forEach(function (g, gi) {
       var gx = padL + gi * gW + (gW - bandW) / 2;
@@ -75,6 +105,7 @@
         var top = Math.min(y(v), yBase);
         var h = Math.abs(y(v) - yBase);
         var inset = nS === 1 ? 0 : 2;
+        var cx = x + (barW - inset) / 2 + inset / 2;
 
         var r = el('rect', {
           'class': 'bar', x: x + inset / 2, y: top,
@@ -85,13 +116,20 @@
           (g.label || '') + ': ' + (cfg.valFmt ? cfg.valFmt(v) : v)));
         svg.appendChild(r);
 
-        /* value label */
+        var e = errBar(svg, cx, v, g.n && g.n[si], barW - inset, y, lo, hi);
+
+        /* value label, clearing the error bar when there is one. Dense charts
+           set vlabRotate and stand the labels on end, as the paper's own
+           real-robot figure does, so neighbouring labels cannot collide. */
         var isOurs = /Flex/i.test(series[si].name || '') || (g.hi && g.hi[si]);
+        var labY = v >= 0 ? Math.min(top, y(Math.min(hi, v + e))) - 7 : top + h + 13;
         var lab = el('text', {
           'class': 'vlab' + (isOurs ? ' vlab--hi' : ''),
-          x: x + (barW - inset) / 2 + inset / 2,
-          y: v >= 0 ? top - 7 : top + h + 13,
-          'text-anchor': 'middle'
+          x: cfg.vlabRotate ? 0 : cx, y: cfg.vlabRotate ? 0 : labY,
+          'text-anchor': cfg.vlabRotate ? 'start' : 'middle',
+          'dominant-baseline': cfg.vlabRotate ? 'central' : null,
+          transform: cfg.vlabRotate
+            ? 'translate(' + cx + ',' + (labY + 3) + ') rotate(-90)' : null
         }, cfg.valFmt ? cfg.valFmt(v) : String(v));
         svg.appendChild(lab);
       });
@@ -195,9 +233,13 @@
         svg.appendChild(el('line', { x1: xa, x2: xb + barW, y1: y(a), y2: y(a),
           stroke: 'var(--fg-faint)', 'stroke-width': 1, 'stroke-dasharray': '2 3', opacity: .7 }));
 
+        var ea = errBar(svg, xa + barW / 2, a, g.aN && g.aN[si], barW, y, 0, hi);
+        var eb = errBar(svg, xb + barW / 2, b, g.bN && g.bN[si], barW, y, 0, hi);
+
         var d = Math.round((b - a) * 10) / 10;
+        var lift = Math.max(Math.min(hi, a + ea), Math.min(hi, b + eb));
         svg.appendChild(el('text', {
-          'class': 'vlab' + (s.hi ? ' vlab--hi' : ''), x: cx, y: y(Math.max(a, b)) - 8,
+          'class': 'vlab' + (s.hi ? ' vlab--hi' : ''), x: cx, y: y(lift) - 8,
           'text-anchor': 'middle'
         }, (d > 0 ? '+' : d === 0 ? '±' : '−') + Math.abs(d)));
       });
@@ -453,14 +495,17 @@
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
-          { label: 'Put Plate|on the Rack', values: [72.5, 75.8, 12.5, 84.2, 95.0] },
-          { label: 'Sort|Utensils',         values: [45.0, 55.0, 5.0, 70.0, 75.0] },
-          { label: 'Kitchen|Organization',  values: [73.8, 93.8, 77.5, 96.2, 98.8] },
-          { label: 'Self-Repair|Gripper',   values: [26.2, 33.3, null, 66.9, 76.0] },
-          { label: 'Soft-Bag|Zipping',      values: [42.8, 31.9, null, 64.9, 70.0] },
-          { label: 'Average',               values: [52.1, 58.0, 31.7, 76.4, 83.0] }
+          { label: 'Put Plate|on the Rack', values: [72.5, 75.8, 12.5, 84.2, 95.0], n: [20, 20, 20, 20, 20] },
+          { label: 'Sort|Utensils',         values: [45.0, 55.0, 5.0, 70.0, 75.0],  n: [10, 10, 10, 10, 10] },
+          { label: 'Kitchen|Organization',  values: [73.8, 93.8, 77.5, 96.2, 98.8], n: [20, 20, 20, 20, 20] },
+          { label: 'Self-Repair|Gripper',   values: [26.2, 33.3, null, 66.9, 76.0], n: [20, 20, null, 20, 20] },
+          { label: 'Soft-Bag|Zipping',      values: [42.8, 31.9, null, 64.9, 70.0], n: [20, 20, null, 20, 20] },
+          /* the average pools every rollout behind it: 90 across the five
+             tasks, 50 for Fast-WAM's three. */
+          { label: 'Average',               values: [52.1, 58.0, 31.7, 76.4, 83.0], n: [90, 90, 50, 90, 90] }
         ],
         max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250, padB: 58,
+        padT: 46, vlabRotate: true,
         tickFmt: function (t) { return t + '%'; },
         valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
         yLabel: 'Task completion (%)', legendEl: '#lg-real',
@@ -483,18 +528,44 @@
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
         ],
         groups: [
+          /* held-out plate pools the two conditions, so its n is the 20 of
+             both runs against the 10 of the single in-distribution one. */
           { label: 'Put Plate on the Rack',
-            a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [72.5, 55.0, 33.8, 85.0, 95.0] },
+            a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [72.5, 55.0, 33.8, 85.0, 95.0],
+            aN: [10, 10, 10, 10, 10], bN: [20, 20, 20, 20, 20] },
           { label: 'Sort Utensils',
-            a: [45.0, 55.0, 5.0, 70.0, 75.0],  b: [40.0, 32.5, 0.0, 70.0, 70.0] },
-          { label: 'Soft-Bag Zipping',
-            a: [42.8, 31.9, null, 64.9, 70.0], b: [17.2, 6.9, null, 57.5, 63.3] }
+            a: [45.0, 55.0, 5.0, 70.0, 75.0],  b: [40.0, 32.5, 0.0, 70.0, 70.0],
+            aN: [10, 10, 10, 10, 10], bN: [10, 10, 10, 10, 10] }
         ],
         aName: 'in-distribution', bName: 'held-out',
         max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
+        bandFrac: 0.74, maxBarW: 34,
         yLabel: 'Task completion (%)', legendEl: '#lg-gen',
-        ariaLabel: 'Moving to held-out conditions, Flex-π full joint loses 2.5, 5 and 6.7 points on the three ' +
-          'tasks, while ManiFlow loses 32.5, 22.5 and 25 and π0.5 loses 7.5, 5 and 25.6.'
+        ariaLabel: 'Moving to held-out conditions, Flex-π full joint loses 2.5 points on Put Plate on the Rack ' +
+          'and 5 on Sort Utensils, while ManiFlow loses 32.5 and 22.5 and π0.5 loses 7.5 and 5.'
+      });
+    }
+
+    /* Soft-Bag Zipping on its own: in-distribution against bags of unseen
+       colour and pattern. 20 rollouts per cell; Fast-WAM was not run here. */
+    if ((m = find('softbag'))) {
+      barChart(m, {
+        series: [
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
+          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
+        ],
+        groups: [
+          { label: 'In-distribution', values: [42.8, 31.9, 64.9, 70.0], n: [20, 20, 20, 20] },
+          { label: 'Unseen bag',      values: [17.2, 6.9, 57.5, 63.3],  n: [20, 20, 20, 20] }
+        ],
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 240, maxBarW: 40,
+        tickFmt: function (t) { return t + '%'; },
+        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
+        yLabel: 'Task completion (%)', legendEl: '#lg-softbag',
+        ariaLabel: 'On an unseen bag Flex-π full joint holds 63.3 percent against 70.0 in-distribution, while ' +
+          'π0.5 falls from 42.8 to 17.2 and ManiFlow from 31.9 to 6.9.'
       });
     }
 
@@ -508,10 +579,10 @@
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
-          { label: 'Task completion',   values: [26.2, 33.3, 66.9, 76.0] },
-          { label: 'Full-task success', values: [0, 5, 45, 55] }
+          { label: 'Task completion',   values: [26.2, 33.3, 66.9, 76.0], n: [20, 20, 20, 20] },
+          { label: 'Full-task success', values: [0, 5, 45, 55],           n: [20, 20, 20, 20] }
         ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 240,
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 240, maxBarW: 40,
         tickFmt: function (t) { return t + '%'; },
         valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
         legendEl: '#lg-selfrepair',
@@ -573,14 +644,42 @@
      --------------------------------------------------------------------- */
   var setFrontierMode = function () {};
 
-  /* Measured on our own RTX 5090 at the deployed 4 denoise steps. Only the two
-     modes we ship have been benchmarked end to end; the other six output masks
-     are deployable but not yet timed or scored, and say so. */
+  /* Measured on our own RTX 5090 at the deployed 4 denoise steps.
+
+     Keyed by the OUTPUT mask alone — rgb | dino<<1 | p3d<<2. Which streams are
+     observed does not change the cost; only which futures are generated does,
+     so there are eight operating points here, not the 56 configurations the
+     card can express. And the key is the mask rather than the number of
+     generated streams because those are not the same thing: video-only,
+     DINO-only and pointmap-only each generate one future and cost 136, 138 and
+     136 ms.
+
+     Action-only (60) and full joint (193) keep their published figures. The
+     other six come from a later engine sweep, which re-measured those two at
+     61.1 (compile p50; the fast path has no engine) and 194.9 (engine p50) —
+     close enough to leave the published pair alone. Engine / compile p50 from
+     that sweep:
+
+       action-only        —   /  61.1      video            136.4 / 203.6
+       DINO             137.7 / 214.0      pointmap         135.6 / 206.3
+       video+DINO       176.1 / 309.6      video+pointmap   171.1 / 295.4
+       DINO+pointmap    191.8 / 312.9      full joint       194.9 / 381.5
+
+     Only the two modes we ship have been scored on the real-robot suite, and
+     both were run with all three inputs observed — so `sr` belongs to that exact
+     configuration, not to the output mask alone. setFrontierMode() gates on
+     both masks; everything else shows an em dash for task completion. */
   var REAL_MODE = {
     0: { lat: 60,  sr: 76.4,
          latNote: 'Faster than every baseline we compare against.',
          srNote: '+18.4 points over the strongest baseline.' },
-    3: { lat: 193, sr: 83.0,
+    1: { lat: 136, latNote: 'The RGB future alone: 2.3× the action-only path.' },
+    2: { lat: 138, latNote: 'The DINO future alone: 2.3× the action-only path.' },
+    4: { lat: 136, latNote: 'The pointmap future alone — the cheapest of the three.' },
+    3: { lat: 176, latNote: 'RGB and DINO futures: 2.9× the action-only path.' },
+    5: { lat: 171, latNote: 'RGB and pointmap futures: 2.9× the action-only path.' },
+    6: { lat: 192, latNote: 'DINO and pointmap — within 1 ms of full joint.' },
+    7: { lat: 193, sr: 83.0,
          latNote: '3.2× the action-only path.',
          srNote: 'The highest of every method we compare against.' }
   };
@@ -675,24 +774,34 @@
       }
     }
 
-    /* the configurator calls this with the number of generated visual streams */
-    setFrontierMode = function (nGen) {
-      var lit = nGen === 0 ? 'ao' : nGen === 3 ? 'joint' : null;
+    /* Called with both masks, each as rgb | dino<<1 | p3d<<2.
+
+       Latency depends only on what is generated, so it reads straight off the
+       output mask. Task completion depends on what is *observed* as well — the
+       two scored modes were both run with all three inputs present — so a score
+       is shown only for those two exact configurations and every other one of
+       the 56 gets an em dash. */
+    setFrontierMode = function (oMask, iMask) {
+      var r = REAL_MODE[oMask];
+      var scored = iMask === 7 && (oMask === 0 || oMask === 7);
+      var lit = !scored ? null : oMask === 0 ? 'ao' : 'joint';
+
       ['ao', 'joint'].forEach(function (k) {
         dots[k].dot.setAttribute('data-lit', lit === null ? '' : (k === lit ? 'on' : 'off'));
         dots[k].ring.setAttribute('data-lit', k === lit ? 'on' : '');
       });
-      /* the ring already names the operating point; only the unmeasured
-         middle ground needs saying in words */
-      if (read) read.textContent = lit ? '' : 'Between the two — deployable, not separately measured';
+      if (read) read.textContent = lit ? '' : 'Timed, but not scored in this configuration';
 
-      var r = REAL_MODE[nGen];
       num(latEl, r ? r.lat : null, 'ms');
-      num(srEl,  r ? r.sr.toFixed(1) : null, '%');
+      num(srEl,  scored ? r.sr.toFixed(1) : null, '%');
       if (latNoteEl) latNoteEl.textContent = r ? r.latNote : 'Deployable, but not yet benchmarked on our hardware.';
-      if (srNoteEl)  srNoteEl.textContent  = r ? r.srNote  : 'Not yet evaluated on the real-robot suite.';
+      if (srNoteEl) {
+        srNoteEl.textContent = scored ? r.srNote
+          : (oMask === 0 || oMask === 7) ? 'The scored runs observe all three inputs.'
+          : 'Not yet evaluated on the real-robot suite.';
+      }
     };
-    setFrontierMode(3);
+    setFrontierMode(7, 7);
   }
 
   /* ---------------------------------------------------------------------
@@ -1241,14 +1350,13 @@
       if (nEl) nEl.textContent = d.name;
       if (fEl) fEl.hidden = !d.forced.length;
       if (rnote) rnote.textContent = d.note;
-      if (cEl) {
-        /* index this configuration among the 7 x 8 = 56 valid ones */
-        var i = SKEYS.reduce(function (a, k, n) { return a + (mIn[k] ? (1 << n) : 0); }, 0);
-        var o = SKEYS.reduce(function (a, k, n) { return a + (mOut[k] ? (1 << n) : 0); }, 0);
-        cEl.textContent = String((i - 1) * 8 + o + 1);
-      }
-      /* light up the operating point this output mask corresponds to */
-      setFrontierMode(SKEYS.filter(function (k) { return mOut[k]; }).length);
+      var iBits = SKEYS.reduce(function (a, k, n) { return a + (mIn[k] ? (1 << n) : 0); }, 0);
+      var oBits = SKEYS.reduce(function (a, k, n) { return a + (mOut[k] ? (1 << n) : 0); }, 0);
+      /* index this configuration among the 7 x 8 = 56 valid ones */
+      if (cEl) cEl.textContent = String((iBits - 1) * 8 + oBits + 1);
+      /* latency follows the output mask alone; the completion score needs both,
+         since only the fully-observed action-only and full-joint runs are scored */
+      setFrontierMode(oBits, iBits);
     }
 
     root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {

@@ -152,10 +152,13 @@ Replace them by dropping real files over the same paths in `assets/videos/`
 Deliberately omitted because we do not have them yet:
 
 - **Flex-π on LIBERO-Plus** — evaluation in progress.
-- **Six of the eight output masks** — deployable but not benchmarked, so the
-  configurator's readouts show em dashes for them.
-- **A scored held-out Kitchen Organization** — the footage is on the page as a
-  qualitative result only.
+- **A task-completion score for six of the eight output masks** — all eight are
+  timed, but only the two we deploy have been run on the real-robot suite, so
+  the configurator's task-completion cell shows an em dash for the rest.
+
+Kitchen Organization has held-out footage but no held-out score, and that is
+deliberate: the task is easy enough that the number would not be informative, so
+the clip stands as a qualitative result.
 
 The `Paper` and `Code` buttons are rendered as disabled "soon" chips; wire them
 up in the `.links` block of `index.html` once there is an arXiv ID and a repo.
