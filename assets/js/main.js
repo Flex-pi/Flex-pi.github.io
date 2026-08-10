@@ -416,15 +416,14 @@
 
   /* ---------------------------------------------------------------------
      the real-world frontier (streams section)
-     A static Figure-12 scatter: all five points are drawn at once and never
-     move. The only motion is the claret verdict box sweeping right from the
-     fast path, shading every baseline that is both slower and less accurate.
-     Colors are var() references so the chart follows the theme without
-     re-rendering — it is built once and never re-run on toggle/resize.
-     ?freeze renders the swept end state statically (paper/slide frames).
+     The paper's Figure 12, drawn to the page's own tokens: task completion
+     against single-inference latency, with the region that is both slower
+     and less accurate than the fast path shaded. Fully static — the only
+     interaction is hovering a point for its exact figures. Colors are var()
+     references so it follows the theme without ever being re-rendered.
      --------------------------------------------------------------------- */
-  function initFrontierRace() {
-    var mount = document.getElementById('frontier-race');
+  function initFrontier() {
+    var mount = document.getElementById('frontier');
     if (!mount) return;
 
     var M = [
@@ -440,7 +439,6 @@
     var xMin = 0, xMax = 215, yMin = 28, yMax = 90;
     function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
     function Y(v) { return padT + plotH - (v - yMin) / (yMax - yMin) * plotH; }
-    function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
 
     var svg = el('svg', {
       'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
@@ -470,19 +468,13 @@
     /* verdict box: everything slower AND less accurate than the fast path */
     var AO = M[3];
     var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 6) - Y(AO.sr) };
-    var clip = el('clipPath', { id: 'fr-domclip' });
-    var clipRect = el('rect', { x: dom.x, y: dom.y, width: 0, height: dom.h });
-    clip.appendChild(clipRect); svg.appendChild(clip);
-    var domG = el('g', { 'clip-path': 'url(#fr-domclip)' });
-    domG.appendChild(el('rect', { x: dom.x, y: dom.y, width: dom.w, height: dom.h, fill: 'var(--primary-soft)' }));
-    domG.appendChild(el('line', { x1: dom.x, x2: dom.x, y1: dom.y, y2: dom.y + dom.h,
+    svg.appendChild(el('rect', { x: dom.x, y: dom.y, width: dom.w, height: dom.h, fill: 'var(--primary-soft)' }));
+    svg.appendChild(el('line', { x1: dom.x, x2: dom.x, y1: dom.y, y2: dom.y + dom.h,
       stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
-    domG.appendChild(el('line', { x1: dom.x, x2: dom.x + dom.w, y1: dom.y, y2: dom.y,
+    svg.appendChild(el('line', { x1: dom.x, x2: dom.x + dom.w, y1: dom.y, y2: dom.y,
       stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
-    svg.appendChild(domG);
-    var domT = el('text', { 'class': 'domlab', x: X(207), y: Y(66), 'text-anchor': 'end', opacity: 0 },
-      'every baseline: slower and lower');
-    svg.appendChild(domT);
+    svg.appendChild(el('text', { 'class': 'domlab', x: X(207), y: Y(66), 'text-anchor': 'end' },
+      'every baseline: slower and lower'));
 
     /* the speed claim, stated once, under the point that earns it — clear of
        the verdict box's top edge, which runs through this point */
@@ -507,44 +499,6 @@
     });
 
     mount.appendChild(svg);
-
-    var btn = document.getElementById('fr-replay');
-    var raf = null;
-    function sweep() {
-      if (raf) cancelAnimationFrame(raf);
-      domT.setAttribute('opacity', 0);
-      if (btn) btn.disabled = true;
-      var t0 = null, DUR = 1100;
-      function step(ts) {
-        if (!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / DUR);
-        clipRect.setAttribute('width', dom.w * easeOut(p));
-        if (p < 1) { raf = requestAnimationFrame(step); }
-        else { domT.setAttribute('opacity', 1); if (btn) btn.disabled = false; }
-      }
-      raf = requestAnimationFrame(step);
-    }
-    function setFinal() {
-      clipRect.setAttribute('width', dom.w);
-      domT.setAttribute('opacity', 1);
-    }
-
-    if (btn) btn.addEventListener('click', sweep);
-
-    /* static end state for screenshots */
-    if (new URLSearchParams(location.search).get('freeze') !== null) {
-      document.documentElement.style.scrollBehavior = 'auto';
-      setFinal();
-      return;
-    }
-    if (reduceMotion) { setFinal(); return; }
-
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (e.isIntersecting) { sweep(); io.disconnect(); }
-      });
-    }, { threshold: .45 });
-    io.observe(svg);
   }
 
   /* ---------------------------------------------------------------------
@@ -1241,7 +1195,7 @@
   function boot() {
     initTheme();
     renderCharts();
-    initFrontierRace();
+    initFrontier();
     initExplorer();
     initMaskDemo();
     initVideos();
