@@ -170,7 +170,7 @@
     var gW = plotW / groups.length;
     var bandW = gW * (cfg.bandFrac != null ? cfg.bandFrac : 0.84);
     var cellW = bandW / nS;                 /* one method = two bars */
-    var barW = Math.min(24, cellW * 0.40);
+    var barW = Math.min(cellW * 0.42, cfg.maxBarW || 26);
 
     groups.forEach(function (g, gi) {
       var gx = padL + gi * gW + (gW - bandW) / 2;
@@ -543,7 +543,7 @@
             a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [42.5, 60.0, 25.0, 80.0, 95.0] }
         ],
         aName: 'full data', bName: 'half data',
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 230, bandFrac: 0.6,
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 230, bandFrac: 0.62, maxBarW: 46,
         yLabel: 'Task completion (%)', legendEl: '#lg-dataeff',
         ariaLabel: 'Halving the demonstrations costs π0.5 37.5 points, ManiFlow 27.5, Fast-WAM 12.5, ' +
           'Flex-π action-only 10 and Flex-π full joint only 2.5.'
@@ -586,14 +586,14 @@
     if (!mount) return;
 
     var M = [
-      { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)' },
-      { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)' },
-      { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', partial: true },
-      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', ours: true },
-      { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', ours: true }
+      { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)',  dx: -16, dy: 4,   anchor: 'end' },
+      { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)', dx: 16,  dy: 4,   anchor: 'start' },
+      { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', dx: 16,  dy: 4,   anchor: 'start', partial: true },
+      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: 18,  dy: -12, anchor: 'start', ours: true },
+      { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', dx: -18, dy: -12, anchor: 'end',   ours: true }
     ];
 
-    var W = 400, padL = 44, padR = 12, padT = 14, plotH = 182, H = 252;
+    var W = 1000, padL = 56, padR = 26, padT = 22, plotH = 200, H = 284;
     var plotW = W - padL - padR;
     var xMin = 0, xMax = 215, yMin = 22, yMax = 92;
     function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
@@ -610,18 +610,18 @@
     var AXIS_Y = Y(yMin);
     [25, 50, 75].forEach(function (t) {
       svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: Y(t), y2: Y(t) }));
-      svg.appendChild(el('text', { 'class': 'tick', x: padL - 6, y: Y(t) + 3.5, 'text-anchor': 'end' }, String(t)));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 8, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
     });
-    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 4, y2: AXIS_Y }));
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 6, y2: AXIS_Y }));
     svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
-    [0, 100, 200].forEach(function (t) {
-      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 3 }));
-      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 16, 'text-anchor': 'middle' }, String(t)));
+    [0, 50, 100, 150, 200].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 18, 'text-anchor': 'middle' }, String(t)));
     });
-    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 34,
-      'text-anchor': 'middle' }, 'latency (ms) → slower'));
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 38,
+      'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
-      transform: 'translate(11,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion (%)'));
+      transform: 'translate(13,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion'));
 
     /* everything slower AND less accurate than the fast path */
     var AO = M[3];
@@ -636,33 +636,23 @@
     var dots = {};
     M.forEach(function (m) {
       var g = el('g', {});
-      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 11, stroke: m.c });
-      var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 7 : 6, fill: m.c,
-        stroke: 'var(--bg-raise)', 'stroke-width': 1.6 });
-      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 16, fill: 'transparent' });
-      hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '%' +
-        (m.partial ? ' (3 of 5 tasks)' : '')));
-      g.appendChild(ring); g.appendChild(dot); g.appendChild(hit);
+      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 13, stroke: m.c });
+      var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 9 : 8, fill: m.c,
+        stroke: 'var(--bg-raise)', 'stroke-width': 2 });
+      /* every point states both of its numbers — nothing is folded away */
+      var lx = X(m.lat) + m.dx, ly = Y(m.sr) + m.dy;
+      var lab = el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: lx, y: ly,
+        'text-anchor': m.anchor }, m.name);
+      var val = el('text', { 'class': 'dval', x: lx, y: ly + 16, 'text-anchor': m.anchor },
+        m.lat + ' ms · ' + m.sr.toFixed(1) + '%');
+      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 20, fill: 'transparent' });
+      if (m.partial) hit.appendChild(el('title', {}, m.name + ' was evaluated on 3 of the 5 tasks'));
+      g.appendChild(ring); g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
       svg.appendChild(g);
-      dots[m.key] = { m: m, dot: dot, ring: ring };
+      dots[m.key] = { m: m, dot: dot, ring: ring, lab: lab, val: val };
     });
 
     mount.appendChild(svg);
-
-    /* legend, in the paper's order */
-    var lg = document.getElementById('fr-legend');
-    if (lg) {
-      [M[0], M[1], M[2], M[3], M[4]].forEach(function (m) {
-        var span = document.createElement('span');
-        span.className = 'legend__item';
-        var sw = document.createElement('span');
-        sw.className = 'legend__sw';
-        sw.style.background = m.c;
-        span.appendChild(sw);
-        span.appendChild(document.createTextNode(m.short || m.name));
-        lg.appendChild(span);
-      });
-    }
 
     /* the configurator calls this with the number of generated visual streams */
     setFrontierMode = function (nGen) {
@@ -671,10 +661,9 @@
         dots[k].dot.setAttribute('data-lit', lit === null ? '' : (k === lit ? 'on' : 'off'));
         dots[k].ring.setAttribute('data-lit', k === lit ? 'on' : '');
       });
-      if (!read) return;
-      if (lit === 'ao')    read.innerHTML = 'Action-only <b>60 ms · 76.4%</b> — faster than every baseline';
-      else if (lit === 'joint') read.innerHTML = 'Full joint <b>193 ms · 83.0%</b> — the highest of all';
-      else read.textContent = 'Between the two — deployable, not separately measured';
+      /* the ring already names the operating point; only the unmeasured
+         middle ground needs saying in words */
+      if (read) read.textContent = lit ? '' : 'Between the two — deployable, not separately measured';
     };
     setFrontierMode(3);
   }
