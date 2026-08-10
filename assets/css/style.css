@@ -1101,7 +1101,9 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
   min-height: 1.4em; text-align: center;
 }
 .frontier__read b { color: var(--c-ours); font-weight: 500; }
-.chart .dval { fill: var(--fg-dim); font-family: var(--ff-mono); font-size: 11px; }
+.chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 11.5px; }
+.chart .dlab--hi { fill: var(--fg); font-weight: 600; }
+.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 10.5px; transition: opacity .15s var(--ease); }
 .chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 12px; }
 .chart .fr-dot { transition: opacity .2s var(--ease); }
 .chart .fr-ring { fill: none; stroke-width: 2; opacity: 0; transition: opacity .2s var(--ease); }

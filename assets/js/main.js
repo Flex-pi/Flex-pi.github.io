@@ -643,14 +643,17 @@
       var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 12, stroke: m.c });
       var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 8 : 7, fill: m.c,
         stroke: 'var(--bg-raise)', 'stroke-width': 2 });
-      /* every point states both of its numbers — nothing is folded away */
+      /* the name stays on the plot; the figures wait for a hover */
       var lx = X(m.lat) + m.dx, ly = Y(m.sr) + m.dy;
       var lab = el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: lx, y: ly,
         'text-anchor': m.anchor }, m.name);
-      var val = el('text', { 'class': 'dval', x: lx, y: ly + 14, 'text-anchor': m.anchor },
-        m.lat + ' ms · ' + m.sr.toFixed(1) + '%');
-      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 20, fill: 'transparent' });
-      if (m.partial) hit.appendChild(el('title', {}, m.name + ' was evaluated on 3 of the 5 tasks'));
+      var val = el('text', { 'class': 'dval', x: lx, y: ly + 13, 'text-anchor': m.anchor, opacity: 0 },
+        m.lat + ' ms · ' + m.sr.toFixed(1) + '%' + (m.partial ? '  (3 of 5 tasks)' : ''));
+      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 22, fill: 'transparent', cursor: 'default' });
+      hit.addEventListener('mouseenter', function () { val.setAttribute('opacity', 1); });
+      hit.addEventListener('mouseleave', function () { val.setAttribute('opacity', 0); });
+      hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '%' +
+        (m.partial ? ' (3 of 5 tasks)' : '')));
       g.appendChild(ring); g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
       svg.appendChild(g);
       dots[m.key] = { m: m, dot: dot, ring: ring, lab: lab, val: val };
