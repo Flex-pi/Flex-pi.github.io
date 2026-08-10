@@ -550,7 +550,7 @@
 <!-- ====================== real robot: dexterity ====================== -->
 <section class="sec" id="real-robot">
   <div class="wrap reveal">
-    <h3 class="sec__title"><span class="sec__no">02</span>Dexterity in the real world</h3>
+    <h3 class="sec__title"><span class="sec__no">02</span>Dexterity under sustained contact</h3>
     <p class="sec__sub">Three contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, 14
     commanded degrees of freedom, three calibrated stereo cameras. Each demands precise bimanual coordination and
     sustained contact. Rollouts are scored under a partial-credit rubric, averaged over 10 rollouts per task.</p>
@@ -683,7 +683,9 @@
   <!-- task 1 -->
   <div class="wrap wrap--wide reveal vfeature" data-taskswitch>
     <div class="vfeature__bar">
-      <div class="seg" role="tablist" aria-label="Setting for Bimanual Put Plate on the Rack">
+      <span class="vfeature__barlab">Evaluation setting</span>
+      <div class="seg" role="tablist" data-active="seen" aria-label="Setting for Bimanual Put Plate on the Rack">
+        <span class="seg__thumb" aria-hidden="true"></span>
         <button class="seg__btn" type="button" role="tab" data-cond="seen" aria-selected="true">Seen</button>
         <button class="seg__btn" type="button" role="tab" data-cond="unseen" aria-selected="false">Unseen</button>
       </div>
@@ -730,7 +732,9 @@
   <!-- task 2 -->
   <div class="wrap wrap--wide reveal vfeature" data-taskswitch>
     <div class="vfeature__bar">
-      <div class="seg" role="tablist" aria-label="Setting for Sort Utensils">
+      <span class="vfeature__barlab">Evaluation setting</span>
+      <div class="seg" role="tablist" data-active="seen" aria-label="Setting for Sort Utensils">
+        <span class="seg__thumb" aria-hidden="true"></span>
         <button class="seg__btn" type="button" role="tab" data-cond="seen" aria-selected="true">Seen</button>
         <button class="seg__btn" type="button" role="tab" data-cond="unseen" aria-selected="false">Unseen</button>
       </div>
@@ -777,7 +781,9 @@
   <!-- task 3 -->
   <div class="wrap wrap--wide reveal vfeature" data-taskswitch>
     <div class="vfeature__bar">
-      <div class="seg" role="tablist" aria-label="Setting for Clean the Kitchen Rack">
+      <span class="vfeature__barlab">Evaluation setting</span>
+      <div class="seg" role="tablist" data-active="seen" aria-label="Setting for Clean the Kitchen Rack">
+        <span class="seg__thumb" aria-hidden="true"></span>
         <button class="seg__btn" type="button" role="tab" data-cond="seen" aria-selected="true">Seen</button>
         <button class="seg__btn" type="button" role="tab" data-cond="unseen" aria-selected="false">Unseen</button>
       </div>
@@ -1179,9 +1185,9 @@
     <div class="predstrip" id="predstrip" data-pred="hidden">
       <!-- 1: self repair -->
       <figure class="predpair" style="--dot:var(--s-rgb)">
-        <div class="player" data-player data-caption="Self-repair — the real rollout.">
+        <div class="player" data-player data-caption="Self-repair — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
+          <video src="assets/videos/pred-selfrepair.mp4" poster="assets/videos/pred-selfrepair.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
@@ -1190,22 +1196,24 @@
         <figcaption class="predpair__cap"><b>Self-repair</b>The gripper-repair sequence.</figcaption>
       </figure>
 
-      <!-- 2: prepare -->
+      <!-- 2: put the pen in the bag -->
       <figure class="predpair" style="--dot:var(--s-rgb)">
-        <div class="player player--todo" role="img" aria-label="Placeholder — the prepare rollout video is not ready yet">
+        <div class="player" data-player data-caption="Put the Pen in the Bag — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
+          <video src="assets/videos/pred-putpen.mp4" poster="assets/videos/pred-putpen.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms unzipping a bag, placing a pen inside and zipping it closed"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
           <span class="player__badge predpair__badge">Predicted future</span>
         </div>
-        <figcaption class="predpair__cap"><b>Prepare</b>The preparation sequence.</figcaption>
+        <figcaption class="predpair__cap"><b>Put the pen in the bag</b>The unzip, insert and close sequence.</figcaption>
       </figure>
 
       <!-- 3–5: kitchen tasks -->
       <figure class="predpair" style="--dot:var(--s-rgb)">
         <div class="player" data-player data-caption="Bimanual Put Plate on the Rack — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/clutter-platerack-demo.mp4" poster="assets/videos/clutter-platerack-demo.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
+          <video src="assets/videos/pred-platerack.mp4" poster="assets/videos/pred-platerack.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
@@ -1217,7 +1225,7 @@
       <figure class="predpair" style="--dot:var(--s-dino)">
         <div class="player" data-player data-caption="Sort Utensils — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/clutter-sortutensils-demo.mp4" poster="assets/videos/clutter-sortutensils-demo.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms singulating utensils from a cluttered table and sorting them to their destinations"></video>
+          <video src="assets/videos/pred-sortutensils.mp4" poster="assets/videos/pred-sortutensils.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms singulating utensils from a cluttered table and sorting them to their destinations"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
@@ -1229,7 +1237,7 @@
       <figure class="predpair" style="--dot:var(--s-3d)">
         <div class="player" data-player data-caption="Clean the Kitchen Rack — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/clutter-kitchen-demo.mp4" poster="assets/videos/clutter-kitchen-demo.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms loading plates and bowls into a kitchen rack, handing far plates across mid-air"></video>
+          <video src="assets/videos/pred-kitchen.mp4" poster="assets/videos/pred-kitchen.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms loading plates and bowls into a kitchen rack, handing far plates across mid-air"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">

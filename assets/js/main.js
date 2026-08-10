@@ -660,7 +660,10 @@
       var panes = Array.prototype.slice.call(block.querySelectorAll('[data-cond]'))
         .filter(function (n) { return btns.indexOf(n) === -1; });
 
+      var seg = block.querySelector('.seg');
+
       function show(cond) {
+        if (seg) seg.setAttribute('data-active', cond); /* slides the thumb */
         btns.forEach(function (b) {
           b.setAttribute('aria-selected', b.getAttribute('data-cond') === cond ? 'true' : 'false');
         });
