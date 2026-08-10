@@ -590,14 +590,14 @@
     if (!mount) return;
 
     var M = [
-      { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)',  dx: -16, dy: 4,   anchor: 'end' },
-      { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)', dx: 16,  dy: 4,   anchor: 'start' },
-      { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', dx: 16,  dy: 4,   anchor: 'start', partial: true },
-      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: -16, dy: -5,  anchor: 'end',   ours: true },
-      { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', dx: -18, dy: -12, anchor: 'end',   ours: true }
+      { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)',  dx: -13, dy: 3,   anchor: 'end' },
+      { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)', dx: 13,  dy: 3,   anchor: 'start' },
+      { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', dx: 13,  dy: 3,   anchor: 'start', partial: true },
+      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: -14, dy: -4,  anchor: 'end',   ours: true },
+      { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', dx: -14, dy: -10, anchor: 'end',   ours: true }
     ];
 
-    var W = 600, padL = 50, padR = 20, padT = 20, plotH = 190, H = 268;
+    var W = 1000, padL = 54, padR = 26, padT = 18, plotH = 186, H = 258;
     var plotW = W - padL - padR;
     var xMin = 0, xMax = 215, yMin = 22, yMax = 92;
     function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
@@ -620,12 +620,12 @@
     svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
     [0, 50, 100, 150, 200].forEach(function (t) {
       svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
-      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 17, 'text-anchor': 'middle' }, String(t)));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 16, 'text-anchor': 'middle' }, String(t)));
     });
-    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 36,
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 34,
       'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
-      transform: 'translate(12,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion'));
+      transform: 'translate(13,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion'));
 
     /* everything slower AND less accurate than the fast path */
     var AO = M[3];
@@ -640,14 +640,14 @@
     var dots = {};
     M.forEach(function (m) {
       var g = el('g', {});
-      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 13, stroke: m.c });
-      var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 9 : 8, fill: m.c,
+      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 12, stroke: m.c });
+      var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 8 : 7, fill: m.c,
         stroke: 'var(--bg-raise)', 'stroke-width': 2 });
       /* every point states both of its numbers — nothing is folded away */
       var lx = X(m.lat) + m.dx, ly = Y(m.sr) + m.dy;
       var lab = el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: lx, y: ly,
         'text-anchor': m.anchor }, m.name);
-      var val = el('text', { 'class': 'dval', x: lx, y: ly + 16, 'text-anchor': m.anchor },
+      var val = el('text', { 'class': 'dval', x: lx, y: ly + 14, 'text-anchor': m.anchor },
         m.lat + ' ms · ' + m.sr.toFixed(1) + '%');
       var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 20, fill: 'transparent' });
       if (m.partial) hit.appendChild(el('title', {}, m.name + ' was evaluated on 3 of the 5 tasks'));

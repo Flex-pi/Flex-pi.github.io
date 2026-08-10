@@ -897,9 +897,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* on the two-column layout the control panel stretches to the diagram's height,
    with the extra space distributed evenly between the control groups */
 @media (min-width: 901px) {
-  .archviz__ctl.maskctl2 {
-    display: flex; flex-direction: column; gap: clamp(14px, 1.8vw, 22px);
-  }
+  .archviz__ctl.maskctl2 { display: block; }
 }
 /* colour key in the triptych captions, matching the diagram's stream colours */
 .vcard__cap .capdot {
@@ -1086,24 +1084,25 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
 
-/* the frontier sits directly under the diagram, same width, so the left
-   column reads as one column of pictures and the right as one of controls */
+/* the frontier closes the card across both columns, so it renders near 1:1
+   and every point keeps its name and figures */
 .archviz__frontier {
-  min-width: 0; margin-top: clamp(14px, 2vw, 22px);
-  border-top: 1px solid var(--border-faint); padding-top: 14px;
+  grid-column: 1 / -1; min-width: 0;
+  border-top: 1px solid var(--border-faint); padding-top: clamp(12px, 1.6vw, 18px);
 }
-.archviz__frontier .archviz__label { margin-bottom: 2px; }
-/* the readout cells balance the controls against the taller left column */
-.readout--av { margin-top: clamp(16px, 2.2vw, 24px); }
-.readout--av .readout__val { font-size: clamp(24px, 2.6vw, 30px); }
-.readout--av .readout__note { min-height: 3.4em; font-size: 12px; }
+.archviz__frontier .archviz__label { margin-bottom: 4px; }
+/* the two measured numbers head the control column: the answer, then the
+   controls that set it */
+.readout--av { margin-bottom: clamp(20px, 2.4vw, 28px); }
+.readout--av .readout__val { font-size: clamp(23px, 2.5vw, 29px); }
+.readout--av .readout__note { min-height: 3.2em; font-size: 12px; }
 .frontier__read {
   margin: 4px 0 0; font-family: var(--ff-mono); font-size: 13px; color: var(--fg-dim);
   min-height: 1.4em; text-align: center;
 }
 .frontier__read b { color: var(--c-ours); font-weight: 500; }
-.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 13px; }
-.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 13px; }
+.chart .dval { fill: var(--fg-dim); font-family: var(--ff-mono); font-size: 11px; }
+.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 12px; }
 .chart .fr-dot { transition: opacity .2s var(--ease); }
 .chart .fr-ring { fill: none; stroke-width: 2; opacity: 0; transition: opacity .2s var(--ease); }
 .chart .fr-ring[data-lit="on"] { opacity: 1; }

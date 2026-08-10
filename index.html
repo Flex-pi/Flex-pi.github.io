@@ -332,18 +332,25 @@
           </g>
         </svg>
         </div>
-
-        <!-- where the chosen mask lands on the real robot; the dot for the
-             current output mask lights up as you change it -->
-        <div class="archviz__frontier">
-          <div class="archviz__label">On the real robot</div>
-          <div id="frontier"></div>
-          <p class="frontier__read" id="fr-read"></p>
-        </div>
       </div>
 
       <!-- right: masks and regimes -->
       <div class="archviz__ctl maskctl2">
+          <!-- what the configuration below costs and buys, measured on our own
+               hardware. Only the two modes we deploy have been benchmarked; the
+               other six output masks read as not yet measured. -->
+          <div class="readout readout--av">
+            <div class="readout__cell">
+              <div class="readout__lab">Inference latency</div>
+              <div class="readout__val" id="av-lat">193<span class="unit">ms</span></div>
+              <div class="readout__note" id="av-lat-note">3.2&times; the action-only path.</div>
+            </div>
+            <div class="readout__cell readout__cell--sr">
+              <div class="readout__lab">Task completion</div>
+              <div class="readout__val" id="av-sr">83.0<span class="unit">%</span></div>
+              <div class="readout__note" id="av-sr-note">The highest of every method we compare against.</div>
+            </div>
+          </div>
           <div class="maskline maskline--quick">
             <span class="maskline__lab">jump to</span>
             <span class="maskline__set maskline__set--wrap">
@@ -382,23 +389,15 @@
             <span class="maskctl2__count">configuration <span id="av-combo">1</span> of 56</span>
           </div>
 
-          <!-- measured cost and payoff of the configuration above. Only the
-               two deployed modes have been benchmarked on our own hardware;
-               the other six output masks read as not-yet-measured. -->
-          <div class="readout readout--av">
-            <div class="readout__cell">
-              <div class="readout__lab">Inference latency</div>
-              <div class="readout__val" id="av-lat">193<span class="unit">ms</span></div>
-              <div class="readout__note" id="av-lat-note">3.2&times; the action-only path.</div>
-            </div>
-            <div class="readout__cell readout__cell--sr">
-              <div class="readout__lab">Task completion</div>
-              <div class="readout__val" id="av-sr">83.0<span class="unit">%</span></div>
-              <div class="readout__note" id="av-sr-note">The highest of every method we compare against.</div>
-            </div>
-          </div>
       </div>
 
+      <!-- where the chosen mask lands on the real robot; the dot for the
+           current output mask lights up as you change it -->
+      <div class="archviz__frontier">
+        <div class="archviz__label">Where that lands on the real robot</div>
+        <div id="frontier"></div>
+        <p class="frontier__read" id="fr-read"></p>
+      </div>
       </div>
     </div>
   </div>
