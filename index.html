@@ -332,6 +332,14 @@
           </g>
         </svg>
         </div>
+
+        <!-- where the chosen mask lands on the real robot; the dot for the
+             current output mask lights up as you change it -->
+        <div class="archviz__frontier">
+          <div class="archviz__label">On the real robot</div>
+          <div id="frontier"></div>
+          <p class="frontier__read" id="fr-read"></p>
+        </div>
       </div>
 
       <!-- right: masks and regimes -->
@@ -373,15 +381,24 @@
             <button class="regimechip" type="button" id="av-draw">Random draw</button>
             <span class="maskctl2__count">configuration <span id="av-combo">1</span> of 56</span>
           </div>
+
+          <!-- measured cost and payoff of the configuration above. Only the
+               two deployed modes have been benchmarked on our own hardware;
+               the other six output masks read as not-yet-measured. -->
+          <div class="readout readout--av">
+            <div class="readout__cell">
+              <div class="readout__lab">Inference latency</div>
+              <div class="readout__val" id="av-lat">193<span class="unit">ms</span></div>
+              <div class="readout__note" id="av-lat-note">3.2&times; the action-only path.</div>
+            </div>
+            <div class="readout__cell readout__cell--sr">
+              <div class="readout__lab">Task completion</div>
+              <div class="readout__val" id="av-sr">83.0<span class="unit">%</span></div>
+              <div class="readout__note" id="av-sr-note">The highest of every method we compare against.</div>
+            </div>
+          </div>
       </div>
 
-      <!-- where the chosen mask lands on the real robot; the dot for the
-           current output mask lights up as you change it -->
-      <div class="archviz__frontier">
-        <div class="archviz__label">On the real robot</div>
-        <div id="frontier"></div>
-        <p class="frontier__read" id="fr-read"></p>
-      </div>
       </div>
     </div>
   </div>
@@ -1260,71 +1277,12 @@
 <!-- ====================== explorer ====================== -->
 <section class="sec" id="explorer">
   <div class="wrap reveal">
-    <h3 class="sec__title">Choosing the operating point</h3>
-    <p class="sec__sub">The same weights, invoked with different flags. Toggle the streams Flex-π generates and
-    watch latency and success rate move together.</p>
+    <h3 class="sec__title">One checkpoint, four measured operating points</h3>
+    <p class="sec__sub">In simulation every step of the ladder was benchmarked, so the whole speed&ndash;accuracy
+    range one set of weights covers can be drawn as a curve.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
-    <div class="explorer" id="ex-panel">
-      <div class="explorer__head">
-        <div>
-          <div class="explorer__title">Inference configuration</div>
-          <div class="chartbox__sub">RoboTwin, given video-only input</div>
-        </div>
-      </div>
-      <div class="explorer__body">
-        <div class="toggles" id="ex-toggles">
-          <div class="toggle toggle--locked" style="--dot:var(--s-action)" aria-hidden="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Action chunk <small>Always generated — the policy output</small></span>
-            <span class="lockpill">always</span>
-          </div>
-          <button class="toggle" type="button" data-stream="rgb" style="--dot:var(--s-rgb)" aria-pressed="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Future RGB latents <small>Appearance — stream V</small></span>
-          </button>
-          <button class="toggle" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Future DINO semantics <small>Object semantics — stream D</small></span>
-          </button>
-          <button class="toggle" type="button" data-stream="p3d" style="--dot:var(--s-3d)" aria-pressed="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Future 3D pointmaps <small>Geometry — stream P</small></span>
-          </button>
-          <p class="toggles__note">The paper benchmarks four configurations, adding streams in this order:
-          <b>68&nbsp;&rarr; 139&nbsp;&rarr; 280&nbsp;&rarr; 398&nbsp;ms</b>. Per-stream costs are not reported
-          independently, so other combinations are deployable but unmeasured.</p>
-        </div>
-
-        <div class="readout">
-          <div class="readout__cell">
-            <div class="readout__lab">Inference latency</div>
-            <div class="readout__val" id="ex-lat">68<span class="unit">ms</span></div>
-            <div class="readout__note" id="ex-lat-note">Faster than a PyTorch-compiled Fast-WAM (90&nbsp;ms).</div>
-          </div>
-          <div class="readout__cell readout__cell--sr">
-            <div class="readout__lab">Avg. success</div>
-            <div class="readout__val" id="ex-sr">41.6<span class="unit">%</span></div>
-            <div class="readout__note" id="ex-sr-note">Fast-WAM reaches 10.0% at comparable latency.</div>
-          </div>
-          <div class="readout__mode">
-            <div class="name" id="ex-mode">Action-only fast path</div>
-            <div class="desc" id="ex-desc">No future visual streams are computed; action tokens attend only to the
-            current observation, preserving a VLA-level inference path.</div>
-            <div class="chips" id="ex-chips">
-              <span class="chip" data-on="true" style="--dot:var(--s-action)">action</span>
-              <span class="chip" data-on="false" style="--dot:var(--s-rgb)">rgb</span>
-              <span class="chip" data-on="false" style="--dot:var(--s-dino)">dino</span>
-              <span class="chip" data-on="false" style="--dot:var(--s-3d)">pointmap</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:26px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>

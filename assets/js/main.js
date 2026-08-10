@@ -24,7 +24,7 @@
      --------------------------------------------------------------------- */
   function barChart(mount, cfg) {
     var W = 1000;
-    var padL = cfg.padL != null ? cfg.padL : 46;
+    var padL = cfg.padL != null ? cfg.padL : (cfg.yLabel ? 58 : 46);
     var padR = 14;
     var padT = 30;
     var padB = cfg.padB != null ? cfg.padB : 52;
@@ -328,9 +328,7 @@
 
     paretoPts = [];
     pts.forEach(function (p, i) {
-      var g = el('g', { 'class': 'pareto__pt panim', 'data-i': i, tabindex: '0', role: 'button',
-        style: '--ad:' + delayAt(p),
-        'aria-label': p.name + ': ' + p.y + '% at ' + p.x + ' ms' });
+      var g = el('g', { 'class': 'pareto__pt panim', 'data-i': i, style: '--ad:' + delayAt(p) });
       g.appendChild(el('circle', { 'class': 'pareto__halo', cx: X(p.x), cy: Y(p.y), r: 12 }));
       g.appendChild(el('circle', { cx: X(p.x), cy: Y(p.y), r: 16, fill: 'transparent' }));
       g.appendChild(el('circle', { 'class': 'pareto__ring', cx: X(p.x), cy: Y(p.y), r: 5.5, fill: green }));
@@ -342,12 +340,6 @@
         'text-anchor': i === 3 ? 'end' : 'start', fill: green
       }, p.name));
       paretoPts.push(g);
-
-      function pick() { setConfig(CONFIG_FOR_INDEX[i]); }
-      g.addEventListener('click', pick);
-      g.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
-      });
     });
 
     svg.appendChild(el('text', { 'class': 'ptlab panim', style: '--ad:0.05s',
@@ -581,6 +573,18 @@
      --------------------------------------------------------------------- */
   var setFrontierMode = function () {};
 
+  /* Measured on our own RTX 5090 at the deployed 4 denoise steps. Only the two
+     modes we ship have been benchmarked end to end; the other six output masks
+     are deployable but not yet timed or scored, and say so. */
+  var REAL_MODE = {
+    0: { lat: 60,  sr: 76.4,
+         latNote: 'Faster than every baseline we compare against.',
+         srNote: '+18.4 points over the strongest baseline.' },
+    3: { lat: 193, sr: 83.0,
+         latNote: '3.2× the action-only path.',
+         srNote: 'The highest of every method we compare against.' }
+  };
+
   function initFrontier() {
     var mount = document.getElementById('frontier');
     if (!mount) return;
@@ -589,11 +593,11 @@
       { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)',  dx: -16, dy: 4,   anchor: 'end' },
       { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)', dx: 16,  dy: 4,   anchor: 'start' },
       { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', dx: 16,  dy: 4,   anchor: 'start', partial: true },
-      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: 18,  dy: -12, anchor: 'start', ours: true },
+      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: -16, dy: -5,  anchor: 'end',   ours: true },
       { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', dx: -18, dy: -12, anchor: 'end',   ours: true }
     ];
 
-    var W = 1000, padL = 56, padR = 26, padT = 22, plotH = 200, H = 284;
+    var W = 600, padL = 50, padR = 20, padT = 20, plotH = 190, H = 268;
     var plotW = W - padL - padR;
     var xMin = 0, xMax = 215, yMin = 22, yMax = 92;
     function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
@@ -616,12 +620,12 @@
     svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
     [0, 50, 100, 150, 200].forEach(function (t) {
       svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
-      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 18, 'text-anchor': 'middle' }, String(t)));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 17, 'text-anchor': 'middle' }, String(t)));
     });
-    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 38,
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 36,
       'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
-      transform: 'translate(13,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion'));
+      transform: 'translate(12,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion'));
 
     /* everything slower AND less accurate than the fast path */
     var AO = M[3];
@@ -654,6 +658,20 @@
 
     mount.appendChild(svg);
 
+    var latEl = document.getElementById('av-lat');
+    var srEl = document.getElementById('av-sr');
+    var latNoteEl = document.getElementById('av-lat-note');
+    var srNoteEl = document.getElementById('av-sr-note');
+    function num(elm, v, unit) {
+      if (!elm) return;
+      elm.textContent = v === null ? '—' : v;
+      if (v !== null) {
+        var u = document.createElement('span');
+        u.className = 'unit'; u.textContent = unit;
+        elm.appendChild(u);
+      }
+    }
+
     /* the configurator calls this with the number of generated visual streams */
     setFrontierMode = function (nGen) {
       var lit = nGen === 0 ? 'ao' : nGen === 3 ? 'joint' : null;
@@ -664,113 +682,14 @@
       /* the ring already names the operating point; only the unmeasured
          middle ground needs saying in words */
       if (read) read.textContent = lit ? '' : 'Between the two — deployable, not separately measured';
+
+      var r = REAL_MODE[nGen];
+      num(latEl, r ? r.lat : null, 'ms');
+      num(srEl,  r ? r.sr.toFixed(1) : null, '%');
+      if (latNoteEl) latNoteEl.textContent = r ? r.latNote : 'Deployable, but not yet benchmarked on our hardware.';
+      if (srNoteEl)  srNoteEl.textContent  = r ? r.srNote  : 'Not yet evaluated on the real-robot suite.';
     };
     setFrontierMode(3);
-  }
-
-  /* ---------------------------------------------------------------------
-     compute-flexibility explorer
-     --------------------------------------------------------------------- */
-  var CONFIG_FOR_INDEX = [
-    { rgb: false, dino: false, p3d: false },
-    { rgb: true,  dino: false, p3d: false },
-    { rgb: true,  dino: true,  p3d: false },
-    { rgb: true,  dino: true,  p3d: true }
-  ];
-
-  /* Measured operating points (RoboTwin 5-task ablation set, video-only input).
-     Only the four configurations on the paper's ladder were benchmarked. */
-  var MEASURED = {
-    '000': { lat: 68,  sr: 41.6, i: 0, name: 'Action-only fast path',
-      desc: 'No future visual streams are computed; action tokens attend only to the current observation, ' +
-            'preserving a VLA-level inference path.',
-      latNote: 'Faster than a PyTorch-compiled Fast-WAM (90 ms).',
-      srNote: 'Fast-WAM reaches 10.0% at comparable latency.' },
-    '100': { lat: 139, sr: 60.0, i: 1, name: 'Joint RGB + action',
-      desc: 'Future RGB latents are generated alongside the actions, and the action expert reads them. ' +
-            'This is where most of the accuracy gain appears.',
-      latNote: 'Roughly 2× the action-only path.',
-      srNote: '+18.4 points over action-only, for +71 ms.' },
-    '110': { lat: 280, sr: 62.0, i: 2, name: 'Joint RGB + DINO + action',
-      desc: 'Object-level semantics are co-generated, grounding prediction in what the objects are as well as ' +
-            'how the scene looks.',
-      latNote: 'Read from Figure 6b of the paper.',
-      srNote: 'Semantics alone add modestly here; geometry is what pays.' },
-    '111': { lat: 398, sr: 66.8, i: 3, name: 'Full joint generation',
-      desc: 'All three visual futures are co-denoised with the actions, so the policy is grounded in appearance, ' +
-            'geometry and semantics simultaneously. The most accurate mode.',
-      latNote: '6× the action-only latency.',
-      srNote: 'Best of the four — +25.2 points over action-only.' }
-  };
-
-  var state = { rgb: false, dino: false, p3d: false };
-
-  function keyOf(s) { return (s.rgb ? '1' : '0') + (s.dino ? '1' : '0') + (s.p3d ? '1' : '0'); }
-
-  function setConfig(next) {
-    state.rgb = !!next.rgb; state.dino = !!next.dino; state.p3d = !!next.p3d;
-    paintExplorer();
-  }
-
-  function paintExplorer() {
-    var root = document.getElementById('explorer');
-    if (!root) return;
-
-    root.querySelectorAll('.toggle[data-stream]').forEach(function (b) {
-      b.setAttribute('aria-pressed', state[b.getAttribute('data-stream')] ? 'true' : 'false');
-    });
-
-    var chips = document.getElementById('ex-chips');
-    if (chips) {
-      var map = { action: true, rgb: state.rgb, dino: state.dino, pointmap: state.p3d };
-      chips.querySelectorAll('.chip').forEach(function (c) {
-        c.setAttribute('data-on', map[c.textContent.trim()] ? 'true' : 'false');
-      });
-    }
-
-    var k = keyOf(state);
-    var hit = MEASURED[k];
-    var latEl = document.getElementById('ex-lat');
-    var srEl = document.getElementById('ex-sr');
-    var modeEl = document.getElementById('ex-mode');
-    var descEl = document.getElementById('ex-desc');
-    var latNote = document.getElementById('ex-lat-note');
-    var srNote = document.getElementById('ex-sr-note');
-
-    if (hit) {
-      latEl.innerHTML = hit.lat + '<span class="unit">ms</span>';
-      srEl.innerHTML = hit.sr.toFixed(1) + '<span class="unit">%</span>';
-      modeEl.textContent = hit.name;
-      descEl.textContent = hit.desc;
-      latNote.innerHTML = hit.latNote;
-      srNote.innerHTML = hit.srNote;
-    } else {
-      latEl.innerHTML = '68&ndash;398<span class="unit">ms</span>';
-      srEl.innerHTML = '&mdash;';
-      modeEl.textContent = 'Deployable, but not benchmarked';
-      descEl.textContent = 'The checkpoint supports this combination — stream masks are runtime arguments, not ' +
-        'architectural choices — but the paper reports the four configurations on the cumulative ladder. ' +
-        'Click a point on the chart below to jump to a measured one.';
-      latNote.innerHTML = 'Bracketed by the measured endpoints; not benchmarked individually.';
-      srNote.innerHTML = 'No published measurement.';
-    }
-
-    paretoPts.forEach(function (g, i) {
-      g.setAttribute('data-active', hit && hit.i === i ? 'true' : 'false');
-    });
-  }
-
-  function initExplorer() {
-    var root = document.getElementById('explorer');
-    if (!root) return;
-    root.querySelectorAll('.toggle[data-stream]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var s = b.getAttribute('data-stream');
-        state[s] = !state[s];
-        paintExplorer();
-      });
-    });
-    paintExplorer();
   }
 
   /* ---------------------------------------------------------------------
@@ -1419,7 +1338,6 @@
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem('flexpi-theme', next); } catch (e) {}
       renderCharts();
-      paintExplorer();
     });
   }
 
@@ -1430,7 +1348,6 @@
     initTheme();
     renderCharts();
     initFrontier();      /* before initArchviz: the masks drive its highlight */
-    initExplorer();
     initMaskDemo();
     initVideos();
     initTaskSwitch();
@@ -1451,6 +1368,6 @@
   var rt;
   window.addEventListener('resize', function () {
     clearTimeout(rt);
-    rt = setTimeout(function () { renderCharts(); paintExplorer(); }, 260);
+    rt = setTimeout(function () { renderCharts(); }, 260);
   });
 })();
