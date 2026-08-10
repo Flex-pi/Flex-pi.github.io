@@ -1312,13 +1312,15 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
 
 /* ==========================================================================
    juxtapose slider -- Figure 3's GT-pointmap vs VAE-reconstruction wipe.
-   The two layers are pixel-aligned crops of the same figure, so the wipe
-   revealing "no visible change" IS the 38 dB claim, made tangible.
+   The two layers are frame-aligned encodes of one episode (same source, same
+   4x setpts, so frame n on top is frame n underneath), which makes the wipe
+   revealing "no visible change" the PSNR claim itself, made tangible.
+   All three clips are kept in step by the data-sync group in main.js.
    ========================================================================== */
 .vaefig { display: flex; gap: 10px; align-items: stretch; }
-.vaefig img { min-width: 0; }             /* out-specify .plate img's 460px floor */
+.vaefig img, .vaefig video { min-width: 0; }   /* out-specify .plate img's 460px floor */
 .vaefig__cell { position: relative; flex: 1 1 0; min-width: 0; }
-.vaefig__rgb { width: 100%; height: auto; border-radius: 3px; }
+.vaefig__rgb { width: 100%; height: auto; display: block; border-radius: 3px; }
 .vaefig .juxta { flex: 1 1 0; }
 @media (max-width: 560px) { .vaefig { flex-direction: column; } }
 
@@ -1339,9 +1341,28 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
   cursor: ew-resize; touch-action: pan-y;
   user-select: none; -webkit-user-select: none;
 }
-.juxta > img { width: 100%; height: auto; display: block; }
+.juxta > img, .juxta > video { width: 100%; height: auto; display: block; }
 .juxta__top { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--x)) 0 0); }
-.juxta__top img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.juxta__top img,
+.juxta__top video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* measured fidelity. It belongs to the reconstruction side, so initJuxta()
+   fades it out as the divider closes on it (--mo) rather than clipping it —
+   a half-sliced number reads as a bug, not as a wipe. */
+.juxta__metrics {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  opacity: var(--mo, 1); transition: opacity .1s linear;
+}
+.juxta__metrics__box {
+  position: absolute; right: 8px; bottom: 8px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta);
+  line-height: 1.25; white-space: nowrap;
+  padding: 5px 7px; border-radius: 3px;
+  background: rgba(12,12,12,.58); color: rgba(255,255,255,.92);
+}
+.juxta__metrics__box b { font-weight: 500; }
+.juxta__metrics__box sup { font-size: 8px; line-height: 0; }  /* keep out of the line box */
 .juxta__bar {
   position: absolute; top: 0; bottom: 0; left: var(--x); width: 0;
   border-left: 2px solid rgba(255,255,255,.92); transform: translateX(-1px);

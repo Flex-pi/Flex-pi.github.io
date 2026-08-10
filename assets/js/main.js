@@ -907,6 +907,48 @@
   }
 
   /* ---------------------------------------------------------------------
+     synchronised clips: videos sharing a data-sync value play as one.
+
+     Figure 3 wipes between two layers of the same episode, so a few frames
+     of drift would read as reconstruction error that is not there. The first
+     video of a group is the leader (it is the one carrying data-autoplay);
+     the rest mirror its transport and get nudged back whenever they slip
+     more than ~4 frames, including at every loop boundary.
+     --------------------------------------------------------------------- */
+  function initSyncedVideos() {
+    var groups = {};
+    document.querySelectorAll('video[data-sync]').forEach(function (v) {
+      var k = v.getAttribute('data-sync');
+      (groups[k] = groups[k] || []).push(v);
+    });
+
+    Object.keys(groups).forEach(function (k) {
+      var vs = groups[k];
+      if (vs.length < 2) return;
+      var lead = vs[0];
+      var rest = vs.slice(1);
+
+      function each(fn) { rest.forEach(fn); }
+      function align(v) {
+        if (v.readyState >= 1 && Math.abs(v.currentTime - lead.currentTime) > 0.12) {
+          v.currentTime = lead.currentTime;
+        }
+      }
+
+      lead.addEventListener('play', function () {
+        each(function (v) {
+          if (v.preload !== 'auto') v.preload = 'auto';
+          align(v);
+          v.play().catch(function () {});
+        });
+      });
+      lead.addEventListener('pause', function () { each(function (v) { v.pause(); }); });
+      lead.addEventListener('seeked', function () { each(align); });
+      lead.addEventListener('timeupdate', function () { each(align); });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
      seen / unseen switch  (#generalization)
 
      One switch per task block; the three blocks share no state. Everything
@@ -1410,10 +1452,21 @@
      --------------------------------------------------------------------- */
   function initJuxta() {
     document.querySelectorAll('[data-juxta]').forEach(function (j) {
+      var badge = j.querySelector('.juxta__metrics__box');
+
       function set(pct) {
         pct = Math.max(0, Math.min(100, pct));
         j.style.setProperty('--x', pct + '%');
         j.setAttribute('aria-valuenow', String(Math.round(pct)));
+
+        /* the metrics describe the reconstruction only, so retire them over
+           the last few percent before the divider would reach the badge */
+        if (badge) {
+          var r = j.getBoundingClientRect();
+          var b = badge.getBoundingClientRect();
+          var edge = (b.left - r.left) / r.width * 100;
+          j.style.setProperty('--mo', String(Math.max(0, Math.min(1, (edge - pct) / 6))));
+        }
       }
       function fromX(clientX) {
         var r = j.getBoundingClientRect();
@@ -1460,6 +1513,7 @@
     renderCharts();
     initFrontier();      /* before initArchviz: the masks drive its highlight */
     initMaskDemo();
+    initSyncedVideos();  /* before initVideos: the leader must not play unheard */
     initVideos();
     initTaskSwitch();
     initArchviz();
