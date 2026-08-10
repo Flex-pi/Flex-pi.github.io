@@ -39,15 +39,20 @@
   --s-dino:   #57c98b;
   --s-action: #e8797d;
 
-  /* chart series */
-  --c-base:   #9a9a9a;   /* neutral baseline            */
-  --c-base2:  #e0b04a;   /* π0.5 (amber, as in Fig 8/11) */
-  --c-base3:  #7b8b9e;   /* second neutral baseline     */
-  --c-ours:   #57c98b;   /* Flex-π accent               */
-  --c-ours-l: #8fd9b0;   /* Flex-π action-only          */
-  --c-ours-d: #2f8f5b;   /* Flex-π full joint           */
+  /* chart series — the paper's own legend, lightened for the dark ground.
+     Day values below are the paper's exact hues. Keep the two in step. */
+  --c-base:   #a8a8a8;   /* π0.5      (grey)   */
+  --c-base2:  #e0a526;   /* Fast-WAM  (amber)  */
+  --c-base3:  #7fb3d5;   /* ManiFlow  (blue)   */
+  --c-ours:   #57c98b;   /* Flex-π accent      */
+  --c-ours-l: #74c47e;   /* Flex-π action-only */
+  --c-ours-d: #3f9e52;   /* Flex-π full joint  */
   --chart-grid: rgba(255,255,255,.075);
   --chart-axis: rgba(255,255,255,.28);
+  /* Error whiskers sit on top of saturated bars, so they need more presence
+     than the axis but must not read as white ink. A neutral at 45% clears the
+     lightest bar and still recedes behind it. */
+  --chart-err:  rgba(255,255,255,.45);
   --plate-bg:  var(--figure-cream);
 
   /* hero stage is dark in BOTH themes */
@@ -112,14 +117,15 @@
   --s-dino:   #2f7d52;
   --s-action: #b8464a;
 
-  --c-base:   #8a8a80;
-  --c-base2:  #b8862c;
-  --c-base3:  #6f8090;
-  --c-ours:   #2f7d52;
-  --c-ours-l: #74b58f;
-  --c-ours-d: #226b43;
+  --c-base:   #9e9e9e;   /* π0.5      — paper's exact legend colours */
+  --c-base2:  #e0a526;   /* Fast-WAM  */
+  --c-base3:  #7fb3d5;   /* ManiFlow  */
+  --c-ours:   #2e7d3e;
+  --c-ours-l: #5ba463;   /* Flex-π action-only */
+  --c-ours-d: #2e7d3e;   /* Flex-π full joint  */
   --chart-grid: rgba(12,12,12,.10);
   --chart-axis: rgba(12,12,12,.34);
+  --chart-err:  rgba(12,12,12,.46);
   --plate-bg:  #ffffff;
 }
 
@@ -1049,9 +1055,8 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* ==========================================================================
    dynamic architecture + live stream view
    ========================================================================== */
-/* One shared card, like the explorer below: a head strip names the unit, the
-   body holds the two coupled halves — the diagram-as-controller on the left
-   and the stream view it drives on the right. */
+/* One card, two coupled halves: the diagram and the real-robot frontier stack
+   in the left column, the masks that steer both sit in the right one. */
 .archviz {
   border: 1px solid var(--border-soft); border-radius: var(--radius);
   background: var(--surface); overflow: hidden;
@@ -1064,25 +1069,44 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
   text-transform: uppercase; color: var(--fg-faint);
 }
+/* the diagram fills the left column across both rows; the right column
+   stacks the mask controls over the frontier they steer, so choosing a
+   configuration and seeing where it lands stay in one eyeful */
 .archviz__body {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 336px);
-  column-gap: clamp(36px, 5vw, 84px); row-gap: clamp(18px, 2.6vw, 34px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  column-gap: clamp(28px, 3.6vw, 56px); row-gap: clamp(16px, 2.2vw, 26px);
   align-items: start;
   padding: clamp(18px, 2.6vw, 28px) clamp(16px, 2.4vw, 26px);
 }
 @media (max-width: 900px) { .archviz__body { grid-template-columns: 1fr; } }
 
 .archviz__diagram { min-width: 0; }
+
 .archviz__figrow { display: flex; gap: 14px; align-items: stretch; }
 .archviz__figrow svg { flex: 1 1 auto; min-width: 0; height: auto; aspect-ratio: 400 / 320; }
 .archviz__ctl { min-width: 0; }
-/* on the two-column layout the control panel stretches to the diagram's height,
-   with the extra space distributed evenly between the control groups */
+/* On the two-column layout the control panel stretches to the diagram's height
+   and distributes the slack between the control groups, so the foot — Random
+   draw and the configuration count — sits at a fixed height. The regime note
+   below the masks changes length as you switch configuration; without this the
+   button rides up and down with it. */
 @media (min-width: 901px) {
   .archviz__ctl.maskctl2 {
     align-self: stretch;
     display: flex; flex-direction: column; justify-content: space-between;
   }
+  /* Space-between only holds the foot still if the column itself is a constant
+     height, and the column is taller than the diagram, so nothing external
+     fixes it. Both prose blocks therefore reserve their worst case: three lines
+     for the two readout notes, five for the regime note (the longest is an
+     intermediate regime with the cross-modality clause appended). Measured
+     across all 56 configurations at 940, 1200 and 1600 px. */
+  .maskctl2 .readout--av .readout__note { min-height: 4.4em; }
+  .maskctl2 .archviz__regimenote { min-height: 7.6em; }
+  /* the cross-modality chip is a hair taller than the name it sits beside, so
+     the row reserves the taller of the two whether or not the chip is shown */
+  .maskctl2 .regimeout { min-height: 26px; }
 }
 /* colour key in the triptych captions, matching the diagram's stream colours */
 .vcard__cap .capdot {
@@ -1211,60 +1235,8 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .archviz__note--fine b { color: var(--fg-dim); font-weight: 600; }
 
 /* ==========================================================================
-   compute-flexibility explorer
+   readout cells — the measured cost and payoff of the chosen configuration
    ========================================================================== */
-.explorer {
-  border: 1px solid var(--border-soft); border-radius: var(--radius);
-  background: var(--surface); overflow: hidden;
-}
-.explorer__head {
-  padding: 18px clamp(16px,2.4vw,26px); border-bottom: 1px solid var(--border-faint);
-  display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; justify-content: space-between;
-}
-.explorer__title { font-weight: 600; font-size: 17px; letter-spacing: -.005em; }
-.explorer__hint { font-size: var(--fs-fine); color: var(--fg-faint); }
-.explorer__body {
-  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr);
-  gap: clamp(18px, 3vw, 34px); padding: clamp(18px,2.6vw,28px) clamp(16px,2.4vw,26px);
-}
-@media (max-width: 880px) { .explorer__body { grid-template-columns: 1fr; } }
-
-.toggles { display: flex; flex-direction: column; gap: 9px; }
-.toggle {
-  display: flex; align-items: center; gap: 12px; width: 100%;
-  padding: 12px 14px; cursor: pointer; text-align: left;
-  background: var(--surface); color: var(--fg);
-  border: 1px solid var(--border-soft); border-radius: var(--radius);
-  font-family: inherit; font-size: 15px;
-  transition: background .16s var(--ease), border-color .16s var(--ease);
-}
-.toggle:hover { background: var(--surface-2); }
-.toggle[aria-pressed="true"] { border-color: var(--dot); background: color-mix(in srgb, var(--dot) 11%, transparent); }
-.toggle__box {
-  width: 17px; height: 17px; border-radius: 3px; flex: none;
-  border: 1.5px solid var(--border); display: grid; place-items: center;
-  transition: background .16s var(--ease), border-color .16s var(--ease);
-}
-.toggle[aria-pressed="true"] .toggle__box { background: var(--dot); border-color: var(--dot); }
-.toggle__box svg { width: 11px; height: 11px; opacity: 0; color: var(--bg); }
-.toggle[aria-pressed="true"] .toggle__box svg { opacity: 1; }
-.toggle__txt { flex: 1; line-height: 1.3; }
-.toggle__txt small { display: block; font-size: 12.5px; color: var(--fg-dim); margin-top: 2px; }
-.toggle--locked { cursor: default; }
-.toggle--locked:hover { background: var(--surface); }
-.toggle--locked .toggle__box { background: var(--dot); border-color: var(--dot); }
-.toggle--locked .toggle__box svg { opacity: 1; }
-.lockpill {
-  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta); text-transform: uppercase;
-  border: 1px solid var(--border-soft); border-radius: var(--radius-pill);
-  padding: 2px 6px; color: var(--fg-faint);
-}
-
-.toggles__note {
-  margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--fg-dim);
-}
-.toggles__note b { color: var(--fg-muted); font-family: var(--ff-mono); font-size: var(--fs-meta); }
-
 .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-content: start; }
 .readout__cell {
   border: 1px solid var(--border-faint); border-radius: var(--radius);
@@ -1282,23 +1254,6 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .readout__val .unit { font-size: .42em; color: var(--fg-dim); font-weight: 400; letter-spacing: 0; }
 .readout__cell--sr .readout__val { color: var(--c-ours); }
 .readout__note { margin-top: 8px; font-size: 12.5px; color: var(--fg-dim); line-height: 1.45; min-height: 2.9em; }
-.readout__mode {
-  grid-column: 1 / -1; border: 1px solid var(--border-faint); border-radius: var(--radius);
-  padding: 14px 16px; background: var(--surface);
-}
-.readout__mode .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.readout__mode .desc { font-size: 13.5px; color: var(--fg-muted); line-height: 1.5; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.chip {
-  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta); text-transform: uppercase;
-  padding: 3px 8px; border-radius: var(--radius-pill);
-  border: 1px dashed var(--border-soft); color: var(--fg-faint);
-}
-.chip[data-on="true"] {
-  border-style: solid; border-color: var(--dot); color: var(--dot);
-  background: color-mix(in srgb, var(--dot) 12%, transparent);
-}
-
 /* ==========================================================================
    charts
    ========================================================================== */
@@ -1314,6 +1269,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .legend__sw { width: 10px; height: 10px; border-radius: 2px; flex: none; background: var(--c); }
 .legend__sw--line { height: 2px; border-radius: 1px; width: 14px; }
 .legend__sw--dash { height: 0; border-top: 2px dashed var(--c); background: none; width: 14px; }
+/* the faded/solid pair legend sits apart from the method colours it qualifies */
+.legend__item--pair { color: var(--fg-dim); font-style: italic; }
+.legend__item--pair:first-of-type { margin-left: 6px; }
+
+/* a held-out condition we show footage for but have not scored */
+.scoreboard--none .score { text-align: right; max-width: 150px; }
+.scoreboard--none .score__k { color: var(--fg-faint); }
 
 svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
@@ -1325,11 +1287,40 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .alab { fill: var(--fg-dim); font-family: var(--ff-body); font-size: var(--fs-fine); }
 .chart .bar { transition: opacity .16s var(--ease); }
 .chart .bar:hover { opacity: .82; }
+/* binomial standard error whiskers, as in the paper's real-robot figures */
+.chart .ebar line { stroke: var(--chart-err); stroke-width: 1.2; stroke-linecap: butt; }
 .chart .ptlab { fill: var(--fg-muted); font-family: var(--ff-mono); font-size: var(--fs-meta); }
 
 .pareto__pt { cursor: pointer; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
+
+/* the frontier closes the card across both columns, so it renders near 1:1
+   and every point keeps its name and figures */
+.archviz__frontier {
+  grid-column: 1 / -1; min-width: 0;
+  border-top: 1px solid var(--border-faint); padding-top: clamp(12px, 1.6vw, 18px);
+}
+.archviz__frontier .archviz__label { margin-bottom: 4px; }
+/* the two measured numbers head the control column: the answer, then the
+   controls that set it */
+.readout--av { margin-bottom: clamp(20px, 2.4vw, 28px); }
+.readout--av .readout__val { font-size: clamp(23px, 2.5vw, 29px); }
+.readout--av .readout__note { min-height: 3.2em; font-size: 12px; }
+.frontier__read {
+  margin: 4px 0 0; font-family: var(--ff-mono); font-size: 13px; color: var(--fg-dim);
+  min-height: 1.6em; text-align: center;   /* one full line, so the card does
+                                              not breathe as the note appears */
+}
+.frontier__read b { color: var(--c-ours); font-weight: 500; }
+.chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 13px; }
+.chart .dlab--hi { fill: var(--fg); font-weight: 600; }
+.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 11.5px; transition: opacity .15s var(--ease); }
+.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 12px; }
+.chart .fr-dot { transition: opacity .2s var(--ease); }
+.chart .fr-ring { fill: none; stroke-width: 2; opacity: 0; transition: opacity .2s var(--ease); }
+.chart .fr-ring[data-lit="on"] { opacity: 1; }
+.chart .fr-dot[data-lit="off"] { opacity: .3; }
 
 /* pareto entrance: line draws itself, points pop in as it reaches them,
    the Fast-WAM baseline fades in last. Armed via data-anim="wait", fired
@@ -1508,13 +1499,15 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
 
 /* ==========================================================================
    juxtapose slider -- Figure 3's GT-pointmap vs VAE-reconstruction wipe.
-   The two layers are pixel-aligned crops of the same figure, so the wipe
-   revealing "no visible change" IS the 38 dB claim, made tangible.
+   The two layers are frame-aligned encodes of one episode (same source, same
+   4x setpts, so frame n on top is frame n underneath), which makes the wipe
+   revealing "no visible change" the PSNR claim itself, made tangible.
+   All three clips are kept in step by the data-sync group in main.js.
    ========================================================================== */
 .vaefig { display: flex; gap: 10px; align-items: stretch; }
-.vaefig img { min-width: 0; }             /* out-specify .plate img's 460px floor */
+.vaefig img, .vaefig video { min-width: 0; }   /* out-specify .plate img's 460px floor */
 .vaefig__cell { position: relative; flex: 1 1 0; min-width: 0; }
-.vaefig__rgb { width: 100%; height: auto; border-radius: 3px; }
+.vaefig__rgb { width: 100%; height: auto; display: block; border-radius: 3px; }
 .vaefig .juxta { flex: 1 1 0; }
 @media (max-width: 560px) { .vaefig { flex-direction: column; } }
 
@@ -1535,9 +1528,28 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
   cursor: ew-resize; touch-action: pan-y;
   user-select: none; -webkit-user-select: none;
 }
-.juxta > img { width: 100%; height: auto; display: block; }
+.juxta > img, .juxta > video { width: 100%; height: auto; display: block; }
 .juxta__top { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--x)) 0 0); }
-.juxta__top img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.juxta__top img,
+.juxta__top video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* measured fidelity. It belongs to the reconstruction side, so initJuxta()
+   fades it out as the divider closes on it (--mo) rather than clipping it —
+   a half-sliced number reads as a bug, not as a wipe. */
+.juxta__metrics {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  opacity: var(--mo, 1); transition: opacity .1s linear;
+}
+.juxta__metrics__box {
+  position: absolute; right: 8px; bottom: 8px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta);
+  line-height: 1.25; white-space: nowrap;
+  padding: 5px 7px; border-radius: 3px;
+  background: rgba(12,12,12,.58); color: rgba(255,255,255,.92);
+}
+.juxta__metrics__box b { font-weight: 500; }
+.juxta__metrics__box sup { font-size: 8px; line-height: 0; }  /* keep out of the line box */
 .juxta__bar {
   position: absolute; top: 0; bottom: 0; left: var(--x); width: 0;
   border-left: 2px solid rgba(255,255,255,.92); transform: translateX(-1px);
@@ -1565,7 +1577,6 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
 }
 @media (min-width: 1024px) and (max-width: 1207px) {
   .vgrid--3, .vgrid--4 { grid-template-columns: repeat(2, 1fr); }
-  .explorer__body { grid-template-columns: 1fr; }
 }
 
 @media print {

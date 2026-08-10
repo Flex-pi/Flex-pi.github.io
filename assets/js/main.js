@@ -20,13 +20,43 @@
   }
 
   /* ---------------------------------------------------------------------
+     error bars
+     The paper's real-robot figures draw the binomial standard error of the
+     completion score, sqrt(p(1-p)/n), with p the score as a fraction and n the
+     number of rollouts behind that bar. Verified against real_robot_main.pdf
+     and real_robot_gen.pdf by measuring their whiskers. Bars whose rollout
+     count is unknown get no whisker rather than a zero-length one.
+     --------------------------------------------------------------------- */
+  function seOf(v, n) {
+    if (!n || v === null || v === undefined) return 0;
+    var p = v / 100;
+    return Math.sqrt(Math.max(0, p * (1 - p)) / n) * 100;
+  }
+
+  /* Draws the whisker and returns the half-width in data units (0 = none). */
+  function errBar(svg, cx, v, n, barW, y, lo, hi) {
+    var e = seOf(v, n);
+    if (!e) return 0;
+    var top = Math.min(hi, v + e), bot = Math.max(lo, v - e);
+    var cap = Math.min(barW * 0.42, 7);
+    var g = el('g', { 'class': 'ebar' });
+    g.appendChild(el('line', { x1: cx, x2: cx, y1: y(bot), y2: y(top) }));
+    [top, bot].forEach(function (t) {
+      g.appendChild(el('line', { x1: cx - cap, x2: cx + cap, y1: y(t), y2: y(t) }));
+    });
+    g.appendChild(el('title', {}, '±' + e.toFixed(1) + ' points (binomial SE, n=' + n + ')'));
+    svg.appendChild(g);
+    return e;
+  }
+
+  /* ---------------------------------------------------------------------
      grouped / single-series bar chart
      --------------------------------------------------------------------- */
   function barChart(mount, cfg) {
     var W = 1000;
-    var padL = cfg.padL != null ? cfg.padL : 46;
+    var padL = cfg.padL != null ? cfg.padL : (cfg.yLabel ? 58 : 46);
     var padR = 14;
-    var padT = 30;
+    var padT = cfg.padT != null ? cfg.padT : 30;
     var padB = cfg.padB != null ? cfg.padB : 52;
     var plotH = cfg.plotH != null ? cfg.plotH : 250;
     var H = padT + plotH + padB;
@@ -62,8 +92,8 @@
 
     var gW = plotW / groups.length;
     var innerFrac = nS === 1 ? 0.42 : 0.78;
-    var bandW = gW * innerFrac;
-    var barW = bandW / nS;
+    var barW = Math.min(gW * innerFrac / nS, cfg.maxBarW || Infinity);
+    var bandW = barW * nS;
 
     groups.forEach(function (g, gi) {
       var gx = padL + gi * gW + (gW - bandW) / 2;
@@ -75,6 +105,7 @@
         var top = Math.min(y(v), yBase);
         var h = Math.abs(y(v) - yBase);
         var inset = nS === 1 ? 0 : 2;
+        var cx = x + (barW - inset) / 2 + inset / 2;
 
         var r = el('rect', {
           'class': 'bar', x: x + inset / 2, y: top,
@@ -85,13 +116,20 @@
           (g.label || '') + ': ' + (cfg.valFmt ? cfg.valFmt(v) : v)));
         svg.appendChild(r);
 
-        /* value label */
+        var e = errBar(svg, cx, v, g.n && g.n[si], barW - inset, y, lo, hi);
+
+        /* value label, clearing the error bar when there is one. Dense charts
+           set vlabRotate and stand the labels on end, as the paper's own
+           real-robot figure does, so neighbouring labels cannot collide. */
         var isOurs = /Flex/i.test(series[si].name || '') || (g.hi && g.hi[si]);
+        var labY = v >= 0 ? Math.min(top, y(Math.min(hi, v + e))) - 7 : top + h + 13;
         var lab = el('text', {
           'class': 'vlab' + (isOurs ? ' vlab--hi' : ''),
-          x: x + (barW - inset) / 2 + inset / 2,
-          y: v >= 0 ? top - 7 : top + h + 13,
-          'text-anchor': 'middle'
+          x: cfg.vlabRotate ? 0 : cx, y: cfg.vlabRotate ? 0 : labY,
+          'text-anchor': cfg.vlabRotate ? 'start' : 'middle',
+          'dominant-baseline': cfg.vlabRotate ? 'central' : null,
+          transform: cfg.vlabRotate
+            ? 'translate(' + cx + ',' + (labY + 3) + ') rotate(-90)' : null
         }, cfg.valFmt ? cfg.valFmt(v) : String(v));
         svg.appendChild(lab);
       });
@@ -133,6 +171,116 @@
           sw.style.background = s.color;
           span.appendChild(sw);
           span.appendChild(document.createTextNode(s.label || s.name));
+          lg.appendChild(span);
+        });
+      }
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     paired bar chart: one light "before" bar and one solid "after" bar per
+     method, with the drop between them written above the pair. Used for
+     in-distribution vs out-of-distribution and full vs half data, following
+     the paper's real_robot_gen figure.
+     --------------------------------------------------------------------- */
+  function pairedChart(mount, cfg) {
+    var W = 1000, padL = 46, padR = 14, padT = 34;
+    var padB = cfg.padB != null ? cfg.padB : 46;
+    var plotH = cfg.plotH != null ? cfg.plotH : 240;
+    var H = padT + plotH + padB;
+    var groups = cfg.groups, series = cfg.series, nS = series.length;
+    var hi = cfg.max != null ? cfg.max : 100;
+
+    var svg = el('svg', {
+      'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': cfg.ariaLabel || 'paired bar chart'
+    });
+    var plotW = W - padL - padR;
+    function y(v) { return padT + plotH - (v / hi) * plotH; }
+
+    (cfg.yTicks || [0, 20, 40, 60, 80, 100]).forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: y(t), y2: y(t) }));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
+    });
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: y(0), y2: y(0) }));
+
+    var gW = plotW / groups.length;
+    var bandW = gW * (cfg.bandFrac != null ? cfg.bandFrac : 0.84);
+    var cellW = bandW / nS;                 /* one method = two bars */
+    var barW = Math.min(cellW * 0.42, cfg.maxBarW || 26);
+
+    groups.forEach(function (g, gi) {
+      var gx = padL + gi * gW + (gW - bandW) / 2;
+      series.forEach(function (s, si) {
+        var a = g.a[si], b = g.b[si];
+        if (a === null || a === undefined) return;
+        var cx = gx + si * cellW + cellW / 2;
+        var xa = cx - barW - 1, xb = cx + 1;
+
+        /* reference bar: same hue, washed out */
+        var ra = el('rect', { 'class': 'bar', x: xa, y: y(a), width: barW,
+          height: Math.max(1, y(0) - y(a)), fill: s.color, opacity: .34, rx: 1.5 });
+        ra.appendChild(el('title', {}, s.name + ' — ' + (g.label || '') + ', ' + cfg.aName + ': ' + a + '%'));
+        svg.appendChild(ra);
+
+        var rb = el('rect', { 'class': 'bar', x: xb, y: y(b), width: barW,
+          height: Math.max(1, y(0) - y(b)), fill: s.color, rx: 1.5 });
+        rb.appendChild(el('title', {}, s.name + ' — ' + (g.label || '') + ', ' + cfg.bName + ': ' + b + '%'));
+        svg.appendChild(rb);
+
+        /* the reference level carried across, so the drop is visible */
+        svg.appendChild(el('line', { x1: xa, x2: xb + barW, y1: y(a), y2: y(a),
+          stroke: 'var(--fg-faint)', 'stroke-width': 1, 'stroke-dasharray': '2 3', opacity: .7 }));
+
+        var ea = errBar(svg, xa + barW / 2, a, g.aN && g.aN[si], barW, y, 0, hi);
+        var eb = errBar(svg, xb + barW / 2, b, g.bN && g.bN[si], barW, y, 0, hi);
+
+        var d = Math.round((b - a) * 10) / 10;
+        var lift = Math.max(Math.min(hi, a + ea), Math.min(hi, b + eb));
+        svg.appendChild(el('text', {
+          'class': 'vlab' + (s.hi ? ' vlab--hi' : ''), x: cx, y: y(lift) - 8,
+          'text-anchor': 'middle'
+        }, (d > 0 ? '+' : d === 0 ? '±' : '−') + Math.abs(d)));
+      });
+
+      String(g.label || '').split('|').forEach(function (ln, li) {
+        svg.appendChild(el('text', { 'class': 'glab', x: padL + gi * gW + gW / 2,
+          y: padT + plotH + 22 + li * 15, 'text-anchor': 'middle' }, ln.trim()));
+      });
+    });
+
+    if (cfg.yLabel) {
+      svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
+        transform: 'translate(13,' + (padT + plotH / 2) + ') rotate(-90)' }, cfg.yLabel));
+    }
+
+    mount.innerHTML = '';
+    mount.appendChild(svg);
+
+    if (cfg.legendEl) {
+      var lg = document.querySelector(cfg.legendEl);
+      if (lg) {
+        lg.innerHTML = '';
+        series.forEach(function (s) {
+          var span = document.createElement('span');
+          span.className = 'legend__item';
+          var sw = document.createElement('span');
+          sw.className = 'legend__sw';
+          sw.style.background = s.color;
+          span.appendChild(sw);
+          span.appendChild(document.createTextNode(s.label || s.name));
+          lg.appendChild(span);
+        });
+        [[cfg.aName, .34], [cfg.bName, 1]].forEach(function (p) {
+          var span = document.createElement('span');
+          span.className = 'legend__item legend__item--pair';
+          var sw = document.createElement('span');
+          sw.className = 'legend__sw';
+          sw.style.background = 'var(--fg-dim)';
+          sw.style.opacity = p[1];
+          span.appendChild(sw);
+          span.appendChild(document.createTextNode(p[0]));
           lg.appendChild(span);
         });
       }
@@ -222,9 +370,7 @@
 
     paretoPts = [];
     pts.forEach(function (p, i) {
-      var g = el('g', { 'class': 'pareto__pt panim', 'data-i': i, tabindex: '0', role: 'button',
-        style: '--ad:' + delayAt(p),
-        'aria-label': p.name + ': ' + p.y + '% at ' + p.x + ' ms' });
+      var g = el('g', { 'class': 'pareto__pt panim', 'data-i': i, style: '--ad:' + delayAt(p) });
       g.appendChild(el('circle', { 'class': 'pareto__halo', cx: X(p.x), cy: Y(p.y), r: 12 }));
       g.appendChild(el('circle', { cx: X(p.x), cy: Y(p.y), r: 16, fill: 'transparent' }));
       g.appendChild(el('circle', { 'class': 'pareto__ring', cx: X(p.x), cy: Y(p.y), r: 5.5, fill: green }));
@@ -236,12 +382,6 @@
         'text-anchor': i === 3 ? 'end' : 'start', fill: green
       }, p.name));
       paretoPts.push(g);
-
-      function pick() { setConfig(CONFIG_FOR_INDEX[i]); }
-      g.addEventListener('click', pick);
-      g.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
-      });
     });
 
     svg.appendChild(el('text', { 'class': 'ptlab panim', style: '--ad:0.05s',
@@ -274,9 +414,11 @@
       p3d: css('--s-3d') || '#6aa9f0',
       dino: css('--s-dino') || '#57c98b',
       ours: css('--c-ours') || '#57c98b',
+      oursL: css('--c-ours-l') || '#8fd9b0',
       oursD: css('--c-ours-d') || '#2f8f5b',
       base: css('--c-base') || '#9a9a9a',
       base2: css('--c-base2') || '#e0b04a',
+      base3: css('--c-base3') || '#7b8b9e',
       blue: '#6aa9f0'
     };
     var pct = function (v) { return v.toFixed(1); };
@@ -324,7 +466,7 @@
           { name: 'π0.5', label: 'π₀.₅', color: C.base },
           { name: 'LingBot-VA', label: 'LingBot-VA', color: '#7b8b9e' },
           { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: '#8fd9b0' },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
@@ -340,207 +482,326 @@
       });
     }
 
-    /* real-robot in-distribution */
+    /* real-robot in-distribution — five tasks + the unweighted average.
+       Source: real_world_eval/flex_pi_final_results.json (normalized_score).
+       Fast-WAM was only run on three tasks; its average covers those three. */
     if ((m = find('real'))) {
       barChart(m, {
         series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: '#8fd9b0' },
-          { name: 'Flex-π (joint)', label: 'Flex-π (joint)', color: C.oursD }
-        ],
-        groups: [
-          { label: 'Bimanual Put Plate|on the Rack', values: [74, 82, 94] },
-          { label: 'Sort Utensils',   values: [45, 70, 75] },
-          { label: 'Clean the|Kitchen Rack', values: [15, 50, 95] },
-          { label: 'Average',         values: [44.7, 67.3, 88.0] }
-        ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
-        tickFmt: function (t) { return t + '%'; },
-        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
-        yLabel: 'Normalized score (%)', legendEl: '#lg-real',
-        ariaLabel: 'Flex-π beats π0.5 on all three real-robot tasks; averages are 44.7, 67.3 and 88.0 percent.'
-      });
-    }
-
-    /* generalization */
-    if ((m = find('gen'))) {
-      barChart(m, {
-        series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: '#8fd9b0' },
-          { name: 'Flex-π (joint)', label: 'Flex-π (joint)', color: C.oursD }
-        ],
-        groups: [
-          { label: 'Plate:|big plate',        values: [70, 85, 98] },
-          { label: 'Plate:|distractor',       values: [75, 85, 92] },
-          { label: 'Sort:|distractor',        values: [40, 70, 70] },
-          { label: 'Kitchen Rack:|distractor', values: [5, 45, 80] }
-        ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
-        tickFmt: function (t) { return t + '%'; }, valFmt: function (v) { return String(v); },
-        yLabel: 'Unseen success rate (%)', legendEl: '#lg-gen',
-        ariaLabel: 'On held-out conditions Flex-π joint reaches 98, 92, 70 and 80 percent where π0.5 reaches 70, 75, 40 and 5 percent.'
-      });
-    }
-
-    /* self-repair gripper */
-    if ((m = find('selfrepair'))) {
-      barChart(m, {
-        series: [
-          { name: 'ManiFlow', label: 'ManiFlow', color: C.base },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: '#8fd9b0' },
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
-          { label: 'Normalized score',  values: [33.3, 52.7, 74.6] },
-          { label: 'Full-task success', values: [5, 15, 55] }
+          { label: 'Put Plate|on the Rack', values: [72.5, 75.8, 12.5, 84.2, 95.0], n: [20, 20, 20, 20, 20] },
+          { label: 'Sort|Utensils',         values: [45.0, 55.0, 5.0, 70.0, 75.0],  n: [10, 10, 10, 10, 10] },
+          { label: 'Kitchen|Organization',  values: [73.8, 93.8, 77.5, 96.2, 98.8], n: [20, 20, 20, 20, 20] },
+          { label: 'Self-Repair|Gripper',   values: [26.2, 33.3, null, 66.9, 76.0], n: [20, 20, null, 20, 20] },
+          { label: 'Soft-Bag|Zipping',      values: [42.8, 31.9, null, 64.9, 70.0], n: [20, 20, null, 20, 20] },
+          /* the average pools every rollout behind it: 90 across the five
+             tasks, 50 for Fast-WAM's three. */
+          { label: 'Average',               values: [52.1, 58.0, 31.7, 76.4, 83.0], n: [90, 90, 50, 90, 90] }
         ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 240,
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250, padB: 58,
+        padT: 46, vlabRotate: true,
+        tickFmt: function (t) { return t + '%'; },
+        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
+        yLabel: 'Task completion (%)', legendEl: '#lg-real',
+        ariaLabel: 'Across five real-robot tasks Flex-π full joint averages 83.0 percent task completion and ' +
+          'action-only 76.4, against 58.0 for ManiFlow, 52.1 for π0.5 and 31.7 for Fast-WAM.'
+      });
+    }
+
+    /* generalization: each task's in-distribution score paired with the
+       held-out one. Put Plate on the Rack pools its two held-out conditions
+       (unseen big plate, unseen distractors) into one out-of-distribution
+       bar, as the paper's real_robot_gen figure does. */
+    if ((m = find('gen'))) {
+      pairedChart(m, {
+        series: [
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
+          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
+        ],
+        groups: [
+          /* held-out plate pools the two conditions, so its n is the 20 of
+             both runs against the 10 of the single in-distribution one. */
+          { label: 'Put Plate on the Rack',
+            a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [72.5, 55.0, 33.8, 85.0, 95.0],
+            aN: [10, 10, 10, 10, 10], bN: [20, 20, 20, 20, 20] },
+          { label: 'Sort Utensils',
+            a: [45.0, 55.0, 5.0, 70.0, 75.0],  b: [40.0, 32.5, 0.0, 70.0, 70.0],
+            aN: [10, 10, 10, 10, 10], bN: [10, 10, 10, 10, 10] }
+        ],
+        aName: 'in-distribution', bName: 'held-out',
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
+        bandFrac: 0.74, maxBarW: 34,
+        yLabel: 'Task completion (%)', legendEl: '#lg-gen',
+        ariaLabel: 'Moving to held-out conditions, Flex-π full joint loses 2.5 points on Put Plate on the Rack ' +
+          'and 5 on Sort Utensils, while ManiFlow loses 32.5 and 22.5 and π0.5 loses 7.5 and 5.'
+      });
+    }
+
+    /* Soft-Bag Zipping on its own: in-distribution against bags of unseen
+       colour and pattern. 20 rollouts per cell; Fast-WAM was not run here. */
+    if ((m = find('softbag'))) {
+      barChart(m, {
+        series: [
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
+          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
+        ],
+        groups: [
+          { label: 'In-distribution', values: [42.8, 31.9, 64.9, 70.0], n: [20, 20, 20, 20] },
+          { label: 'Unseen bag',      values: [17.2, 6.9, 57.5, 63.3],  n: [20, 20, 20, 20] }
+        ],
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 240, maxBarW: 40,
+        tickFmt: function (t) { return t + '%'; },
+        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
+        yLabel: 'Task completion (%)', legendEl: '#lg-softbag',
+        ariaLabel: 'On an unseen bag Flex-π full joint holds 63.3 percent against 70.0 in-distribution, while ' +
+          'π0.5 falls from 42.8 to 17.2 and ManiFlow from 31.9 to 6.9.'
+      });
+    }
+
+    /* self-repair gripper (20 rollouts per method) */
+    if ((m = find('selfrepair'))) {
+      barChart(m, {
+        series: [
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
+          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
+        ],
+        groups: [
+          { label: 'Task completion',   values: [26.2, 33.3, 66.9, 76.0], n: [20, 20, 20, 20] },
+          { label: 'Full-task success', values: [0, 5, 45, 55],           n: [20, 20, 20, 20] }
+        ],
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 240, maxBarW: 40,
         tickFmt: function (t) { return t + '%'; },
         valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
         legendEl: '#lg-selfrepair',
-        ariaLabel: 'Flex-π full joint reaches 74.6 percent normalized score and 55 percent full-task success, against 33.3 and 5 percent for ManiFlow.'
+        ariaLabel: 'On self-repair Flex-π full joint reaches 76.0 percent task completion and 55 percent ' +
+          'full-task success, against 33.3 and 5 for ManiFlow and 26.2 and 0 for π0.5.'
       });
     }
 
-    /* data efficiency (negative deltas) */
+    /* data efficiency: the same task trained on the full set and on half */
     if ((m = find('dataeff'))) {
-      barChart(m, {
-        groups: [
-          { label: 'π₀.₅', values: [-37.5], colors: [C.base2] },
-          { label: 'Flex-π|(action-only)', values: [-22.5], colors: ['#8fd9b0'] },
-          { label: 'Flex-π|(joint)', values: [-20.0], colors: [C.oursD], hi: [true] }
+      pairedChart(m, {
+        series: [
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
+          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
         ],
-        series: [{ name: 'Δ success' }],
-        min: -45, max: 5, yTicks: [5, -5, -15, -25, -35, -45], plotH: 200,
-        valFmt: function (v) { return v.toFixed(1); },
-        yLabel: 'Δ success (points)',
-        ariaLabel: 'When data is halved, π0.5 drops 37.5 points, Flex-π action-only 22.5 points and Flex-π joint 20.0 points.'
+        groups: [
+          { label: 'Put Plate on the Rack, single plate',
+            a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [42.5, 60.0, 25.0, 80.0, 95.0] }
+        ],
+        aName: 'full data', bName: 'half data',
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 230, bandFrac: 0.62, maxBarW: 46,
+        yLabel: 'Task completion (%)', legendEl: '#lg-dataeff',
+        ariaLabel: 'Halving the demonstrations costs π0.5 37.5 points, ManiFlow 27.5, Fast-WAM 12.5, ' +
+          'Flex-π action-only 10 and Flex-π full joint only 2.5.'
       });
     }
 
-    /* real-robot latency */
+    /* real-robot latency (Figure 12, all at the deployed 4 denoise steps) */
     if ((m = find('latency'))) {
       barChart(m, {
         groups: [
-          { label: 'π₀.₅|baseline', values: [66], colors: [C.base2] },
-          { label: 'Action-only|4 steps', values: [118], colors: ['#8fd9b0'] },
-          { label: 'Action-only|10 steps', values: [152], colors: ['#8fd9b0'] },
-          { label: 'Joint + skips|10 steps', values: [600], colors: [C.oursD] },
-          { label: 'Joint|10 steps', values: [1857], colors: [C.oursD] }
+          { label: 'π₀.₅|baseline', values: [66], colors: [C.base] },
+          { label: 'ManiFlow|baseline', values: [103], colors: [C.base3] },
+          { label: 'Fast-WAM|baseline', values: [86], colors: [C.base2] },
+          { label: 'Flex-π|action-only', values: [60], colors: [C.oursL] },
+          { label: 'Flex-π|full joint', values: [193], colors: [C.oursD] }
         ],
         series: [{ name: 'Latency' }],
-        max: 2000, yTicks: [0, 500, 1000, 1500, 2000], plotH: 230,
+        max: 210, yTicks: [0, 50, 100, 150, 200], plotH: 230,
         valFmt: function (v) { return String(v); },
         yLabel: 'Latency (ms)',
-        ariaLabel: 'Measured latency: 66 ms for π0.5, 118 to 152 ms for Flex-π action-only, 600 ms for joint with skips and 1857 ms for full joint.'
+        ariaLabel: 'Measured latency at four denoise steps: 60 ms for Flex-π action-only — under π0.5 at 66 ms, Fast-WAM at 86 ms and ManiFlow at 103 ms — and 193 ms for full joint generation.'
       });
     }
   }
 
   /* ---------------------------------------------------------------------
-     compute-flexibility explorer
+     the real-world frontier, inside the configurator card
+     Task completion against single-inference latency, with the region that
+     is both slower and less accurate than the fast path shaded. Compact,
+     because it sits under the mask controls that steer it: setFrontierMode()
+     is called from the configurator so the dot for the chosen output mask
+     lights up. Static otherwise; hover a dot for its figures.
+     Numbers: real_world_eval/flex_pi_final_results.json — the unweighted
+     mean of the five in-distribution scores. Fast-WAM covers 3 of 5 tasks.
      --------------------------------------------------------------------- */
-  var CONFIG_FOR_INDEX = [
-    { rgb: false, dino: false, p3d: false },
-    { rgb: true,  dino: false, p3d: false },
-    { rgb: true,  dino: true,  p3d: false },
-    { rgb: true,  dino: true,  p3d: true }
-  ];
+  var setFrontierMode = function () {};
 
-  /* Measured operating points (RoboTwin 5-task ablation set, video-only input).
-     Only the four configurations on the paper's ladder were benchmarked. */
-  var MEASURED = {
-    '000': { lat: 68,  sr: 41.6, i: 0, name: 'Action-only fast path',
-      desc: 'No future visual streams are computed; action tokens attend only to the current observation, ' +
-            'preserving a VLA-level inference path.',
-      latNote: 'Faster than a PyTorch-compiled Fast-WAM (90 ms).',
-      srNote: 'Fast-WAM reaches 10.0% at comparable latency.' },
-    '100': { lat: 139, sr: 60.0, i: 1, name: 'Joint RGB + action',
-      desc: 'Future RGB latents are generated alongside the actions, and the action expert reads them. ' +
-            'This is where most of the accuracy gain appears.',
-      latNote: 'Roughly 2× the action-only path.',
-      srNote: '+18.4 points over action-only, for +71 ms.' },
-    '110': { lat: 280, sr: 62.0, i: 2, name: 'Joint RGB + DINO + action',
-      desc: 'Object-level semantics are co-generated, grounding prediction in what the objects are as well as ' +
-            'how the scene looks.',
-      latNote: 'Read from Figure 6b of the paper.',
-      srNote: 'Semantics alone add modestly here; geometry is what pays.' },
-    '111': { lat: 398, sr: 66.8, i: 3, name: 'Full joint generation',
-      desc: 'All three visual futures are co-denoised with the actions, so the policy is grounded in appearance, ' +
-            'geometry and semantics simultaneously. The most accurate mode.',
-      latNote: '6× the action-only latency.',
-      srNote: 'Best of the four — +25.2 points over action-only.' }
+  /* Measured on our own RTX 5090 at the deployed 4 denoise steps.
+
+     Keyed by the OUTPUT mask alone — rgb | dino<<1 | p3d<<2. Which streams are
+     observed does not change the cost; only which futures are generated does,
+     so there are eight operating points here, not the 56 configurations the
+     card can express. And the key is the mask rather than the number of
+     generated streams because those are not the same thing: video-only,
+     DINO-only and pointmap-only each generate one future and cost 136, 138 and
+     136 ms.
+
+     Action-only (60) and full joint (193) keep their published figures. The
+     other six come from a later engine sweep, which re-measured those two at
+     61.1 (compile p50; the fast path has no engine) and 194.9 (engine p50) —
+     close enough to leave the published pair alone. Engine / compile p50 from
+     that sweep:
+
+       action-only        —   /  61.1      video            136.4 / 203.6
+       DINO             137.7 / 214.0      pointmap         135.6 / 206.3
+       video+DINO       176.1 / 309.6      video+pointmap   171.1 / 295.4
+       DINO+pointmap    191.8 / 312.9      full joint       194.9 / 381.5
+
+     Only the two modes we ship have been scored on the real-robot suite, and
+     both were run with all three inputs observed — so `sr` belongs to that exact
+     configuration, not to the output mask alone. setFrontierMode() gates on
+     both masks; everything else shows an em dash for task completion. */
+  var REAL_MODE = {
+    0: { lat: 60,  sr: 76.4,
+         latNote: 'Faster than every baseline we compare against.',
+         srNote: '+18.4 points over the strongest baseline.' },
+    1: { lat: 136, latNote: 'The RGB future alone: 2.3× the action-only path.' },
+    2: { lat: 138, latNote: 'The DINO future alone: 2.3× the action-only path.' },
+    4: { lat: 136, latNote: 'The pointmap future alone — the cheapest of the three.' },
+    3: { lat: 176, latNote: 'RGB and DINO futures: 2.9× the action-only path.' },
+    5: { lat: 171, latNote: 'RGB and pointmap futures: 2.9× the action-only path.' },
+    6: { lat: 192, latNote: 'DINO and pointmap — within 1 ms of full joint.' },
+    7: { lat: 193, sr: 83.0,
+         latNote: '3.2× the action-only path.',
+         srNote: 'The highest of every method we compare against.' }
   };
 
-  var state = { rgb: false, dino: false, p3d: false };
+  function initFrontier() {
+    var mount = document.getElementById('frontier');
+    if (!mount) return;
 
-  function keyOf(s) { return (s.rgb ? '1' : '0') + (s.dino ? '1' : '0') + (s.p3d ? '1' : '0'); }
+    var M = [
+      { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)',  dx: -13, dy: 3,   anchor: 'end' },
+      { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)', dx: 13,  dy: 3,   anchor: 'start' },
+      { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', dx: 13,  dy: 3,   anchor: 'start', partial: true },
+      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: -14, dy: -4,  anchor: 'end',   ours: true },
+      { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', dx: -14, dy: -10, anchor: 'end',   ours: true }
+    ];
 
-  function setConfig(next) {
-    state.rgb = !!next.rgb; state.dino = !!next.dino; state.p3d = !!next.p3d;
-    paintExplorer();
-  }
+    var W = 1000, padL = 54, padR = 26, padT = 18, plotH = 186, H = 258;
+    var plotW = W - padL - padR;
+    var xMin = 0, xMax = 215, yMin = 22, yMax = 92;
+    function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
+    function Y(v) { return padT + plotH - (v - yMin) / (yMax - yMin) * plotH; }
 
-  function paintExplorer() {
-    var root = document.getElementById('explorer');
-    if (!root) return;
-
-    root.querySelectorAll('.toggle[data-stream]').forEach(function (b) {
-      b.setAttribute('aria-pressed', state[b.getAttribute('data-stream')] ? 'true' : 'false');
+    var svg = el('svg', {
+      'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': 'Task completion against inference latency. Flex-π action-only reaches 76.4% at 60 ms, ' +
+        'faster and more accurate than every baseline — ManiFlow 58.0% at 103 ms, π0.5 52.1% at 66 ms, ' +
+        'Fast-WAM 31.7% at 86 ms. Flex-π full joint is highest at 83.0%, at 193 ms.'
     });
 
-    var chips = document.getElementById('ex-chips');
-    if (chips) {
-      var map = { action: true, rgb: state.rgb, dino: state.dino, pointmap: state.p3d };
-      chips.querySelectorAll('.chip').forEach(function (c) {
-        c.setAttribute('data-on', map[c.textContent.trim()] ? 'true' : 'false');
-      });
+    var AXIS_Y = Y(yMin);
+    [25, 50, 75].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 8, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
+    });
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 6, y2: AXIS_Y }));
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
+    [0, 50, 100, 150, 200].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 16, 'text-anchor': 'middle' }, String(t)));
+    });
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 34,
+      'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
+    svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
+      transform: 'translate(13,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion'));
+
+    /* everything slower AND less accurate than the fast path */
+    var AO = M[3];
+    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 4) - Y(AO.sr) };
+    svg.appendChild(el('rect', { x: dom.x, y: dom.y, width: dom.w, height: dom.h, fill: 'var(--primary-soft)' }));
+    svg.appendChild(el('line', { x1: dom.x, x2: dom.x, y1: dom.y, y2: dom.y + dom.h,
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .45 }));
+    svg.appendChild(el('line', { x1: dom.x, x2: dom.x + dom.w, y1: dom.y, y2: dom.y,
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .45 }));
+
+    var read = document.getElementById('fr-read');
+    var dots = {};
+    M.forEach(function (m) {
+      var g = el('g', {});
+      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 12, stroke: m.c });
+      var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 8 : 7, fill: m.c,
+        stroke: 'var(--bg-raise)', 'stroke-width': 2 });
+      /* the name stays on the plot; the figures wait for a hover */
+      var lx = X(m.lat) + m.dx, ly = Y(m.sr) + m.dy;
+      var lab = el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: lx, y: ly,
+        'text-anchor': m.anchor }, m.name);
+      var val = el('text', { 'class': 'dval', x: lx, y: ly + 13, 'text-anchor': m.anchor, opacity: 0 },
+        m.lat + ' ms · ' + m.sr.toFixed(1) + '%' + (m.partial ? '  (3 of 5 tasks)' : ''));
+      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 22, fill: 'transparent', cursor: 'default' });
+      hit.addEventListener('mouseenter', function () { val.setAttribute('opacity', 1); });
+      hit.addEventListener('mouseleave', function () { val.setAttribute('opacity', 0); });
+      hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '%' +
+        (m.partial ? ' (3 of 5 tasks)' : '')));
+      g.appendChild(ring); g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
+      svg.appendChild(g);
+      dots[m.key] = { m: m, dot: dot, ring: ring, lab: lab, val: val };
+    });
+
+    mount.appendChild(svg);
+
+    var latEl = document.getElementById('av-lat');
+    var srEl = document.getElementById('av-sr');
+    var latNoteEl = document.getElementById('av-lat-note');
+    var srNoteEl = document.getElementById('av-sr-note');
+    function num(elm, v, unit) {
+      if (!elm) return;
+      elm.textContent = v === null ? '—' : v;
+      if (v !== null) {
+        var u = document.createElement('span');
+        u.className = 'unit'; u.textContent = unit;
+        elm.appendChild(u);
+      }
     }
 
-    var k = keyOf(state);
-    var hit = MEASURED[k];
-    var latEl = document.getElementById('ex-lat');
-    var srEl = document.getElementById('ex-sr');
-    var modeEl = document.getElementById('ex-mode');
-    var descEl = document.getElementById('ex-desc');
-    var latNote = document.getElementById('ex-lat-note');
-    var srNote = document.getElementById('ex-sr-note');
+    /* Called with both masks, each as rgb | dino<<1 | p3d<<2.
 
-    if (hit) {
-      latEl.innerHTML = hit.lat + '<span class="unit">ms</span>';
-      srEl.innerHTML = hit.sr.toFixed(1) + '<span class="unit">%</span>';
-      modeEl.textContent = hit.name;
-      descEl.textContent = hit.desc;
-      latNote.innerHTML = hit.latNote;
-      srNote.innerHTML = hit.srNote;
-    } else {
-      latEl.innerHTML = '68&ndash;398<span class="unit">ms</span>';
-      srEl.innerHTML = '&mdash;';
-      modeEl.textContent = 'Deployable, but not benchmarked';
-      descEl.textContent = 'The checkpoint supports this combination — stream masks are runtime arguments, not ' +
-        'architectural choices — but the paper reports the four configurations on the cumulative ladder. ' +
-        'Click a point on the chart below to jump to a measured one.';
-      latNote.innerHTML = 'Bracketed by the measured endpoints; not benchmarked individually.';
-      srNote.innerHTML = 'No published measurement.';
-    }
+       Latency depends only on what is generated, so it reads straight off the
+       output mask. Task completion depends on what is *observed* as well — the
+       two scored modes were both run with all three inputs present — so a score
+       is shown only for those two exact configurations and every other one of
+       the 56 gets an em dash. */
+    setFrontierMode = function (oMask, iMask) {
+      var r = REAL_MODE[oMask];
+      var scored = iMask === 7 && (oMask === 0 || oMask === 7);
+      var lit = !scored ? null : oMask === 0 ? 'ao' : 'joint';
 
-    paretoPts.forEach(function (g, i) {
-      g.setAttribute('data-active', hit && hit.i === i ? 'true' : 'false');
-    });
-  }
-
-  function initExplorer() {
-    var root = document.getElementById('explorer');
-    if (!root) return;
-    root.querySelectorAll('.toggle[data-stream]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var s = b.getAttribute('data-stream');
-        state[s] = !state[s];
-        paintExplorer();
+      ['ao', 'joint'].forEach(function (k) {
+        dots[k].dot.setAttribute('data-lit', lit === null ? '' : (k === lit ? 'on' : 'off'));
+        dots[k].ring.setAttribute('data-lit', k === lit ? 'on' : '');
       });
-    });
-    paintExplorer();
+      if (read) read.textContent = lit ? '' : 'Timed, but not scored in this configuration';
+
+      num(latEl, r ? r.lat : null, 'ms');
+      num(srEl,  scored ? r.sr.toFixed(1) : null, '%');
+      if (latNoteEl) latNoteEl.textContent = r ? r.latNote : 'Deployable, but not yet benchmarked on our hardware.';
+      if (srNoteEl) {
+        srNoteEl.textContent = scored ? r.srNote
+          : (oMask === 0 || oMask === 7) ? 'The scored runs observe all three inputs.'
+          : 'Not yet evaluated on the real-robot suite.';
+      }
+    };
+    setFrontierMode(7, 7);
   }
 
   /* ---------------------------------------------------------------------
@@ -643,6 +904,48 @@
       });
     }, { threshold: 0.25, rootMargin: '120px 0px' });
     vids.forEach(function (v) { io.observe(v); });
+  }
+
+  /* ---------------------------------------------------------------------
+     synchronised clips: videos sharing a data-sync value play as one.
+
+     Figure 3 wipes between two layers of the same episode, so a few frames
+     of drift would read as reconstruction error that is not there. The first
+     video of a group is the leader (it is the one carrying data-autoplay);
+     the rest mirror its transport and get nudged back whenever they slip
+     more than ~4 frames, including at every loop boundary.
+     --------------------------------------------------------------------- */
+  function initSyncedVideos() {
+    var groups = {};
+    document.querySelectorAll('video[data-sync]').forEach(function (v) {
+      var k = v.getAttribute('data-sync');
+      (groups[k] = groups[k] || []).push(v);
+    });
+
+    Object.keys(groups).forEach(function (k) {
+      var vs = groups[k];
+      if (vs.length < 2) return;
+      var lead = vs[0];
+      var rest = vs.slice(1);
+
+      function each(fn) { rest.forEach(fn); }
+      function align(v) {
+        if (v.readyState >= 1 && Math.abs(v.currentTime - lead.currentTime) > 0.12) {
+          v.currentTime = lead.currentTime;
+        }
+      }
+
+      lead.addEventListener('play', function () {
+        each(function (v) {
+          if (v.preload !== 'auto') v.preload = 'auto';
+          align(v);
+          v.play().catch(function () {});
+        });
+      });
+      lead.addEventListener('pause', function () { each(function (v) { v.pause(); }); });
+      lead.addEventListener('seeked', function () { each(align); });
+      lead.addEventListener('timeupdate', function () { each(align); });
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -1373,12 +1676,13 @@
       if (nEl) nEl.textContent = d.name;
       if (fEl) fEl.hidden = !d.forced.length;
       if (rnote) rnote.textContent = d.note;
-      if (cEl) {
-        /* index this configuration among the 7 x 8 = 56 valid ones */
-        var i = SKEYS.reduce(function (a, k, n) { return a + (mIn[k] ? (1 << n) : 0); }, 0);
-        var o = SKEYS.reduce(function (a, k, n) { return a + (mOut[k] ? (1 << n) : 0); }, 0);
-        cEl.textContent = String((i - 1) * 8 + o + 1);
-      }
+      var iBits = SKEYS.reduce(function (a, k, n) { return a + (mIn[k] ? (1 << n) : 0); }, 0);
+      var oBits = SKEYS.reduce(function (a, k, n) { return a + (mOut[k] ? (1 << n) : 0); }, 0);
+      /* index this configuration among the 7 x 8 = 56 valid ones */
+      if (cEl) cEl.textContent = String((iBits - 1) * 8 + oBits + 1);
+      /* latency follows the output mask alone; the completion score needs both,
+         since only the fully-observed action-only and full-joint runs are scored */
+      setFrontierMode(oBits, iBits);
     }
 
     root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {
@@ -1432,10 +1736,21 @@
      --------------------------------------------------------------------- */
   function initJuxta() {
     document.querySelectorAll('[data-juxta]').forEach(function (j) {
+      var badge = j.querySelector('.juxta__metrics__box');
+
       function set(pct) {
         pct = Math.max(0, Math.min(100, pct));
         j.style.setProperty('--x', pct + '%');
         j.setAttribute('aria-valuenow', String(Math.round(pct)));
+
+        /* the metrics describe the reconstruction only, so retire them over
+           the last few percent before the divider would reach the badge */
+        if (badge) {
+          var r = j.getBoundingClientRect();
+          var b = badge.getBoundingClientRect();
+          var edge = (b.left - r.left) / r.width * 100;
+          j.style.setProperty('--mo', String(Math.max(0, Math.min(1, (edge - pct) / 6))));
+        }
       }
       function fromX(clientX) {
         var r = j.getBoundingClientRect();
@@ -1471,7 +1786,6 @@
       document.documentElement.setAttribute('data-theme', next);
       try { localStorage.setItem('flexpi-theme', next); } catch (e) {}
       renderCharts();
-      paintExplorer();
     });
   }
 
@@ -1481,8 +1795,9 @@
   function boot() {
     initTheme();
     renderCharts();
-    initExplorer();
+    initFrontier();      /* before initArchviz: the masks drive its highlight */
     initMaskDemo();
+    initSyncedVideos();  /* before initVideos: the leader must not play unheard */
     initVideos();
     initTaskSwitch();
     initBagGallery();
@@ -1504,6 +1819,6 @@
   var rt;
   window.addEventListener('resize', function () {
     clearTimeout(rt);
-    rt = setTimeout(function () { renderCharts(); paintExplorer(); }, 260);
+    rt = setTimeout(function () { renderCharts(); }, 260);
   });
 })();
