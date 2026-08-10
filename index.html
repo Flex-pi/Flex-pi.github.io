@@ -336,6 +336,22 @@
 
       <!-- right: masks and regimes -->
       <div class="archviz__ctl maskctl2">
+          <!-- what the configuration below costs and buys, measured on our own
+               hardware. All eight output masks are timed; only the two modes we
+               deploy have been scored, so the other six read task completion as
+               not yet measured. -->
+          <div class="readout readout--av">
+            <div class="readout__cell">
+              <div class="readout__lab">Inference latency</div>
+              <div class="readout__val" id="av-lat">193<span class="unit">ms</span></div>
+              <div class="readout__note" id="av-lat-note">3.2&times; the action-only path.</div>
+            </div>
+            <div class="readout__cell readout__cell--sr">
+              <div class="readout__lab">Task completion</div>
+              <div class="readout__val" id="av-sr">83.0<span class="unit">%</span></div>
+              <div class="readout__note" id="av-sr-note">The highest of every method we compare against.</div>
+            </div>
+          </div>
           <div class="maskline maskline--quick">
             <span class="maskline__lab">jump to</span>
             <span class="maskline__set maskline__set--wrap">
@@ -373,6 +389,15 @@
             <button class="regimechip" type="button" id="av-draw">Random draw</button>
             <span class="maskctl2__count">configuration <span id="av-combo">1</span> of 56</span>
           </div>
+
+      </div>
+
+      <!-- where the chosen mask lands on the real robot; the dot for the
+           current output mask lights up as you change it -->
+      <div class="archviz__frontier">
+        <div class="archviz__label">Where that lands on the real robot</div>
+        <div id="frontier"></div>
+        <p class="frontier__read" id="fr-read"></p>
       </div>
       </div>
     </div>
@@ -387,7 +412,7 @@
         <div class="part__n">Part I</div>
         <h2 class="part__t">What Flex-π does</h2>
       </div>
-      <p class="part__d">One checkpoint on a bimanual YAM workcell: a sub-millimetre insertion, an eight-stage self-repair, three contact-rich tasks, and four conditions it was never fine-tuned on.</p>
+      <p class="part__d">One checkpoint on a bimanual YAM workcell: an eight-stage self-repair, five contact-rich tasks scored against four baselines, and three conditions it was never fine-tuned on.</p>
     </div>
   </div>
 </div>
@@ -513,10 +538,9 @@
         <div class="legend" id="lg-selfrepair"></div>
       </div>
       <div data-chart="selfrepair"></div>
-      <p class="figcap" style="margin-top:10px">Clearing each stage nine times in ten still finishes the whole
-      episode only 43% of the time, so partial credit alone cannot separate a policy that nearly finishes from one
-      that finishes. Action-only → full joint generation adds <b>21.9 points of partial credit but 40 points of
-      full-task success</b> (15% → 55%).</p>
+      <p class="figcap" style="margin-top:10px">Eight stages in order, so partial credit alone cannot separate a
+      policy that nearly finishes from one that does. Flex-π (full joint) completes the <b>whole</b> sequence in
+      11 of 20 rollouts; the best baseline manages it once.</p>
     </div>
   </div>
 
@@ -551,9 +575,9 @@
 <section class="sec" id="real-robot">
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">02</span>Dexterity under sustained contact</h3>
-    <p class="sec__sub">Three contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, 14
-    commanded degrees of freedom, three calibrated stereo cameras. Each demands precise bimanual coordination and
-    sustained contact. Rollouts are scored under a partial-credit rubric, averaged over 10 rollouts per task.</p>
+    <p class="sec__sub">Five contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, three
+    calibrated stereo cameras. Each rollout is scored under a per-task partial-credit rubric, 10 or 20 rollouts
+    per method.</p>
   </div>
 
   <!-- task: putting into bag -->
@@ -567,10 +591,13 @@
     </div>
     <div class="vfeature__meta">
       <div>
-        <h4 class="vfeature__name">Putting into Bag</h4>
-        <p class="vfeature__desc">One arm holds the bag open while the other picks each item and places it inside
-        &mdash; a deformable-object task where the opening shifts with every insertion and the two hands must
-        coordinate under sustained contact.</p>
+        <h4 class="vfeature__name">Soft-Bag Zipping</h4>
+        <p class="vfeature__desc">Unzip the bag, hold the opening wide, drop a pen in, then re-grasp the zip and
+        close it &mdash; six scored steps on a deformable object, each one reachable only if the last succeeded.</p>
+      </div>
+      <div class="scoreboard">
+        <div class="score score--base"><div class="score__v">42.8<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+        <div class="score score--ours"><div class="score__v">70<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
       </div>
     </div>
   </div>
@@ -619,27 +646,39 @@
     </div>
   </div>
 
+  <div class="wrap wrap--wide reveal" style="margin-top:38px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Soft-Bag Zipping</div>
+          <div class="chartbox__sub">20 rollouts per method per condition</div>
+        </div>
+        <div class="legend" id="lg-softbag"></div>
+      </div>
+      <div data-chart="softbag"></div>
+      <p class="figcap" style="margin-top:10px">Held out against bags of unseen colour and pattern, the baselines
+      lose most of what they had &mdash; π<sub>0.5</sub> falls from 42.8% to 17.2%, ManiFlow from 31.9% to 6.9%.
+      Flex-π (full joint) gives up <b>6.7 points</b>, because the zip is found by geometry and contact rather than
+      by the look of the fabric. Fast-WAM was not run on this task.</p>
+    </div>
+  </div>
+
   <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">Scored against π<sub>0.5</sub></h4>
+    <h4 class="sub__title">Scored against every baseline</h4>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">In-distribution performance</div>
-          <div class="chartbox__sub">Normalized partial-credit score, 10 rollouts per task</div>
+          <div class="chartbox__sub">Rubric score as a fraction of the maximum</div>
         </div>
         <div class="legend" id="lg-real"></div>
       </div>
       <div data-chart="real"></div>
-      <p class="figcap" style="margin-top:10px">The fast action-only path already beats π<sub>0.5</sub> on every
-      task while matching its latency; enabling joint visual generation adds a further <b>+12, +5 and +45</b>
-      points. Averaged over the three tasks, Flex-π (Joint) reaches <b>88.0%</b> against 44.7% — nearly 2&times;.</p>
-      <p class="figcap" style="margin-top:8px;font-size:13px">Sourcing: Flex-π's per-task scores and the
-      +12/+5/+45 deltas are stated in the paper; the <em>Average</em> group is the unweighted mean of the three
-      per-task scores rather than a value the paper prints. π<sub>0.5</sub>'s scores on Put Plate on the Rack and
-      Sort Utensils are read from the paper's Figure 8, which carries no data labels — only its Clean the Kitchen
-      Rack value (15%) is given in prose.</p>
+      <p class="figcap" style="margin-top:10px">The action-only path beats every baseline on all five tasks;
+      joint generation adds 6.6 points more. <b>83.0%</b> against 58.0% for the best baseline. Fast-WAM was run
+      on three of the five tasks, so its average covers those three.</p>
     </div>
   </div>
 
@@ -673,11 +712,9 @@
 <section class="sec" id="generalization">
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">03</span>Robustness in cluttered scenes</h3>
-    <p class="sec__sub">Deployment scenes are rarely clean. We re-run the same three tasks with the workspace
-    deliberately cluttered — novel distractor objects, never seen during fine-tuning, filling every scene — and,
-    for Put Plate on the Rack, an unseen plate and rack of a different type. Flex-π keeps performing. Each task
-    below switches between the two settings independently: <b>Seen</b> is the setting it was fine-tuned on,
-    <b>Unseen</b> the held-out one.</p>
+    <p class="sec__sub">Deployment scenes are rarely clean. We re-run the suite with novel distractor objects
+    filling the workspace, and with objects swapped for types the policy has never handled. <b>Seen</b> is the
+    setting it was fine-tuned on, <b>Unseen</b> the held-out one.</p>
   </div>
 
   <!-- task 1 -->
@@ -712,18 +749,18 @@
         <p class="vfeature__desc">
         <span data-cond="seen">A flat, low-friction plate, seated in a rack without tipping — the grasp has to
         hold through the whole placement.</span>
-        <span data-cond="unseen" hidden>The same skill, run against a plate and rack of a type never seen in
-        fine-tuning, with novel distractor objects filling the workspace.</span>
+        <span data-cond="unseen" hidden>An unseen plate and rack, and separately a workspace full of unseen
+        distractors — the two held-out conditions pooled.</span>
         <span class="demos">300 teleoperated demonstrations</span></p>
       </div>
       <div class="vfeature__scores">
         <div class="scoreboard" data-cond="seen">
-          <div class="score score--base"><div class="score__v">74<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-          <div class="score score--ours"><div class="score__v">94<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+          <div class="score score--base"><div class="score__v">80<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+          <div class="score score--ours"><div class="score__v">97.5<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
         </div>
         <div class="scoreboard" data-cond="unseen" hidden>
-          <div class="score score--base"><div class="score__v">75<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-          <div class="score score--ours"><div class="score__v">92<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+          <div class="score score--base"><div class="score__v">72.5<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+          <div class="score score--ours"><div class="score__v">95<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
         </div>
       </div>
     </div>
@@ -782,21 +819,21 @@
   <div class="wrap wrap--wide reveal vfeature" data-taskswitch>
     <div class="vfeature__bar">
       <span class="vfeature__barlab">Evaluation setting</span>
-      <div class="seg" role="tablist" data-active="seen" aria-label="Setting for Clean the Kitchen Rack">
+      <div class="seg" role="tablist" data-active="seen" aria-label="Setting for Kitchen Organization">
         <span class="seg__thumb" aria-hidden="true"></span>
         <button class="seg__btn" type="button" role="tab" data-cond="seen" aria-selected="true">Seen</button>
         <button class="seg__btn" type="button" role="tab" data-cond="unseen" aria-selected="false">Unseen</button>
       </div>
     </div>
 
-    <div class="player" data-player data-cond="seen" data-caption="Clean the Kitchen Rack, seen setting — the most contact- and coordination-intensive task. Autonomous, 2.5× speed.">
+    <div class="player" data-player data-cond="seen" data-caption="Kitchen Organization, seen setting. Autonomous, 2.5× speed.">
       <span class="player__badge player__badge--bl">Autonomous &middot; 2.5&times; speed</span>
       <video src="assets/videos/clutter-kitchen-demo.mp4" poster="assets/videos/clutter-kitchen-demo.jpg"
              loop muted playsinline preload="metadata" data-autoplay
-             aria-label="Two robot arms loading plates, bowls and spoons into a kitchen rack, handing far plates across mid-air"></video>
+             aria-label="Two robot arms seating a bowl and then a plate into a kitchen rack"></video>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
-    <div class="player" data-player data-cond="unseen" hidden data-caption="Clean the Kitchen Rack, unseen setting — an unfamiliar rack and unfamiliar tableware. Autonomous, 2.5× speed.">
+    <div class="player" data-player data-cond="unseen" hidden data-caption="Kitchen Organization, unseen setting — an unfamiliar rack and unfamiliar tableware; qualitative only. Autonomous, 2.5× speed.">
       <span class="player__badge player__badge--bl">Autonomous &middot; 2.5&times; speed</span>
       <video src="assets/videos/unseen-kitchen.mp4" poster="assets/videos/unseen-kitchen.jpg"
              loop muted playsinline preload="none" data-autoplay
@@ -806,25 +843,21 @@
 
     <div class="vfeature__meta">
       <div>
-        <h4 class="vfeature__name">Clean the Kitchen Rack</h4>
+        <h4 class="vfeature__name">Kitchen Organization</h4>
         <p class="vfeature__desc">
-        <span data-cond="seen">The hardest of the three: plates, bowls and spoons scattered across the table all
-        have to end up in the kitchen rack. Plates on the far side must first be handed across mid-air from one arm
-        to the other, so a slip anywhere in the exchange loses the episode. This is where the baseline collapses and
-        the world-action objective pays for itself — <b>+45 points</b> from enabling joint visual generation alone.</span>
-        <span data-cond="unseen" hidden>The same mid-air handover, now with unfamiliar objects crowding the table.
-        π<sub>0.5</sub> all but stops completing episodes; Flex-π gives up 15 points and keeps working — the widest
-        gap anywhere in the paper.</span>
+        <span data-cond="seen">A bowl and then a plate, seated in the kitchen rack in that order. The most
+        forgiving task in the suite: Flex-π finishes cleanly in 19 of 20 rollouts, π<sub>0.5</sub> in 7.</span>
+        <span data-cond="unseen" hidden>Unfamiliar tableware and an unfamiliar wire rack — shown as a
+        qualitative result; this condition is not part of the scored study.</span>
         <span class="demos">360 teleoperated demonstrations</span></p>
       </div>
       <div class="vfeature__scores">
         <div class="scoreboard" data-cond="seen">
-          <div class="score score--base"><div class="score__v">15<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-          <div class="score score--ours"><div class="score__v">95<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+          <div class="score score--base"><div class="score__v">73.8<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
+          <div class="score score--ours"><div class="score__v">98.8<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
         </div>
-        <div class="scoreboard" data-cond="unseen" hidden>
-          <div class="score score--base"><div class="score__v">5<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-          <div class="score score--ours"><div class="score__v">80<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+        <div class="scoreboard scoreboard--none" data-cond="unseen" hidden>
+          <div class="score"><div class="score__k">Qualitative only &mdash;<br>not scored</div></div>
         </div>
       </div>
     </div>
@@ -936,24 +969,22 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Robustness in cluttered scenes</div>
-          <div class="chartbox__sub">Success rate on four held-out task variations</div>
+          <div class="chartbox__sub">Number above each pair = the drop</div>
         </div>
         <div class="legend" id="lg-gen"></div>
       </div>
       <div data-chart="gen"></div>
       <p class="figcap" style="margin-top:10px">The advantage is most pronounced exactly where appearance cues
       become unreliable and success demands <b>geometric and physical rather than appearance-based</b>
-      generalization — echoing the LIBERO-Plus trend.</p>
+      generalization — echoing the LIBERO-Plus trend. Put Plate on the Rack pools its two held-out conditions —
+      unseen big plate, unseen distractors — into one bar.</p>
     </div>
   </div>
 
   <div class="wrap reveal" style="margin-top:34px">
     <div class="callout">
-      <b>Joint generation contributes more out-of-distribution than in.</b> Although the action-only path already
-      improves over π<sub>0.5</sub>, full joint generation adds substantially larger gains under perturbation than
-      in the seen setting — lifting Clean the Kitchen Rack with distractors from ~45% to ~80%. This indicates that it is
-      Flex-π's flexibly fused, 3D-aware world model, and not appearance matching, that drives robustness when the
-      test distribution shifts.
+      <b>Flex-π barely notices the shift.</b> Both paths lose a few points where the baselines lose tens —
+      evidence that it is the 3D-aware world model, not appearance matching, carrying the behaviour.
     </div>
   </div>
 
@@ -965,13 +996,14 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Change in success when training data is cut to 50%</div>
-          <div class="chartbox__sub">Bimanual Put Plate on the Rack, single plate</div>
+          <div class="chartbox__title">Cutting the demonstrations in half</div>
+          <div class="chartbox__sub">Put Plate on the Rack, single plate</div>
         </div>
+        <div class="legend" id="lg-dataeff"></div>
       </div>
       <div data-chart="dataeff"></div>
-      <p class="figcap" style="margin-top:10px">Flex-π (Joint) degrades least — <b>&minus;20.0 points</b> against
-      &minus;37.5 for π<sub>0.5</sub>.</p>
+      <p class="figcap" style="margin-top:10px">Flex-π (full joint) gives up <b>2.5 points</b> against 37.5 for
+      π<sub>0.5</sub>. The action-only path loses 10 and still lands above every baseline's full-data result.</p>
     </div>
   </div>
 </section>
@@ -1235,15 +1267,15 @@
       </figure>
 
       <figure class="predpair" style="--dot:var(--s-3d)">
-        <div class="player" data-player data-caption="Clean the Kitchen Rack — the real rollout. Autonomous, 2.5× speed.">
+        <div class="player" data-player data-caption="Kitchen Organization — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/pred-kitchen.mp4" poster="assets/videos/pred-kitchen.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms loading plates and bowls into a kitchen rack, handing far plates across mid-air"></video>
+          <video src="assets/videos/pred-kitchen.mp4" poster="assets/videos/pred-kitchen.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms seating a bowl and then a plate into a kitchen rack"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" role="img" aria-label="Placeholder — the decoded future for this episode is not exported yet">
           <span class="player__badge predpair__badge">Predicted future</span>
         </div>
-        <figcaption class="predpair__cap"><b>Clean the kitchen rack</b>The mid-air handover episode.</figcaption>
+        <figcaption class="predpair__cap"><b>Organize the kitchen rack</b>Seating a bowl and then a plate.</figcaption>
       </figure>
     </div>
 
@@ -1263,71 +1295,12 @@
 <!-- ====================== explorer ====================== -->
 <section class="sec" id="explorer">
   <div class="wrap reveal">
-    <h3 class="sec__title">Choosing the operating point</h3>
-    <p class="sec__sub">The same weights, invoked with different flags. Toggle the streams Flex-π generates and
-    watch latency and success rate move together.</p>
+    <h3 class="sec__title">One checkpoint, four measured operating points</h3>
+    <p class="sec__sub">In simulation every step of the ladder was benchmarked, so the whole speed&ndash;accuracy
+    range one set of weights covers can be drawn as a curve.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
-    <div class="explorer" id="ex-panel">
-      <div class="explorer__head">
-        <div>
-          <div class="explorer__title">Inference configuration</div>
-          <div class="chartbox__sub">RoboTwin, given video-only input</div>
-        </div>
-      </div>
-      <div class="explorer__body">
-        <div class="toggles" id="ex-toggles">
-          <div class="toggle toggle--locked" style="--dot:var(--s-action)" aria-hidden="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Action chunk <small>Always generated — the policy output</small></span>
-            <span class="lockpill">always</span>
-          </div>
-          <button class="toggle" type="button" data-stream="rgb" style="--dot:var(--s-rgb)" aria-pressed="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Future RGB latents <small>Appearance — stream V</small></span>
-          </button>
-          <button class="toggle" type="button" data-stream="dino" style="--dot:var(--s-dino)" aria-pressed="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Future DINO semantics <small>Object semantics — stream D</small></span>
-          </button>
-          <button class="toggle" type="button" data-stream="p3d" style="--dot:var(--s-3d)" aria-pressed="false">
-            <span class="toggle__box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
-            <span class="toggle__txt">Future 3D pointmaps <small>Geometry — stream P</small></span>
-          </button>
-          <p class="toggles__note">The paper benchmarks four configurations, adding streams in this order:
-          <b>68&nbsp;&rarr; 139&nbsp;&rarr; 280&nbsp;&rarr; 398&nbsp;ms</b>. Per-stream costs are not reported
-          independently, so other combinations are deployable but unmeasured.</p>
-        </div>
-
-        <div class="readout">
-          <div class="readout__cell">
-            <div class="readout__lab">Inference latency</div>
-            <div class="readout__val" id="ex-lat">68<span class="unit">ms</span></div>
-            <div class="readout__note" id="ex-lat-note">Faster than a PyTorch-compiled Fast-WAM (90&nbsp;ms).</div>
-          </div>
-          <div class="readout__cell readout__cell--sr">
-            <div class="readout__lab">Avg. success</div>
-            <div class="readout__val" id="ex-sr">41.6<span class="unit">%</span></div>
-            <div class="readout__note" id="ex-sr-note">Fast-WAM reaches 10.0% at comparable latency.</div>
-          </div>
-          <div class="readout__mode">
-            <div class="name" id="ex-mode">Action-only fast path</div>
-            <div class="desc" id="ex-desc">No future visual streams are computed; action tokens attend only to the
-            current observation, preserving a VLA-level inference path.</div>
-            <div class="chips" id="ex-chips">
-              <span class="chip" data-on="true" style="--dot:var(--s-action)">action</span>
-              <span class="chip" data-on="false" style="--dot:var(--s-rgb)">rgb</span>
-              <span class="chip" data-on="false" style="--dot:var(--s-dino)">dino</span>
-              <span class="chip" data-on="false" style="--dot:var(--s-3d)">pointmap</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:26px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
@@ -1351,13 +1324,14 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Measured inference latency on the real robot</div>
-          <div class="chartbox__sub">Single RTX 5090, bfloat16, torch.compile</div>
+          <div class="chartbox__sub">Single RTX 5090, bfloat16, torch.compile &middot; 4 denoise steps</div>
         </div>
       </div>
       <div data-chart="latency"></div>
-      <p class="figcap" style="margin-top:10px">Flex-π's action-only path (118–152 ms) stays close enough to the
-      π<sub>0.5</sub> baseline (66 ms) to drive the same 30 Hz robot — chunked execution decouples inference rate
-      from control rate, one query per 32-step chunk — while full joint generation trades speed for precision.</p>
+      <p class="figcap" style="margin-top:10px">Flex-π's action-only path (60&nbsp;ms) <b>undercuts every
+      baseline</b> — π<sub>0.5</sub> (66&nbsp;ms), Fast-WAM (86&nbsp;ms), ManiFlow (103&nbsp;ms) — while full
+      joint generation (193&nbsp;ms) trades speed for the highest task completion. Chunked execution decouples
+      inference rate from control rate on the 30&nbsp;Hz robot — one query per 32-step chunk.</p>
     </div>
   </div>
 </section>
@@ -1506,9 +1480,9 @@
     <div class="limits">
       <div class="limit"><b>Still data-hungry</b><span>Although markedly more demonstration-efficient than the
       baselines we compare against, Flex-π remains data-hungry in absolute terms.</span></div>
-      <div class="limit"><b>Joint generation is slower than a comparable VLA</b><span>The full joint generation mode
-      trades latency for accuracy. The action-only path exists precisely to recover VLA-level speed, but the two
-      cannot be had at once.</span></div>
+      <div class="limit"><b>Joint generation trades latency for accuracy</b><span>Full joint generation costs about
+      3&times; the latency of the action-only path (193 vs. 60&nbsp;ms on an RTX 5090). The action-only path is
+      faster than every baseline we compare against, but the two operating points cannot be had at once.</span></div>
       <div class="limit"><b>Synchronous inference client</b><span>Our current client is synchronous, so the arms hold
       position at each chunk boundary while the next chunk is computed. Reported wall-clock episode times therefore
       include this idle time and give an upper bound; overlapping inference with execution of the preceding chunk
