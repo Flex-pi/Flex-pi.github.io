@@ -693,6 +693,201 @@
   }
 
   /* ---------------------------------------------------------------------
+     rollout strip  (#real-robot, "Putting into Bag")
+
+     Six rollouts of the same task -- five seen bags plus the held-out one --
+     and the thumbnail strip is the only control: it swaps which clip is on
+     screen and, because the unseen rollout is one of the entries, which half
+     of the description reads. Prose keyed to the setting rather than to a
+     single bag carries [data-bagpane="seen"|"unseen"] and lives outside the
+     strip, so those are looked up on the whole .vfeature block.
+     --------------------------------------------------------------------- */
+  function initBagGallery() {
+    document.querySelectorAll('[data-baggallery]').forEach(function (gal) {
+      var block = gal.closest('.vfeature') || gal;
+      var thumbs = Array.prototype.slice.call(gal.querySelectorAll('.bagswatch[data-bag]'));
+      var panes = Array.prototype.slice.call(gal.querySelectorAll('.player[data-bag]'));
+      var prose = Array.prototype.slice.call(block.querySelectorAll('[data-bagpane]'));
+      if (thumbs.length < 2 || !panes.length) return;
+      var current = thumbs[0].getAttribute('data-bag');
+
+      /* autoplay is left to the IntersectionObserver in initVideos() on the
+         first pass, so booting the page does not start an off-screen clip */
+      function apply(autoplay) {
+        thumbs.forEach(function (t) {
+          t.setAttribute('aria-selected', t.getAttribute('data-bag') === current ? 'true' : 'false');
+        });
+        /* every bag but the held-out one is a *seen* rollout */
+        var cond = current === 'unseen' ? 'unseen' : 'seen';
+        prose.forEach(function (n) { n.hidden = n.getAttribute('data-bagpane') !== cond; });
+        panes.forEach(function (p) {
+          var on = p.getAttribute('data-bag') === current;
+          p.hidden = !on;
+          var v = p.querySelector('video');
+          if (!v) return;
+          if (on && autoplay && !gal.hidden) { v.play().catch(function () {}); } else { v.pause(); }
+        });
+      }
+
+      thumbs.forEach(function (t) {
+        t.addEventListener('click', function () {
+          current = t.getAttribute('data-bag');
+          apply(true);
+        });
+        t.addEventListener('keydown', function (e) {
+          var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          /* read the index live -- a variant with no clip on disk is pulled
+             out of `thumbs` below, which would strand a captured one */
+          var i = thumbs.indexOf(t);
+          if (!d || i === -1) return;
+          e.preventDefault();
+          var next = thumbs[(i + d + thumbs.length) % thumbs.length];
+          next.focus();
+          current = next.getAttribute('data-bag');
+          apply(true);
+        });
+      });
+
+      /* a variant whose poster is not on disk yet drops out of the strip
+         entirely, so a missing clip degrades to four bags rather than a
+         broken thumbnail */
+      thumbs.forEach(function (t) {
+        var img = t.querySelector('img');
+        if (!img) return;
+        img.addEventListener('error', function () {
+          var bag = t.getAttribute('data-bag');
+          t.remove();
+          thumbs = thumbs.filter(function (x) { return x !== t; });
+          panes = panes.filter(function (p) {
+            if (p.getAttribute('data-bag') !== bag) return true;
+            p.remove();
+            return false;
+          });
+          if (current === bag && thumbs.length) current = thumbs[0].getAttribute('data-bag');
+          if (thumbs.length < 2) { var s = gal.querySelector('.bagswitch'); if (s) s.hidden = true; }
+          apply(false);
+        });
+      });
+
+      if (window.MutationObserver) {
+        new MutationObserver(function () { apply(!gal.hidden); })
+          .observe(gal, { attributes: true, attributeFilter: ['hidden'] });
+      }
+
+      apply(false);
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     task gallery  (#generalization)
+
+     Two independent axes over one stage: the thumbnail rail on the left
+     picks the task, the seen/unseen switch above picks the setting. Six
+     clips live in the DOM; exactly one (task, setting) pair is visible and
+     playing, everything else is hidden and paused so only one video decodes.
+
+     Note the two attributes: [data-cond] marks things keyed to the setting
+     alone (the switch buttons, the rail posters), [data-condpane] marks the
+     setting-specific halves *inside* a task's meta block -- keeping them
+     apart means a hidden task's meta never fights the visible one.
+
+     The clips chain rather than loop: when one rollout runs out the rail steps
+     to the next task and wraps, so leaving the section alone plays all three in
+     turn. That is why these six videos carry no `loop` attribute -- without an
+     `ended` event there is nothing to advance on.
+     --------------------------------------------------------------------- */
+  function initTaskGallery() {
+    document.querySelectorAll('[data-taskgallery]').forEach(function (gal) {
+      var thumbs = Array.prototype.slice.call(gal.querySelectorAll('.taskthumb[data-task]'));
+      var players = Array.prototype.slice.call(gal.querySelectorAll('.player[data-task]'));
+      var metas = Array.prototype.slice.call(gal.querySelectorAll('.vfeature__meta[data-task]'));
+      var condBtns = Array.prototype.slice.call(gal.querySelectorAll('.seg__btn[data-cond]'));
+      var shots = Array.prototype.slice.call(gal.querySelectorAll('.taskthumb img[data-cond]'));
+      var seg = gal.querySelector('.seg');
+      if (!thumbs.length || !players.length) return;
+
+      var task = thumbs[0].getAttribute('data-task');
+      /* the markup decides which setting leads (this gallery opens on Unseen) */
+      var cond = (seg && seg.getAttribute('data-active')) || 'seen';
+
+      /* autoplay is left to the IntersectionObserver in initVideos() on the
+         first pass, so booting the page does not start an off-screen clip */
+      function apply(autoplay) {
+        if (seg) seg.setAttribute('data-active', cond); /* slides the thumb */
+        condBtns.forEach(function (b) {
+          b.setAttribute('aria-selected', b.getAttribute('data-cond') === cond ? 'true' : 'false');
+        });
+        thumbs.forEach(function (t) {
+          t.setAttribute('aria-selected', t.getAttribute('data-task') === task ? 'true' : 'false');
+        });
+        shots.forEach(function (img) { img.hidden = img.getAttribute('data-cond') !== cond; });
+        metas.forEach(function (m) {
+          m.hidden = m.getAttribute('data-task') !== task;
+          Array.prototype.forEach.call(m.querySelectorAll('[data-condpane]'), function (n) {
+            n.hidden = n.getAttribute('data-condpane') !== cond;
+          });
+        });
+        players.forEach(function (p) {
+          var on = p.getAttribute('data-task') === task && p.getAttribute('data-cond') === cond;
+          p.hidden = !on;
+          var v = p.querySelector('video');
+          if (!v) return;
+          if (on && autoplay) {
+            /* each rollout starts from its first frame -- a clip the chain has
+               already run through would otherwise resume on its last */
+            try { v.currentTime = 0; } catch (err) {}
+            v.play().catch(function () {});
+          } else {
+            v.pause();
+          }
+        });
+      }
+
+      /* hand off to the next task when a rollout runs out. Guarded on the clip
+         still being the selected one, so a stale `ended` from a clip the viewer
+         has already switched away from cannot hijack the rail. */
+      var lb = document.getElementById('lightbox');
+      players.forEach(function (p) {
+        var v = p.querySelector('video');
+        if (!v) return;
+        v.addEventListener('ended', function () {
+          if (p.hidden) return;
+          /* the lightbox plays its own copy; advancing behind the overlay would
+             leave the viewer somewhere else when they close it */
+          if (lb && lb.getAttribute('data-open') === 'true') return;
+          var i = thumbs.map(function (t) { return t.getAttribute('data-task'); }).indexOf(task);
+          if (i === -1) return;
+          task = thumbs[(i + 1) % thumbs.length].getAttribute('data-task');
+          apply(true);
+        });
+      });
+
+      function wire(list, attr, set) {
+        list.forEach(function (el) {
+          el.addEventListener('click', function () { set(el.getAttribute(attr)); apply(true); });
+          el.addEventListener('keydown', function (e) {
+            var horiz = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+            var vert = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+            var d = horiz || vert;
+            var i = list.indexOf(el);
+            if (!d || i === -1) return;
+            e.preventDefault();
+            var next = list[(i + d + list.length) % list.length];
+            next.focus();
+            set(next.getAttribute(attr));
+            apply(true);
+          });
+        });
+      }
+
+      wire(thumbs, 'data-task', function (v) { task = v; });
+      wire(condBtns, 'data-cond', function (v) { cond = v; });
+
+      apply(false);
+    });
+  }
+
+  /* ---------------------------------------------------------------------
      lightbox
      --------------------------------------------------------------------- */
   function initLightbox() {
@@ -805,21 +1000,110 @@
   }
 
   /* ---------------------------------------------------------------------
-     predicted futures: the prediction row is hidden until asked for
+     predicted futures: the prediction row is hidden until asked for, and
+     once shown it decodes one stream at a time
+
+     The policy generates a future in three streams, so the reveal button is
+     paired with a stream selector. Each pair carries a data-pred-<stream>
+     attribute per stream holding that decode's clip path; picking a stream
+     repoints every slot at once. An empty attribute means the decode is not
+     exported yet, and that slot falls back to the placeholder — so the strip
+     can go live one clip at a time as footage lands.
      --------------------------------------------------------------------- */
   function initPredReveal() {
     var strip = document.getElementById('predstrip');
     var btn = document.getElementById('pred-toggle');
     var note = document.getElementById('pred-note');
+    var modes = document.getElementById('pred-modes');
     if (!strip || !btn) return;
+
+    var LABEL = { rgb: 'RGB', dino: 'DINO', p3d: 'Pointmap' };
+    var pairs = Array.prototype.slice.call(strip.querySelectorAll('.predpair'));
+    var modeBtns = modes
+      ? Array.prototype.slice.call(modes.querySelectorAll('.predmode'))
+      : [];
+
+    /* While the strip is collapsed nothing is being decoded, so no stream is
+       "current" — the pills carry a pending choice, not a live one, and showing
+       one as pressed would claim a selection the reader can't see the effect
+       of. Pressed state therefore only exists once the row is revealed. */
+    function syncPressed() {
+      var armed = strip.getAttribute('data-pred') !== 'hidden';
+      var stream = strip.getAttribute('data-stream');
+      if (modes) modes.setAttribute('data-armed', armed ? 'true' : 'false');
+      modeBtns.forEach(function (m) {
+        m.setAttribute('aria-pressed',
+          armed && m.getAttribute('data-stream') === stream ? 'true' : 'false');
+      });
+    }
+
+    function paint(stream) {
+      var label = LABEL[stream] || LABEL.rgb;
+      strip.setAttribute('data-stream', stream);
+      syncPressed();
+
+      pairs.forEach(function (fig) {
+        var slot = fig.querySelector('.predpair__gen');
+        if (!slot) return;
+        var video = slot.querySelector('video');
+        var badge = slot.querySelector('.predpair__badge');
+        var src = (fig.getAttribute('data-pred-' + stream) || '').trim();
+        var task = fig.getAttribute('data-task') || '';
+
+        if (badge) badge.textContent = 'Predicted future · ' + label;
+
+        if (!src) {
+          slot.classList.add('player--todo');
+          slot.setAttribute('data-todo', label + ' decode — footage not ready');
+          slot.setAttribute('data-caption', '');
+          if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
+          return;
+        }
+
+        slot.classList.remove('player--todo');
+        slot.removeAttribute('data-todo');
+        slot.setAttribute('data-caption',
+          task + ' — the ' + label + ' future Flex-π generated for this episode, decoded after the fact.');
+        if (video && video.getAttribute('src') !== src) {
+          video.setAttribute('src', src);
+          video.setAttribute('poster', src.replace(/\.mp4$/, '.jpg'));
+          video.setAttribute('aria-label', 'Decoded ' + label + ' future for ' + task);
+          video.load();
+          if (strip.getAttribute('data-pred') === 'shown') video.play().catch(function () {});
+        }
+      });
+    }
+
+    function setHidden(hidden) {
+      strip.setAttribute('data-pred', hidden ? 'hidden' : 'shown');
+      btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+      btn.lastChild.textContent = hidden
+        ? ' Reveal the predicted futures'
+        : ' Hide the predicted futures';
+      if (note) note.hidden = !hidden;
+      syncPressed();
+      /* a paused-off-screen clip in a collapsed row should not keep decoding */
+      strip.querySelectorAll('.predpair__gen video').forEach(function (v) {
+        if (hidden) v.pause();
+        else if (v.getAttribute('src')) v.play().catch(function () {});
+      });
+    }
+
     btn.addEventListener('click', function () {
-      var hidden = strip.getAttribute('data-pred') === 'hidden';
-      strip.setAttribute('data-pred', hidden ? 'shown' : 'hidden');
-      btn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
-      var label = btn.lastChild;
-      label.textContent = hidden ? ' Hide the predicted futures' : ' Reveal the predicted futures';
-      if (note) note.hidden = hidden;
+      setHidden(strip.getAttribute('data-pred') !== 'hidden');
     });
+
+    if (modes) {
+      modes.addEventListener('click', function (e) {
+        var m = e.target.closest('.predmode');
+        if (!m) return;
+        paint(m.getAttribute('data-stream'));
+        /* picking a stream is a request to see it */
+        if (strip.getAttribute('data-pred') === 'hidden') setHidden(false);
+      });
+    }
+
+    paint(strip.getAttribute('data-stream') || 'rgb');
   }
 
   /* ---------------------------------------------------------------------
@@ -1201,6 +1485,8 @@
     initMaskDemo();
     initVideos();
     initTaskSwitch();
+    initBagGallery();
+    initTaskGallery();
     initArchviz();
     initJuxta();
     initPredReveal();

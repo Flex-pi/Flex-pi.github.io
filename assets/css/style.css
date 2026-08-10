@@ -601,11 +601,58 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 
 /* the prediction row stays collapsed until the reveal button is pressed */
 .predstrip[data-pred="hidden"] .predpair__gen { display: none; }
+/* the selected stream tints every prediction slot in the strip at once */
+.predstrip[data-stream="rgb"]  { --dot: var(--s-rgb); }
+.predstrip[data-stream="dino"] { --dot: var(--s-dino); }
+.predstrip[data-stream="p3d"]  { --dot: var(--s-3d); }
 .predreveal { margin-top: 14px; text-align: center; }
 .predreveal .btn { display: inline-flex; }
+.predreveal__row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: center; gap: 10px 14px;
+}
+
+/* stream selector: which decode fills the prediction row */
+.predmodes {
+  display: inline-flex; gap: 2px; padding: 3px;
+  border: 1px solid var(--border-soft); border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+.predmode {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 13px; border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: var(--fg-dim);
+  font: inherit; font-size: 13.5px; line-height: 1.3; cursor: pointer;
+  transition: color .18s var(--ease), background .18s var(--ease), box-shadow .18s var(--ease);
+}
+.predmode:hover { color: var(--fg-muted); }
+/* nothing is decoded until the strip is revealed, so the group reads as a
+   pending choice rather than a live one — no pill is pressed, and the whole
+   pill sits back a step until it has something to switch between */
+.predmodes[data-armed="false"] { border-color: color-mix(in srgb, var(--border-soft) 60%, transparent); }
+.predmodes[data-armed="false"] .predmode { color: var(--fg-dim); }
+.predmodes[data-armed="false"] .predmode:hover { color: var(--fg-muted); }
+.predmode[aria-pressed="true"] {
+  color: var(--fg);
+  background: color-mix(in srgb, var(--dot) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot) 46%, transparent);
+}
+.predmode__dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--dot); opacity: .35; transition: opacity .18s var(--ease);
+}
+.predmode[aria-pressed="true"] .predmode__dot { opacity: 1; }
+.predmode:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
 .predpair { display: flex; flex-direction: column; gap: 8px; }
 .predpair .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
 .predpair__gen { border-color: color-mix(in srgb, var(--dot) 42%, transparent); }
+/* a slot with no exported decode for the selected stream falls back to the
+   placeholder: the video and its expand button sit idle underneath, and the
+   caption written by JS into data-todo names the missing stream */
+.predpair__gen.player--todo { background: color-mix(in srgb, var(--dot) 18%, #b9b9b9); }
+.predpair__gen.player--todo::after { content: attr(data-todo); }
+.player--todo video, .player--todo .player__expand { display: none; }
 .predpair__badge {
   color: #fff; border-color: color-mix(in srgb, var(--dot) 55%, transparent);
   background: color-mix(in srgb, var(--dot) 26%, rgba(12,12,12,.72));
@@ -714,6 +761,11 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   background: var(--primary-soft);
   border-color: color-mix(in srgb, var(--primary) 46%, transparent);
 }
+/* a seg that leads with Unseen has the two halves swapped, so the thumb parks on
+   the left for unseen and slides right for seen -- the tint rules above still
+   key off data-active, so unseen keeps its accent either way */
+.seg--unseenfirst[data-active="unseen"] .seg__thumb { transform: none; }
+.seg--unseenfirst[data-active="seen"] .seg__thumb { transform: translateX(100%); }
 .seg__btn {
   position: relative; z-index: 1; flex: 1 0 auto; min-width: 82px;
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
@@ -733,7 +785,137 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 @media (max-width: 560px) {
   .vfeature__barlab { display: none; }
   .vfeature__bar { justify-content: flex-end; }
+  /* a bar with no control in it is nothing but its label — hiding that leaves a
+     stray rule, so it stays */
+  .vfeature__bar--plain .vfeature__barlab { display: inline; }
+  .vfeature__bar--plain { justify-content: flex-start; }
 }
+
+/* ---------- rollout strip (Putting into Bag)
+   Six rollouts of one task: five seen bags, differing only in the bag, plus the
+   held-out one. The thumbnails carry the whole distinction -- the bag's colour is
+   the label -- so the strip is posters only, with the unselected ones held back so
+   the active clip and its thumbnail read as one pair. The unseen rollout is tagged
+   in place rather than split onto a Seen/Unseen control of its own: one row is the
+   entire selector. Centred, because it now indexes the clip above it rather than
+   hanging off the left edge. ---------- */
+.bagswitch {
+  display: flex; gap: 8px; margin-top: 10px;
+  justify-content: center;
+  /* `safe` keeps the overflowing end reachable once the strip is wider than its
+     column -- plain `center` would push the first thumbnail past the scroll origin */
+  justify-content: safe center;
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+}
+.bagswitch::-webkit-scrollbar { display: none; }
+.bagswatch {
+  /* `display: block` is load-bearing: a default-layout <button> wraps its content
+     in an anonymous box that WebKit positions absolute children against, which
+     drops the centred tag below the poster. A block button contains it properly. */
+  position: relative; display: block;
+  flex: 0 0 auto; width: clamp(78px, 11vw, 128px); padding: 0; line-height: 0;
+  border: 1px solid var(--border-soft); border-radius: var(--radius);
+  background: var(--surface); cursor: pointer; overflow: hidden; opacity: .5;
+  transition: opacity .22s var(--ease), border-color .22s var(--ease);
+}
+.bagswatch img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.bagswatch:hover { opacity: .82; }
+.bagswatch[aria-selected="true"] {
+  opacity: 1; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary);
+}
+.bagswatch:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+/* a bag whose rollout is not exported yet: the slot stays in the strip so the
+   set still reads as five, but it announces itself as empty rather than
+   pretending to be a frame */
+.bagswatch--todo {
+  aspect-ratio: 16 / 9; border-style: dashed; border-color: var(--border);
+  display: grid; place-items: center; opacity: .5;
+}
+.bagswatch--todo::after {
+  content: "TODO";
+  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta);
+  color: var(--fg-faint); line-height: 1;
+}
+/* the held-out rollout. A hairline sets it off from the five seen bags, and the
+   tag rides the poster at all times -- selected or not -- so the strip says which
+   entry is the unseen one without a separate control above the clip. */
+/* a real element, not a ::before on the swatch -- .bagswatch clips its overflow
+   to round the poster, which would eat a pseudo-element sitting outside it */
+.bagswitch__sep {
+  flex: 0 0 auto; align-self: stretch; margin: 4px 4px;
+  border-left: 1px solid var(--border-soft);
+}
+/* centred with inset + auto margins rather than a 50% offset and a translate, so
+   nothing about the button's own layout can knock it off the middle */
+/* play mark: a poster on its own does not say "this is a clip you can start".
+   Bottom-left rather than centred, so it never fights the UNSEEN tag; the TODO
+   tiles are excluded because there is nothing behind them to play. */
+.bagswatch:not(.bagswatch--todo)::before,
+.taskthumb__shot::before {
+  content: ""; position: absolute; z-index: 1; left: 6px; bottom: 6px;
+  width: 18px; height: 18px; border-radius: 50%; pointer-events: none;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(12,12,12,.58)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M9 5.4v13.2L19 12z'/%3E%3C/svg%3E")
+    no-repeat 54% 50% / 9px 9px;
+  backdrop-filter: blur(4px);
+}
+.bagswatch__tag {
+  position: absolute; inset: 0; margin: auto;
+  width: max-content; height: max-content;
+  padding: 2px 7px; border-radius: var(--radius);
+  font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: var(--ls-meta);
+  text-transform: uppercase; line-height: 1.5; white-space: nowrap;
+  background: rgba(12,12,12,.66); backdrop-filter: blur(6px);
+  color: rgba(255,255,255,.88); border: 1px solid rgba(255,255,255,.15);
+}
+
+/* ---------- task gallery (#generalization)
+   Three tasks share one stage instead of stacking three full-width blocks. The
+   rail on the left is the task index -- poster plus name, so the strip reads as
+   a contents list rather than a row of anonymous swatches -- and the seen/unseen
+   switch above applies to whichever task is on the stage. ---------- */
+.taskgal__body {
+  display: grid; grid-template-columns: clamp(150px, 17vw, 212px) minmax(0, 1fr);
+  gap: clamp(14px, 1.6vw, 22px); align-items: start;
+}
+.taskgal__rail { display: flex; flex-direction: column; gap: clamp(14px, 1.5vw, 22px); min-width: 0; }
+.taskthumb {
+  display: block; width: 100%; padding: 0; text-align: left; cursor: pointer;
+  border: 1px solid var(--border-soft); border-radius: var(--radius);
+  background: var(--surface); overflow: hidden; opacity: .56;
+  transition: opacity .22s var(--ease), border-color .22s var(--ease),
+              box-shadow .22s var(--ease);
+}
+.taskthumb__shot { position: relative; display: block; line-height: 0; }
+.taskthumb__shot img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.taskthumb__lab {
+  display: block; padding: 8px 10px 9px;
+  font-family: var(--ff-body); font-size: 13.5px; line-height: 1.35;
+  color: var(--fg-dim); transition: color .22s var(--ease);
+}
+.taskthumb:hover { opacity: .86; }
+.taskthumb[aria-selected="true"] {
+  opacity: 1; border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary);
+}
+.taskthumb[aria-selected="true"] .taskthumb__lab { color: var(--fg); }
+.taskthumb:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.taskgal__stage { min-width: 0; }
+
+/* under ~860px the rail turns into a scrollable strip beneath the stage, so the
+   clip keeps the full column width */
+@media (max-width: 860px) {
+  .taskgal__body { grid-template-columns: 1fr; }
+  .taskgal__stage { order: 1; }
+  .taskgal__rail {
+    order: 2; flex-direction: row; gap: 12px;
+    overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  }
+  .taskgal__rail::-webkit-scrollbar { display: none; }
+  .taskthumb { flex: 0 0 auto; width: clamp(120px, 34vw, 168px); }
+  .taskthumb__lab { font-size: 12.5px; padding: 7px 9px 8px; }
+}
+
 .vfeature__meta {
   display: grid; grid-template-columns: minmax(0,1fr) auto;
   gap: 14px clamp(20px, 4vw, 40px); align-items: start; margin-top: 16px;
@@ -759,6 +941,11 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .score__v .unit { font-size: .44em; color: var(--fg-dim); font-weight: 400; }
 .score--ours .score__v { color: var(--c-ours); }
 .score--base .score__v { color: var(--fg-faint); }
+/* a score slot standing open until the number lands. It keeps the block's shape
+   so the real value is a text swap, but drops the accent colour and greys out --
+   a placeholder that reads like a result is worse than no placeholder. */
+.score--todo .score__v { color: var(--fg-faint); opacity: .5; letter-spacing: .06em; }
+.score--todo .score__k { opacity: .5; }
 .score__k {
   margin-top: 7px; font-family: var(--ff-mono); font-size: 10px;
   letter-spacing: var(--ls-meta); color: var(--fg-faint); white-space: nowrap;
