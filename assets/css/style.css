@@ -1127,6 +1127,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .legend__sw { width: 10px; height: 10px; border-radius: 2px; flex: none; background: var(--c); }
 .legend__sw--line { height: 2px; border-radius: 1px; width: 14px; }
 .legend__sw--dash { height: 0; border-top: 2px dashed var(--c); background: none; width: 14px; }
+/* the faded/solid pair legend sits apart from the method colours it qualifies */
+.legend__item--pair { color: var(--fg-dim); font-style: italic; }
+.legend__item--pair:first-of-type { margin-left: 6px; }
+
+/* a held-out condition we show footage for but have not scored */
+.scoreboard--none .score { text-align: right; max-width: 150px; }
+.scoreboard--none .score__k { color: var(--fg-faint); }
 
 svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
@@ -1144,12 +1151,20 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
 
-/* real-world frontier (streams section) — same .chart token system */
-.chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 16px; }
-.chart .fastlab { fill: var(--c-ours-d); font-family: var(--ff-body); font-style: italic; font-size: 15px; }
+/* real-world frontier, folded into the configurator card so the mask choice
+   and its speed/accuracy consequence are read together */
+.archviz__frontier {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border-faint);
+  padding-top: clamp(14px, 2vw, 20px);
+}
+.archviz__frontierhead { margin-bottom: 4px; }
+.archviz__frontiersub { font-size: var(--fs-fine); color: var(--fg-faint); margin-top: 2px; }
+.chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 15px; }
+.chart .fastlab { fill: var(--c-ours-d); font-family: var(--ff-body); font-style: italic; font-size: 14px; }
 .chart .dlab--hi { fill: var(--fg); font-weight: 600; }
-.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 13px; }
-.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 15px; }
+.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 12.5px; }
+.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 14px; }
 
 /* pareto entrance: line draws itself, points pop in as it reaches them,
    the Fast-WAM baseline fades in last. Armed via data-anim="wait", fired
