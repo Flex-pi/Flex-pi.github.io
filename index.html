@@ -578,8 +578,8 @@
     <!-- one strip, six rollouts: five seen bags plus the held-out one. The unseen
          entry is tagged in the strip rather than split onto a separate Seen/Unseen
          control -- one row of thumbnails is the whole selector.
-         Bags 1-3 are shot (pink, purple, orange); bags 4-5 are held open as TODO
-         tiles until their footage lands — drop putpen-seen-4/5.mp4 with a matching
+         Bags 1-4 are shot (pink, purple, orange, grey); bag 5 is held open as a
+         TODO tile until its footage lands — drop putpen-seen-5.mp4 with a matching
          .jpg poster in and swap the tile back to a real .player. -->
     <div class="baggal" data-baggallery>
       <div class="player" data-player data-bag="1" data-caption="Putting items into a bag — bag 1. Autonomous, 2× speed.">
@@ -603,7 +603,13 @@
                aria-label="Two robot arms placing items into an orange bag"></video>
         <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
       </div>
-      <div class="player player--todo" data-bag="4" hidden role="img" aria-label="Placeholder — the fourth bag's rollout is not exported yet"></div>
+      <div class="player" data-player data-bag="4" hidden data-caption="Putting items into a bag — the grey bag. Autonomous, 2× speed.">
+        <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
+        <video src="assets/videos/bag-gray.mp4" poster="assets/videos/bag-gray.jpg"
+               loop muted playsinline preload="none" data-autoplay
+               aria-label="Two robot arms placing a pen into a grey fabric bag"></video>
+        <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+      </div>
       <div class="player player--todo" data-bag="5" hidden role="img" aria-label="Placeholder — the fifth bag's rollout is not exported yet"></div>
       <div class="player" data-player data-bag="unseen" hidden data-caption="Putting items into a bag, unseen setting — a bag never seen in fine-tuning, with novel distractor objects filling the workspace. Autonomous, 2× speed.">
         <span class="player__badge">Unseen setting</span>
@@ -618,7 +624,7 @@
         <button class="bagswatch" type="button" role="tab" data-bag="1" aria-selected="true" aria-label="Pink bag, seen setting"><img src="assets/videos/task-putpen.jpg" alt="" loading="lazy"></button>
         <button class="bagswatch" type="button" role="tab" data-bag="2" aria-selected="false" aria-label="Purple bag, seen setting"><img src="assets/videos/putpen-seen-2.jpg" alt="" loading="lazy"></button>
         <button class="bagswatch" type="button" role="tab" data-bag="3" aria-selected="false" aria-label="Orange bag, seen setting"><img src="assets/videos/putpen-seen-3.jpg" alt="" loading="lazy"></button>
-        <button class="bagswatch bagswatch--todo" type="button" role="tab" data-bag="4" aria-selected="false" aria-label="Fourth bag — footage not ready"></button>
+        <button class="bagswatch" type="button" role="tab" data-bag="4" aria-selected="false" aria-label="Grey bag, seen setting"><img src="assets/videos/bag-gray.jpg" alt="" loading="lazy"></button>
         <button class="bagswatch bagswatch--todo" type="button" role="tab" data-bag="5" aria-selected="false" aria-label="Fifth bag — footage not ready"></button>
         <span class="bagswitch__sep" aria-hidden="true"></span>
         <button class="bagswatch bagswatch--unseen" type="button" role="tab" data-bag="unseen" aria-selected="false" aria-label="Unseen setting — a bag never seen in fine-tuning"><img src="assets/videos/unseen-putpen.jpg" alt="" loading="lazy"><span class="bagswatch__tag">Unseen</span></button>
