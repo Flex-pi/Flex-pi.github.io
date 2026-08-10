@@ -68,11 +68,17 @@
   --fs-fine: 13px;   /* fine print: notes, hints, sub-captions */
 
   /* measure */
+  /* Two tiers in the flow, and only two: text (prose, tables, callouts) and
+     media (video, charts, figure plates). --col-mid is the centred title block
+     only -- anything else on a third width read as an accident. */
   --col-text: 812px;   /* ~722px of text once padding is removed: ~76 chars at 19px */
   --col-mid:  940px;
   --col-wide: 1140px;
   --col-full: 1340px;
   --pad:      clamp(18px, 4vw, 44px);
+  /* the text tier's inner measure: any capped run of text is as wide as prose in
+     the text column, instead of taking a ch-value of its own */
+  --measure:  calc(var(--col-text) - 2 * var(--pad));
   --gap-sec:  clamp(60px, 7.5vw, 112px);
 
   --radius:      4px;
@@ -180,7 +186,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .sec__sub {
   font-size: clamp(17px, 1.8vw, 20px);
-  color: var(--fg-muted); line-height: 1.58; max-width: 70ch;
+  color: var(--fg-muted); line-height: 1.58; max-width: var(--measure);
 }
 /* cross-references in a standfirst get the same treatment as prose links,
    rather than the browser's default underline */
@@ -194,9 +200,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-size: clamp(19px, 1.9vw, 23px);
   line-height: 1.28; margin: 0 0 .45em; letter-spacing: -.008em;
 }
-/* No max-width: 72ch at 16px is ~575px, well inside the 724px text column, and
-   the short measure made every sub-point read narrower than the prose under it. */
-.sub__lede { font-size: 16.5px; line-height: 1.6; color: var(--fg-muted); margin: 0; }
+/* One level below .sec__sub and one above the caption text on a clip: this is
+   the opening paragraph of a sub-section, not an annotation. */
+.sub__lede { font-size: 18px; line-height: 1.62; color: var(--fg-muted); margin: 0; }
 .rule { height: 1px; background: var(--border-soft); border: 0; margin: 0; }
 
 /* ==========================================================================
@@ -511,7 +517,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .plate--wide img { min-width: 620px; }
 .figcap {
   margin-top: 13px; font-size: 14.5px; line-height: 1.55; color: var(--fg-dim);
-  max-width: 78ch; margin-inline: auto; text-align: center;
+  max-width: var(--measure); margin-inline: auto; text-align: center;
   text-wrap: pretty;
 }
 .figcap b, .figcap strong { color: var(--fg-muted); font-weight: 600; }
@@ -536,11 +542,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* ==========================================================================
    video player + lightbox
    ========================================================================== */
+/* light-gray chrome: on the cream theme a dark background would peek out
+   around the video edge and rounded corners and read as a black stroke */
 .player {
-  position: relative; background: #101010; overflow: hidden;
+  position: relative; background: var(--muted); overflow: hidden;
   border-radius: var(--radius); border: 1px solid var(--border-faint); line-height: 0;
 }
-.player video { width: 100%; height: auto; display: block; background: #000; }
+.player video { width: 100%; height: auto; display: block; background: var(--muted); }
 .player--todo {
   aspect-ratio: 16 / 9; background: #b9b9b9;
   display: grid; place-items: center; line-height: 1.5;
@@ -573,8 +581,28 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* predicted-future pairs (#predictions) — the real rollout stacked over the
    future the model generated for that episode, one stream per task. --dot is
    set per pair to the stream colour and tints the prediction player. */
-.predgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 2vw, 22px); }
-@media (max-width: 900px) { .predgrid { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; } }
+/* horizontal strip: ~3 pairs visible, the cut-off 4th hints there is more
+   to the right. Snap per pair; thin styled scrollbar. */
+.predstrip {
+  display: grid; grid-auto-flow: column;
+  grid-auto-columns: clamp(270px, calc((100% - 2 * clamp(14px, 2vw, 22px)) / 3.15), 460px);
+  gap: clamp(14px, 2vw, 22px);
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.predstrip::-webkit-scrollbar { height: 8px; }
+.predstrip::-webkit-scrollbar-track { background: transparent; }
+.predstrip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.predstrip .predpair { scroll-snap-align: start; }
+@media (max-width: 620px) { .predstrip { grid-auto-columns: 82vw; } }
+
+/* the prediction row stays collapsed until the reveal button is pressed */
+.predstrip[data-pred="hidden"] .predpair__gen { display: none; }
+.predreveal { margin-top: 14px; text-align: center; }
+.predreveal .btn { display: inline-flex; }
 .predpair { display: flex; flex-direction: column; gap: 8px; }
 .predpair .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
 .predpair__gen { border-color: color-mix(in srgb, var(--dot) 42%, transparent); }
@@ -651,18 +679,76 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .vfeature { margin-top: clamp(28px, 4vw, 44px); }
 .vfeature .player { border-radius: var(--radius); }
 .vfeature .player video { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+
+/* seen/unseen switch: one per task, sitting on the rule above that task's clip.
+   Each .vfeature[data-taskswitch] owns its own state -- the three tasks never
+   move together. The label anchors the control to the left edge so it reads as
+   part of the block rather than floating over it. */
+.vfeature__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding-bottom: 11px; margin-bottom: 13px;
+  border-bottom: 1px solid var(--border-faint);
+}
+.vfeature__barlab {
+  font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
+  text-transform: uppercase; color: var(--fg-faint); white-space: nowrap;
+}
+
+/* a thumb that slides between the two options, rather than a background that
+   blinks from one to the other */
+.seg {
+  position: relative; display: inline-flex; padding: 3px; flex: none;
+  border: 1px solid var(--border-soft); border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+.seg__thumb {
+  position: absolute; z-index: 0; top: 3px; bottom: 3px; left: 3px;
+  width: calc(50% - 3px); border-radius: var(--radius-pill);
+  background: var(--surface-3); border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(0,0,0,.14);
+  transition: transform .3s var(--ease), background .3s var(--ease),
+              border-color .3s var(--ease);
+}
+.seg[data-active="unseen"] .seg__thumb {
+  transform: translateX(100%);
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 46%, transparent);
+}
+.seg__btn {
+  position: relative; z-index: 1; flex: 1 0 auto; min-width: 82px;
+  font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
+  text-transform: uppercase; padding: 7px 16px;
+  border: 0; border-radius: var(--radius-pill); background: transparent;
+  color: var(--fg-faint); cursor: pointer; white-space: nowrap;
+  transition: color .22s var(--ease);
+}
+.seg__btn:hover { color: var(--fg-muted); }
+.seg__btn[aria-selected="true"] { color: var(--fg); }
+.seg[data-active="unseen"] .seg__btn[aria-selected="true"] { color: var(--primary-ink); }
+/* the thumb carries the selection, so the focus ring goes round the whole
+   control instead of boxing one half of it */
+.seg__btn:focus-visible { outline: none; }
+.seg:has(.seg__btn:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+@media (max-width: 560px) {
+  .vfeature__barlab { display: none; }
+  .vfeature__bar { justify-content: flex-end; }
+}
 .vfeature__meta {
   display: grid; grid-template-columns: minmax(0,1fr) auto;
   gap: 14px clamp(20px, 4vw, 40px); align-items: start; margin-top: 16px;
 }
 @media (max-width: 720px) { .vfeature__meta { grid-template-columns: 1fr; } }
+/* This labels one clip, so it sits at the same level as .acompare__name -- below
+   a .sub__title, which opens a whole sub-section. At the old clamp it grew to
+   24px and outranked the headings it was nested under. */
 .vfeature__name {
-  font-family: var(--ff-display); font-size: clamp(19px, 2.1vw, 24px);
-  font-weight: 600; letter-spacing: -.01em; line-height: 1.25; margin-bottom: 6px;
+  font-family: var(--ff-display); font-size: 18px;
+  font-weight: 600; letter-spacing: -.01em; line-height: 1.3; margin-bottom: 5px;
 }
-.vfeature__desc { font-size: 16px; line-height: 1.6; color: var(--fg-muted); max-width: 70ch; }
+.vfeature__desc { font-size: 15px; line-height: 1.62; color: var(--fg-dim); max-width: var(--measure); }
 .vfeature__desc .demos {
-  display: block; margin-top: 8px; font-size: 14px; color: var(--fg-faint);
+  display: block; margin-top: 8px; font-size: 13.5px; color: var(--fg-faint);
 }
 .scoreboard { display: flex; gap: 22px; align-items: flex-start; }
 .score { text-align: right; min-width: 74px; }
@@ -739,6 +825,19 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .acompare__side--pi .acompare__tag { color: var(--c-base2); }
 .acompare__side--mf .acompare__tag { color: var(--c-base3); }
 .acompare__tag .what { font-size: 13.5px; color: var(--fg-dim); }
+
+/* soft colored frame: a thick 10%-tint rounded stroke around the whole
+   video, like a halo — red for the baselines, green for ours */
+.acompare__side .player {
+  border-width: 8px; border-radius: 14px;
+}
+.acompare__side--mf .player,
+.acompare__side--pi .player {
+  border-color: color-mix(in srgb, var(--s-action) 10%, var(--bg));
+}
+.acompare__side--ours .player {
+  border-color: color-mix(in srgb, var(--c-ours) 10%, var(--bg));
+}
 
 /* ==========================================================================
    stream cards
@@ -1051,6 +1150,29 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .dlab--hi { fill: var(--fg); font-weight: 600; }
 .chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 13px; }
 .chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 15px; }
+
+/* pareto entrance: line draws itself, points pop in as it reaches them,
+   the Fast-WAM baseline fades in last. Armed via data-anim="wait", fired
+   by an IntersectionObserver flipping it to "in"; skipped entirely under
+   prefers-reduced-motion (the attribute is never set). */
+.chart--pareto[data-anim] .pline { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.chart--pareto[data-anim] .panim { opacity: 0; }
+.chart--pareto[data-anim] .pareto__pt.panim {
+  transform: scale(.4); transform-box: fill-box; transform-origin: center;
+}
+.chart--pareto[data-anim="in"] .pline {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.15s cubic-bezier(.4, 0, .2, 1) .15s;
+}
+.chart--pareto[data-anim="in"] .panim {
+  opacity: 1;
+  transition: opacity .45s var(--ease) var(--ad, 0s);
+}
+.chart--pareto[data-anim="in"] .pareto__pt.panim {
+  transform: scale(1);
+  transition: opacity .45s var(--ease) var(--ad, 0s),
+              transform .5s cubic-bezier(.2, .9, .3, 1.35) var(--ad, 0s);
+}
 
 /* ==========================================================================
    tables

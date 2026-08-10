@@ -143,6 +143,7 @@
      pareto (latency vs success) scatter + line
      --------------------------------------------------------------------- */
   var paretoPts = [];
+  var paretoPlayed = false;
   function paretoChart(mount) {
     var W = 1000, padL = 54, padR = 92, padT = 26, padB = 54, plotH = 300;
     var H = padT + plotH + padB;
@@ -152,7 +153,7 @@
     var amber = css('--c-base2') || '#e0b04a';
 
     var svg = el('svg', {
-      'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
+      'class': 'chart chart--pareto', viewBox: '0 0 ' + W + ' ' + H,
       preserveAspectRatio: 'xMidYMid meet', role: 'img',
       'aria-label': 'Latency versus success rate. Flex-π rises from 41.6% at 68 ms in action-only mode to 66.8% at 398 ms with all streams generated, while Fast-WAM stays at 10% at 90 and 345 ms.'
     });
@@ -175,9 +176,10 @@
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
       transform: 'translate(15,' + (padT + plotH / 2) + ') rotate(-90)' }, 'Avg. success (%)'));
 
-    /* Fast-WAM dashed baseline */
+    /* Fast-WAM dashed baseline — one group so it can fade in as a unit */
     var fw = [[90, 10.0, 'compiled'], [345, 10.0, 'as released']];
-    svg.appendChild(el('line', {
+    var fwG = el('g', { 'class': 'panim', style: '--ad:1.55s' });
+    fwG.appendChild(el('line', {
       x1: X(fw[0][0]), y1: Y(fw[0][1]), x2: X(fw[1][0]), y2: Y(fw[1][1]),
       stroke: amber, 'stroke-width': 2, 'stroke-dasharray': '7 6', 'stroke-linecap': 'round'
     }));
@@ -192,12 +194,13 @@
         }));
       }
       g.appendChild(el('title', {}, 'Fast-WAM (' + p[2] + '): ' + p[1] + '% at ' + p[0] + ' ms'));
-      svg.appendChild(g);
+      fwG.appendChild(g);
     });
-    svg.appendChild(el('text', { 'class': 'ptlab', x: X(90), y: Y(10) - 14, 'text-anchor': 'middle',
+    fwG.appendChild(el('text', { 'class': 'ptlab', x: X(90), y: Y(10) - 14, 'text-anchor': 'middle',
       fill: amber }, 'Fast-WAM'));
-    svg.appendChild(el('text', { 'class': 'ptlab', x: X(345), y: Y(10) + 22, 'text-anchor': 'middle',
+    fwG.appendChild(el('text', { 'class': 'ptlab', x: X(345), y: Y(10) + 22, 'text-anchor': 'middle',
       fill: amber }, 'as released'));
+    svg.appendChild(fwG);
 
     /* Flex-π ladder */
     var pts = [
@@ -207,12 +210,20 @@
       { x: 398, y: 66.8, name: '+ Pointmap',  dx: -6, dy: -18 }
     ];
     var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.x) + ' ' + Y(p.y); }).join(' ');
-    svg.appendChild(el('path', { d: d, fill: 'none', stroke: green, 'stroke-width': 2.5,
+    svg.appendChild(el('path', { 'class': 'pline', d: d, pathLength: 1, fill: 'none',
+      stroke: green, 'stroke-width': 2.5,
       'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+
+    /* stagger each point to the moment the drawing line reaches it */
+    var xSpan = X(pts[pts.length - 1].x) - X(pts[0].x);
+    function delayAt(p) {
+      return (0.15 + 1.15 * (X(p.x) - X(pts[0].x)) / xSpan).toFixed(2) + 's';
+    }
 
     paretoPts = [];
     pts.forEach(function (p, i) {
-      var g = el('g', { 'class': 'pareto__pt', 'data-i': i, tabindex: '0', role: 'button',
+      var g = el('g', { 'class': 'pareto__pt panim', 'data-i': i, tabindex: '0', role: 'button',
+        style: '--ad:' + delayAt(p),
         'aria-label': p.name + ': ' + p.y + '% at ' + p.x + ' ms' });
       g.appendChild(el('circle', { 'class': 'pareto__halo', cx: X(p.x), cy: Y(p.y), r: 12 }));
       g.appendChild(el('circle', { cx: X(p.x), cy: Y(p.y), r: 16, fill: 'transparent' }));
@@ -220,7 +231,8 @@
       g.appendChild(el('title', {}, p.name + ': ' + p.y + '% at ' + p.x + ' ms'));
       svg.appendChild(g);
       svg.appendChild(el('text', {
-        'class': 'ptlab', x: X(p.x) + p.dx, y: Y(p.y) + p.dy,
+        'class': 'ptlab panim', style: '--ad:' + delayAt(p),
+        x: X(p.x) + p.dx, y: Y(p.y) + p.dy,
         'text-anchor': i === 3 ? 'end' : 'start', fill: green
       }, p.name));
       paretoPts.push(g);
@@ -232,11 +244,25 @@
       });
     });
 
-    svg.appendChild(el('text', { 'class': 'ptlab', x: padL + 12, y: Y(71),
+    svg.appendChild(el('text', { 'class': 'ptlab panim', style: '--ad:0.05s',
+      x: padL + 12, y: Y(71),
       'text-anchor': 'start', fill: green, 'font-size': '13' }, 'Flex-π'));
 
     mount.innerHTML = '';
     mount.appendChild(svg);
+
+    /* entrance animation: draw the line, pop the points, then fade the
+       baseline in. Plays once, on first scroll into view. */
+    if (!reduceMotion && !paretoPlayed && 'IntersectionObserver' in window) {
+      svg.setAttribute('data-anim', 'wait');
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        io.disconnect();
+        paretoPlayed = true;
+        requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+      }, { threshold: 0.4 });
+      io.observe(svg);
+    }
   }
 
   /* ---------------------------------------------------------------------
@@ -709,6 +735,53 @@
   }
 
   /* ---------------------------------------------------------------------
+     seen / unseen switch  (#generalization)
+
+     One switch per task block; the three blocks share no state. Everything
+     inside a block carrying data-cond -- player, description, scoreboard --
+     is shown for the selected condition and hidden otherwise. The hidden
+     clip is paused so only one video per block is ever decoding.
+     --------------------------------------------------------------------- */
+  function initTaskSwitch() {
+    document.querySelectorAll('[data-taskswitch]').forEach(function (block) {
+      var btns = Array.prototype.slice.call(block.querySelectorAll('.seg__btn[data-cond]'));
+      if (btns.length < 2) return;
+      var panes = Array.prototype.slice.call(block.querySelectorAll('[data-cond]'))
+        .filter(function (n) { return btns.indexOf(n) === -1; });
+
+      var seg = block.querySelector('.seg');
+
+      function show(cond) {
+        if (seg) seg.setAttribute('data-active', cond); /* slides the thumb */
+        btns.forEach(function (b) {
+          b.setAttribute('aria-selected', b.getAttribute('data-cond') === cond ? 'true' : 'false');
+        });
+        panes.forEach(function (n) {
+          var on = n.getAttribute('data-cond') === cond;
+          n.hidden = !on;
+          var v = n.tagName === 'VIDEO' ? n : n.querySelector('video');
+          if (!v) return;
+          /* the IntersectionObserver in initVideos() only fires on visibility
+             changes it can see, so drive playback explicitly here */
+          if (on) { v.play().catch(function () {}); } else { v.pause(); }
+        });
+      }
+
+      btns.forEach(function (b, i) {
+        b.addEventListener('click', function () { show(b.getAttribute('data-cond')); });
+        b.addEventListener('keydown', function (e) {
+          var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          if (!d) return;
+          e.preventDefault();
+          var next = btns[(i + d + btns.length) % btns.length];
+          next.focus();
+          show(next.getAttribute('data-cond'));
+        });
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
      lightbox
      --------------------------------------------------------------------- */
   function initLightbox() {
@@ -817,6 +890,24 @@
     lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && lb.getAttribute('data-open') === 'true') close();
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     predicted futures: the prediction row is hidden until asked for
+     --------------------------------------------------------------------- */
+  function initPredReveal() {
+    var strip = document.getElementById('predstrip');
+    var btn = document.getElementById('pred-toggle');
+    var note = document.getElementById('pred-note');
+    if (!strip || !btn) return;
+    btn.addEventListener('click', function () {
+      var hidden = strip.getAttribute('data-pred') === 'hidden';
+      strip.setAttribute('data-pred', hidden ? 'shown' : 'hidden');
+      btn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
+      var label = btn.lastChild;
+      label.textContent = hidden ? ' Hide the predicted futures' : ' Reveal the predicted futures';
+      if (note) note.hidden = hidden;
     });
   }
 
@@ -1199,8 +1290,10 @@
     initExplorer();
     initMaskDemo();
     initVideos();
+    initTaskSwitch();
     initArchviz();
     initJuxta();
+    initPredReveal();
     initLightbox();
     initNav();
     initRail();
