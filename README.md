@@ -8,7 +8,7 @@ Source for **https://flex-pi.github.io** — the project page for
 ```
 index.html              the whole page (single file)
 assets/css/style.css    design tokens + components
-assets/js/main.js       charts, the flexibility explorer, video/lightbox, theme
+assets/js/main.js       charts, the mask configurator, video/lightbox, theme
 assets/figures/*.png    figures extracted from the paper at 400 dpi
 assets/videos/*.mp4     task clips (+ .jpg poster frames)
 ```
@@ -25,8 +25,8 @@ The page is in three parts, each introduced by a `.part` divider and listed in
 the left outline rail:
 
 ```
-I   · What Flex-π does    #overview #real-robot #precision #generalization
-II  · How it works        #streams #method #explorer
+I   · What Flex-π does    #overview #precision #real-robot #generalization
+II  · How it works        #streams #method #predictions #explorer
 III · How it compares     #simulation #limitations #bibtex
 ```
 
@@ -85,9 +85,9 @@ The accent is **one colour, used everywhere** — `--primary` / `--primary-ink` 
 `--primary-soft`, plus the favicon. Day `#6e1f35`, night `#b8455f` for fills and
 `#de93a8` for text, which needs the lighter value to clear contrast on `#0c0c0c`.
 It is deliberately not blue, green, amber, red or grey: those are all spoken for
-by the stream colours and the chart series (green is "ours", amber is π0.5,
-brick red is the action stream), so an accent in any of them would read as
-carrying that meaning.
+by the stream colours and the chart series (green is "ours", grey is π0.5,
+blue is ManiFlow, amber is Fast-WAM, brick red is the action stream), so an
+accent in any of them would read as carrying that meaning.
 
 **If you change the accent, change the favicon too.** It is an inline
 `data:image/svg+xml` URI in `index.html` with the colour hardcoded — a claret
@@ -121,9 +121,18 @@ the nav (persisted to `localStorage`). Accent colors for the three visual
 streams (RGB / pointmap / DINO) mirror the legend of the paper's own Figures 2
 and 4.
 
+The chart series colours are the paper's own legend, sampled from its figures —
+π0.5 `#9e9e9e`, ManiFlow `#7fb3d5`, Fast-WAM `#e0a526`, action-only `#5ba463`,
+full joint `#2e7d3e`. The day tokens carry those exact values and the night ones
+lighten the same hues; keep the two layers in step.
+
 All charts are hand-built inline SVG generated in `main.js`, so they follow the
 active theme rather than being baked-in images. Chart data is defined in
-`renderCharts()`; the explorer's operating points are in the `MEASURED` object.
+`renderCharts()`; the real-robot frontier is `initFrontier()` and its
+per-configuration readouts are in the `REAL_MODE` object.
+
+Real-robot numbers all come from `flex_pi_final_results.json` — see `UPDATE.md`
+for the mapping and for what is still unmeasured.
 
 ## ⚠ Placeholder media
 
@@ -140,9 +149,13 @@ Replace them by dropping real files over the same paths in `assets/videos/`
 
 ## Results not yet on the page
 
-Deliberately omitted because the paper does not yet report them:
+Deliberately omitted because we do not have them yet:
 
 - **Flex-π on LIBERO-Plus** — evaluation in progress.
+- **Six of the eight output masks** — deployable but not benchmarked, so the
+  configurator's readouts show em dashes for them.
+- **A scored held-out Kitchen Organization** — the footage is on the page as a
+  qualitative result only.
 
 The `Paper` and `Code` buttons are rendered as disabled "soon" chips; wire them
 up in the `.links` block of `index.html` once there is an arXiv ID and a repo.
