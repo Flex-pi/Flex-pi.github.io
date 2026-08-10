@@ -375,14 +375,13 @@
           </div>
       </div>
 
-      <!-- what those two masks actually cost and buy on the real robot: the
-           same card, so the choice and its consequence are read together -->
+      <!-- where the chosen mask lands on the real robot; the dot for the
+           current output mask lights up as you change it -->
       <div class="archviz__frontier">
-        <div class="archviz__frontierhead">
-          <div class="archviz__label">Where each mode lands on the real robot</div>
-          <div class="archviz__frontiersub">Bimanual YAM suite &middot; RTX 5090 &middot; 4 denoise steps &middot; hover a point for its numbers</div>
-        </div>
+        <div class="archviz__label">On the real robot</div>
         <div id="frontier"></div>
+        <div class="legend" id="fr-legend"></div>
+        <p class="frontier__read" id="fr-read"></p>
       </div>
       </div>
     </div>
@@ -523,10 +522,9 @@
         <div class="legend" id="lg-selfrepair"></div>
       </div>
       <div data-chart="selfrepair"></div>
-      <p class="figcap" style="margin-top:10px">Eight stages in order means partial credit alone cannot separate a
-      policy that nearly finishes from one that finishes, so both are shown. Flex-π (full joint) completes the
-      <b>whole</b> sequence in 11 of 20 rollouts; the best baseline manages it once. Action-only → full joint
-      generation adds 9.1 points of task completion and <b>10 points of full-task success</b> (45% → 55%).</p>
+      <p class="figcap" style="margin-top:10px">Eight stages in order, so partial credit alone cannot separate a
+      policy that nearly finishes from one that does. Flex-π (full joint) completes the <b>whole</b> sequence in
+      11 of 20 rollouts; the best baseline manages it once.</p>
     </div>
   </div>
 
@@ -561,10 +559,9 @@
 <section class="sec" id="real-robot">
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">02</span>Dexterity under sustained contact</h3>
-    <p class="sec__sub">Five contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, 14
-    commanded degrees of freedom, three calibrated stereo cameras. Each demands precise bimanual coordination and
-    sustained contact. Every rollout is scored under a per-task partial-credit rubric; 10 or 20 rollouts per
-    method per condition.</p>
+    <p class="sec__sub">Five contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, three
+    calibrated stereo cameras. Each rollout is scored under a per-task partial-credit rubric, 10 or 20 rollouts
+    per method.</p>
   </div>
 
   <!-- task: putting into bag -->
@@ -579,9 +576,8 @@
     <div class="vfeature__meta">
       <div>
         <h4 class="vfeature__name">Soft-Bag Zipping</h4>
-        <p class="vfeature__desc">Grasp the zip, pull the bag open, hold the opening wide, drop a pen in, then
-        re-grasp the zip and close it again &mdash; six scored steps on a deformable object whose shape changes
-        with every action, so the second half of the task is only reachable if the first half went well.</p>
+        <p class="vfeature__desc">Unzip the bag, hold the opening wide, drop a pen in, then re-grasp the zip and
+        close it &mdash; six scored steps on a deformable object, each one reachable only if the last succeeded.</p>
       </div>
       <div class="scoreboard">
         <div class="score score--base"><div class="score__v">42.8<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
@@ -636,28 +632,20 @@
 
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">Scored against every baseline</h4>
-    <p class="sub__lede">Task completion is the rubric score as a fraction of the maximum. The solid core of each
-    bar is the stricter all-or-nothing measure: the share of rollouts that scored <em>full marks</em>.</p>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">In-distribution performance</div>
-          <div class="chartbox__sub">Task completion &middot; solid core = full-success rate</div>
+          <div class="chartbox__sub">Rubric score as a fraction of the maximum</div>
         </div>
         <div class="legend" id="lg-real"></div>
       </div>
       <div data-chart="real"></div>
-      <p class="figcap" style="margin-top:10px">The fast action-only path beats every baseline on <b>all five
-      tasks</b> while undercutting their latency; joint generation adds a further 6.6 points on average. Over the
-      five tasks Flex-π (full joint) reaches <b>83.0%</b> against 58.0% for the strongest baseline — and the gap
-      widens on the all-or-nothing measure, <b>63% of rollouts scoring full marks against 27%</b>.</p>
-      <p class="figcap" style="margin-top:8px;font-size:13px">Kitchen Organization is the easiest task in the
-      suite and every method does well on it; the separation comes from Self-Repair and Soft-Bag Zipping, where
-      the sequence is long and each step gates the next. Fast-WAM was evaluated on three of the five tasks, so
-      its <em>Average</em> covers those three. The <em>Average</em> group is the unweighted mean over tasks, not
-      a pooled rollout score.</p>
+      <p class="figcap" style="margin-top:10px">The action-only path beats every baseline on all five tasks;
+      joint generation adds 6.6 points more. <b>83.0%</b> against 58.0% for the best baseline. Fast-WAM was run
+      on three of the five tasks, so its average covers those three.</p>
     </div>
   </div>
 
@@ -691,11 +679,9 @@
 <section class="sec" id="generalization">
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">03</span>Robustness in cluttered scenes</h3>
-    <p class="sec__sub">Deployment scenes are rarely clean. We re-run the suite with the workspace deliberately
-    cluttered — novel distractor objects, never seen during fine-tuning — and with objects swapped for types the
-    policy has never handled: an unfamiliar plate and rack, and bags in unfamiliar colours and patterns. Each
-    task below switches between the two settings independently: <b>Seen</b> is the setting it was fine-tuned on,
-    <b>Unseen</b> the held-out one.</p>
+    <p class="sec__sub">Deployment scenes are rarely clean. We re-run the suite with novel distractor objects
+    filling the workspace, and with objects swapped for types the policy has never handled. <b>Seen</b> is the
+    setting it was fine-tuned on, <b>Unseen</b> the held-out one.</p>
   </div>
 
   <!-- task 1 -->
@@ -730,9 +716,8 @@
         <p class="vfeature__desc">
         <span data-cond="seen">A flat, low-friction plate, seated in a rack without tipping — the grasp has to
         hold through the whole placement.</span>
-        <span data-cond="unseen" hidden>The same skill, run against a plate and rack of a type never seen in
-        fine-tuning, and separately with novel distractor objects filling the workspace — the two held-out
-        conditions pooled.</span>
+        <span data-cond="unseen" hidden>An unseen plate and rack, and separately a workspace full of unseen
+        distractors — the two held-out conditions pooled.</span>
         <span class="demos">300 teleoperated demonstrations</span></p>
       </div>
       <div class="vfeature__scores">
@@ -827,13 +812,10 @@
       <div>
         <h4 class="vfeature__name">Kitchen Organization</h4>
         <p class="vfeature__desc">
-        <span data-cond="seen">A bowl and then a plate have to end up seated in the kitchen rack, in that order.
-        It is the most forgiving task in the suite — every method clears most of the rubric — which makes it the
-        place where the all-or-nothing measure does the separating: Flex-π finishes cleanly in 19 of 20 rollouts,
-        π<sub>0.5</sub> in 7.</span>
-        <span data-cond="unseen" hidden>The same task with unfamiliar tableware and an unfamiliar wire rack. This
-        held-out condition is <em>not</em> part of the scored generalization study — the footage is shown as a
-        qualitative result only.</span>
+        <span data-cond="seen">A bowl and then a plate, seated in the kitchen rack in that order. The most
+        forgiving task in the suite: Flex-π finishes cleanly in 19 of 20 rollouts, π<sub>0.5</sub> in 7.</span>
+        <span data-cond="unseen" hidden>Unfamiliar tableware and an unfamiliar wire rack — shown as a
+        qualitative result; this condition is not part of the scored study.</span>
         <span class="demos">360 teleoperated demonstrations</span></p>
       </div>
       <div class="vfeature__scores">
@@ -954,35 +936,26 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">What the shift costs each policy</div>
-          <div class="chartbox__sub">Faded bar = in-distribution &middot; solid bar = held-out &middot; number = the drop</div>
+          <div class="chartbox__sub">Number above each pair = the drop</div>
         </div>
         <div class="legend" id="lg-gen"></div>
       </div>
       <div data-chart="gen"></div>
-      <p class="figcap" style="margin-top:10px"><b>What matters here is the size of the drop, not the height of
-      the bar.</b> Flex-π (full joint) gives up <b>2.5, 5.0 and 6.7 points</b> across the three tasks; ManiFlow
-      gives up 32.5, 22.5 and 25.0, and π<sub>0.5</sub> loses 25.6 points on Soft-Bag Zipping alone. The advantage
-      is most pronounced exactly where appearance cues stop being reliable and success demands <b>geometric and
-      physical rather than appearance-based</b> generalization — echoing the LIBERO-Plus trend.</p>
-      <p class="figcap" style="margin-top:8px;font-size:13px">Put Plate on the Rack pools its two held-out
-      conditions — an unseen large plate and unseen distractor objects — into one bar, against the single-plate
-      in-distribution result. Sort Utensils is held out with unseen distractors, Soft-Bag Zipping with bags in
-      unseen colours and patterns. Fast-WAM was not evaluated on Soft-Bag Zipping.</p>
+      <p class="figcap" style="margin-top:10px"><b>The drop matters, not the height.</b> Flex-π (full joint)
+      gives up 2.5, 5.0 and 6.7 points; ManiFlow gives up 32.5, 22.5 and 25.0. Put Plate on the Rack pools its
+      two held-out conditions — unseen big plate, unseen distractors — into one bar.</p>
     </div>
   </div>
 
   <div class="wrap reveal" style="margin-top:34px">
     <div class="callout">
-      <b>Flex-π barely notices the shift.</b> Both Flex-π paths lose only a few points where the baselines lose
-      tens, and full joint generation is the most stable of all — it is the widest margin in the study, and it
-      appears precisely when the test distribution moves. This indicates that it is Flex-π's flexibly fused,
-      3D-aware world model, and not appearance matching, that carries the behaviour.
+      <b>Flex-π barely notices the shift.</b> Both paths lose a few points where the baselines lose tens —
+      evidence that it is the 3D-aware world model, not appearance matching, carrying the behaviour.
     </div>
   </div>
 
   <div class="wrap reveal" style="margin-top:64px">
     <h4 class="sub__title">Halving the data</h4>
-    <p class="sub__lede">The same task, the same rubric, trained on half as many demonstrations.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
@@ -990,15 +963,13 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Cutting the demonstrations in half</div>
-          <div class="chartbox__sub">Put Plate on the Rack, single plate &middot; number = the drop</div>
+          <div class="chartbox__sub">Put Plate on the Rack, single plate</div>
         </div>
         <div class="legend" id="lg-dataeff"></div>
       </div>
       <div data-chart="dataeff"></div>
-      <p class="figcap" style="margin-top:10px">Flex-π (full joint) degrades least by a wide margin —
-      <b>&minus;2.5 points</b> against &minus;37.5 for π<sub>0.5</sub>, &minus;27.5 for ManiFlow and
-      &minus;12.5 for Fast-WAM. The action-only path gives up 10 points and still lands above every baseline's
-      full-data result.</p>
+      <p class="figcap" style="margin-top:10px">Flex-π (full joint) gives up <b>2.5 points</b> against 37.5 for
+      π<sub>0.5</sub>. The action-only path loses 10 and still lands above every baseline's full-data result.</p>
     </div>
   </div>
 </section>

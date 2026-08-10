@@ -79,25 +79,11 @@
         var r = el('rect', {
           'class': 'bar', x: x + inset / 2, y: top,
           width: Math.max(1, barW - inset), height: Math.max(1, h),
-          fill: color, rx: 1.5, opacity: g.inner ? .45 : 1
+          fill: color, rx: 1.5
         });
         r.appendChild(el('title', {}, (series[si].name ? series[si].name + ' — ' : '') +
           (g.label || '') + ': ' + (cfg.valFmt ? cfg.valFmt(v) : v)));
         svg.appendChild(r);
-
-        /* solid inner segment: the stricter all-or-nothing score inside the
-           partial-credit bar (the paper's "binary success") */
-        if (g.inner && g.inner[si] !== null && g.inner[si] !== undefined) {
-          var iv = g.inner[si];
-          var ir = el('rect', {
-            'class': 'bar', x: x + inset / 2, y: y(iv),
-            width: Math.max(1, barW - inset), height: Math.max(1, yBase - y(iv)),
-            fill: color, rx: 1.5
-          });
-          ir.appendChild(el('title', {}, (series[si].name ? series[si].name + ' — ' : '') +
-            (g.label || '') + ', full success: ' + iv + '%'));
-          svg.appendChild(ir);
-        }
 
         /* value label */
         var isOurs = /Flex/i.test(series[si].name || '') || (g.hi && g.hi[si]);
@@ -446,7 +432,7 @@
           { name: 'π0.5', label: 'π₀.₅', color: C.base },
           { name: 'LingBot-VA', label: 'LingBot-VA', color: '#7b8b9e' },
           { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: '#8fd9b0' },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
@@ -463,33 +449,31 @@
     }
 
     /* real-robot in-distribution — five tasks + the unweighted average.
-       Source: real_world_eval/flex_pi_final_results.json (normalized_score,
-       with full_success_rate as the solid inner segment). Fast-WAM was only
-       evaluated on three of the five tasks; its average covers those three. */
+       Source: real_world_eval/flex_pi_final_results.json (normalized_score).
+       Fast-WAM was only run on three tasks; its average covers those three. */
     if ((m = find('real'))) {
       barChart(m, {
         series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base2 },
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
           { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
-          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
           { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
-          { label: 'Put Plate|on the Rack', values: [72.5, 75.8, 12.5, 84.2, 95.0], inner: [35, 40, 0, 55, 75] },
-          { label: 'Sort|Utensils',         values: [45.0, 55.0, 5.0, 70.0, 75.0],  inner: [0, 10, 0, 40, 50] },
-          { label: 'Kitchen|Organization',  values: [73.8, 93.8, 77.5, 96.2, 98.8], inner: [35, 75, 35, 85, 95] },
-          { label: 'Self-Repair|Gripper',   values: [26.2, 33.3, null, 66.9, 76.0], inner: [0, 5, null, 45, 55] },
-          { label: 'Soft-Bag|Zipping',      values: [42.8, 31.9, null, 64.9, 70.0], inner: [20, 5, null, 25, 40] },
-          { label: 'Average',               values: [52.1, 58.0, 31.7, 76.4, 83.0], inner: [18, 27, 11.7, 50, 63] }
+          { label: 'Put Plate|on the Rack', values: [72.5, 75.8, 12.5, 84.2, 95.0] },
+          { label: 'Sort|Utensils',         values: [45.0, 55.0, 5.0, 70.0, 75.0] },
+          { label: 'Kitchen|Organization',  values: [73.8, 93.8, 77.5, 96.2, 98.8] },
+          { label: 'Self-Repair|Gripper',   values: [26.2, 33.3, null, 66.9, 76.0] },
+          { label: 'Soft-Bag|Zipping',      values: [42.8, 31.9, null, 64.9, 70.0] },
+          { label: 'Average',               values: [52.1, 58.0, 31.7, 76.4, 83.0] }
         ],
         max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250, padB: 58,
         tickFmt: function (t) { return t + '%'; },
         valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
         yLabel: 'Task completion (%)', legendEl: '#lg-real',
         ariaLabel: 'Across five real-robot tasks Flex-π full joint averages 83.0 percent task completion and ' +
-          'action-only 76.4, against 58.0 for ManiFlow, 52.1 for π0.5 and 31.7 for Fast-WAM. The solid inner ' +
-          'segment of each bar is the all-or-nothing full-success rate.'
+          'action-only 76.4, against 58.0 for ManiFlow, 52.1 for π0.5 and 31.7 for Fast-WAM.'
       });
     }
 
@@ -500,9 +484,9 @@
     if ((m = find('gen'))) {
       pairedChart(m, {
         series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base2 },
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
           { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
-          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
           { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
         ],
@@ -526,7 +510,7 @@
     if ((m = find('selfrepair'))) {
       barChart(m, {
         series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base2 },
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
           { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
           { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
@@ -548,9 +532,9 @@
     if ((m = find('dataeff'))) {
       pairedChart(m, {
         series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base2 },
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
           { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
-          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
           { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
         ],
@@ -570,9 +554,9 @@
     if ((m = find('latency'))) {
       barChart(m, {
         groups: [
-          { label: 'π₀.₅|baseline', values: [66], colors: [C.base2] },
+          { label: 'π₀.₅|baseline', values: [66], colors: [C.base] },
           { label: 'ManiFlow|baseline', values: [103], colors: [C.base3] },
-          { label: 'Fast-WAM|baseline', values: [86], colors: [C.base] },
+          { label: 'Fast-WAM|baseline', values: [86], colors: [C.base2] },
           { label: 'Flex-π|action-only', values: [60], colors: [C.oursL] },
           { label: 'Flex-π|full joint', values: [193], colors: [C.oursD] }
         ],
@@ -586,96 +570,113 @@
   }
 
   /* ---------------------------------------------------------------------
-     the real-world frontier (inside the configurator card)
-     The paper's speed–accuracy scatter, drawn to the page's own tokens:
-     task completion against single-inference latency, with the region that
+     the real-world frontier, inside the configurator card
+     Task completion against single-inference latency, with the region that
      is both slower and less accurate than the fast path shaded. Compact,
-     because it sits under the mask controls whose consequence it shows.
-     Fully static — the only interaction is hovering a point for its exact
-     figures. Colors are var() references so it follows the theme without
-     ever being re-rendered.
-     Numbers: real_world_eval/flex_pi_final_results.json. Task completion is
-     the unweighted mean of the five in-distribution normalized scores; the
-     Fast-WAM mean covers only the three tasks it was evaluated on.
+     because it sits under the mask controls that steer it: setFrontierMode()
+     is called from the configurator so the dot for the chosen output mask
+     lights up. Static otherwise; hover a dot for its figures.
+     Numbers: real_world_eval/flex_pi_final_results.json — the unweighted
+     mean of the five in-distribution scores. Fast-WAM covers 3 of 5 tasks.
      --------------------------------------------------------------------- */
+  var setFrontierMode = function () {};
+
   function initFrontier() {
     var mount = document.getElementById('frontier');
     if (!mount) return;
 
     var M = [
-      { name: 'π₀.₅',                 lat: 66,  sr: 52.1, c: 'var(--c-base2)',  dx: 17,  dy: 5,   anchor: 'start' },
-      { name: 'Fast-WAM',             lat: 86,  sr: 31.7, c: 'var(--c-base)',   dx: 17,  dy: 5,   anchor: 'start', partial: true },
-      { name: 'ManiFlow',             lat: 103, sr: 58.0, c: 'var(--c-base3)',  dx: 17,  dy: 5,   anchor: 'start' },
-      { name: 'Flex-π (action-only)', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', dx: 18,  dy: -10, anchor: 'start', ours: true },
-      { name: 'Flex-π (full joint)',  lat: 193, sr: 83.0, c: 'var(--c-ours-d)', dx: -18, dy: -10, anchor: 'end',   ours: true }
+      { key: 'pi',   name: 'π₀.₅',    lat: 66,  sr: 52.1, c: 'var(--c-base)' },
+      { key: 'mf',   name: 'ManiFlow', lat: 103, sr: 58.0, c: 'var(--c-base3)' },
+      { key: 'fw',   name: 'Fast-WAM', lat: 86,  sr: 31.7, c: 'var(--c-base2)', partial: true },
+      { key: 'ao',   name: 'Flex-π (action-only)', short: 'Flex-π action-only', lat: 60,  sr: 76.4, c: 'var(--c-ours-l)', ours: true },
+      { key: 'joint', name: 'Flex-π (full joint)', short: 'Flex-π full joint', lat: 193, sr: 83.0, c: 'var(--c-ours-d)', ours: true }
     ];
 
-    var W = 1000, padL = 54, padR = 30, padT = 26, plotH = 230, H = 312;
+    var W = 400, padL = 44, padR = 12, padT = 14, plotH = 182, H = 252;
     var plotW = W - padL - padR;
-    var xMin = 0, xMax = 215, yMin = 20, yMax = 92;
+    var xMin = 0, xMax = 215, yMin = 22, yMax = 92;
     function X(v) { return padL + (v - xMin) / (xMax - xMin) * plotW; }
     function Y(v) { return padT + plotH - (v - yMin) / (yMax - yMin) * plotH; }
 
     var svg = el('svg', {
       'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
       preserveAspectRatio: 'xMidYMid meet', role: 'img',
-      'aria-label': 'Task completion versus inference latency on the real-world suite. Flex-π action-only ' +
-        'sits at 60 ms and 76.4%, faster than every baseline and 18 points above the strongest of them — ' +
-        'π0.5 at 66 ms, 52.1%; Fast-WAM at 86 ms, 31.7%; ManiFlow at 103 ms, 58.0%. Flex-π full joint is ' +
-        'slowest at 193 ms but highest, at 83.0%.'
+      'aria-label': 'Task completion against inference latency. Flex-π action-only reaches 76.4% at 60 ms, ' +
+        'faster and more accurate than every baseline — ManiFlow 58.0% at 103 ms, π0.5 52.1% at 66 ms, ' +
+        'Fast-WAM 31.7% at 86 ms. Flex-π full joint is highest at 83.0%, at 193 ms.'
     });
 
     var AXIS_Y = Y(yMin);
-    [20, 40, 60, 80].forEach(function (t) {
+    [25, 50, 75].forEach(function (t) {
       svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: Y(t), y2: Y(t) }));
-      svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 6, y: Y(t) + 3.5, 'text-anchor': 'end' }, String(t)));
     });
-    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 8, y2: AXIS_Y }));
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: padL, y1: padT - 4, y2: AXIS_Y }));
     svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: AXIS_Y, y2: AXIS_Y }));
-    [0, 50, 100, 150, 200].forEach(function (t) {
-      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 4 }));
-      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 20, 'text-anchor': 'middle' }, String(t)));
+    [0, 100, 200].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'axis', x1: X(t), x2: X(t), y1: AXIS_Y, y2: AXIS_Y + 3 }));
+      svg.appendChild(el('text', { 'class': 'tick', x: X(t), y: AXIS_Y + 16, 'text-anchor': 'middle' }, String(t)));
     });
-    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 44,
-      'text-anchor': 'middle' }, 'inference latency (ms) → slower'));
+    svg.appendChild(el('text', { 'class': 'alab', x: padL + plotW / 2, y: AXIS_Y + 34,
+      'text-anchor': 'middle' }, 'latency (ms) → slower'));
     svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
-      transform: 'translate(14,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion (%)'));
+      transform: 'translate(11,' + (padT + plotH / 2) + ') rotate(-90)' }, 'task completion (%)'));
 
-    /* verdict box: everything slower AND less accurate than the fast path */
+    /* everything slower AND less accurate than the fast path */
     var AO = M[3];
-    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 6) - Y(AO.sr) };
+    var dom = { x: X(AO.lat), y: Y(AO.sr), w: X(xMax) - X(AO.lat), h: (AXIS_Y - 4) - Y(AO.sr) };
     svg.appendChild(el('rect', { x: dom.x, y: dom.y, width: dom.w, height: dom.h, fill: 'var(--primary-soft)' }));
     svg.appendChild(el('line', { x1: dom.x, x2: dom.x, y1: dom.y, y2: dom.y + dom.h,
-      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .45 }));
     svg.appendChild(el('line', { x1: dom.x, x2: dom.x + dom.w, y1: dom.y, y2: dom.y,
-      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .5 }));
-    svg.appendChild(el('text', { 'class': 'domlab', x: X(210), y: Y(38), 'text-anchor': 'end' },
-      'every baseline: slower and lower'));
+      stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .45 }));
 
-    /* the speed claim, stated once, under the point that earns it — clear of
-       the verdict box's top edge, which runs through this point */
-    var fastLab = el('text', { 'class': 'fastlab', x: X(AO.lat) - 13, y: Y(AO.sr) + 17, 'text-anchor': 'end' },
-      'faster than every baseline');
-    svg.appendChild(fastLab);
-
+    var read = document.getElementById('fr-read');
+    var dots = {};
     M.forEach(function (m) {
       var g = el('g', {});
-      g.appendChild(el('circle', { cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 9 : 8, fill: m.c,
-        stroke: 'var(--bg-raise)', 'stroke-width': 2 }));
-      g.appendChild(el('text', { 'class': 'dlab' + (m.ours ? ' dlab--hi' : ''), x: X(m.lat) + m.dx,
-        y: Y(m.sr) + m.dy, 'text-anchor': m.anchor }, m.name));
-      /* exact numbers only on hover — the picture carries the comparison */
-      var val = el('text', { 'class': 'dval', x: X(m.lat) + m.dx, y: Y(m.sr) + m.dy + 16,
-        'text-anchor': m.anchor, opacity: 0 },
-        m.lat + ' ms · ' + m.sr.toFixed(1) + '%' + (m.partial ? ' (3 of 5 tasks)' : ''));
-      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 22, fill: 'transparent' });
-      hit.addEventListener('mouseenter', function () { val.setAttribute('opacity', 1); });
-      hit.addEventListener('mouseleave', function () { val.setAttribute('opacity', 0); });
-      g.appendChild(val); g.appendChild(hit);
+      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 11, stroke: m.c });
+      var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 7 : 6, fill: m.c,
+        stroke: 'var(--bg-raise)', 'stroke-width': 1.6 });
+      var hit = el('circle', { cx: X(m.lat), cy: Y(m.sr), r: 16, fill: 'transparent' });
+      hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '%' +
+        (m.partial ? ' (3 of 5 tasks)' : '')));
+      g.appendChild(ring); g.appendChild(dot); g.appendChild(hit);
       svg.appendChild(g);
+      dots[m.key] = { m: m, dot: dot, ring: ring };
     });
 
     mount.appendChild(svg);
+
+    /* legend, in the paper's order */
+    var lg = document.getElementById('fr-legend');
+    if (lg) {
+      [M[0], M[1], M[2], M[3], M[4]].forEach(function (m) {
+        var span = document.createElement('span');
+        span.className = 'legend__item';
+        var sw = document.createElement('span');
+        sw.className = 'legend__sw';
+        sw.style.background = m.c;
+        span.appendChild(sw);
+        span.appendChild(document.createTextNode(m.short || m.name));
+        lg.appendChild(span);
+      });
+    }
+
+    /* the configurator calls this with the number of generated visual streams */
+    setFrontierMode = function (nGen) {
+      var lit = nGen === 0 ? 'ao' : nGen === 3 ? 'joint' : null;
+      ['ao', 'joint'].forEach(function (k) {
+        dots[k].dot.setAttribute('data-lit', lit === null ? '' : (k === lit ? 'on' : 'off'));
+        dots[k].ring.setAttribute('data-lit', k === lit ? 'on' : '');
+      });
+      if (!read) return;
+      if (lit === 'ao')    read.innerHTML = 'Action-only <b>60 ms · 76.4%</b> — faster than every baseline';
+      else if (lit === 'joint') read.innerHTML = 'Full joint <b>193 ms · 83.0%</b> — the highest of all';
+      else read.textContent = 'Between the two — deployable, not separately measured';
+    };
+    setFrontierMode(3);
   }
 
   /* ---------------------------------------------------------------------
@@ -1335,6 +1336,8 @@
         var o = SKEYS.reduce(function (a, k, n) { return a + (mOut[k] ? (1 << n) : 0); }, 0);
         cEl.textContent = String((i - 1) * 8 + o + 1);
       }
+      /* light up the operating point this output mask corresponds to */
+      setFrontierMode(SKEYS.filter(function (k) { return mOut[k]; }).length);
     }
 
     root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {
@@ -1437,7 +1440,7 @@
   function boot() {
     initTheme();
     renderCharts();
-    initFrontier();
+    initFrontier();      /* before initArchviz: the masks drive its highlight */
     initExplorer();
     initMaskDemo();
     initVideos();

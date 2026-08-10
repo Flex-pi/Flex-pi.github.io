@@ -39,13 +39,14 @@
   --s-dino:   #57c98b;
   --s-action: #e8797d;
 
-  /* chart series */
-  --c-base:   #9a9a9a;   /* neutral baseline            */
-  --c-base2:  #e0b04a;   /* π0.5 (amber, as in Fig 8/11) */
-  --c-base3:  #7b8b9e;   /* second neutral baseline     */
-  --c-ours:   #57c98b;   /* Flex-π accent               */
-  --c-ours-l: #8fd9b0;   /* Flex-π action-only          */
-  --c-ours-d: #2f8f5b;   /* Flex-π full joint           */
+  /* chart series — the paper's own legend, lightened for the dark ground.
+     Day values below are the paper's exact hues. Keep the two in step. */
+  --c-base:   #a8a8a8;   /* π0.5      (grey)   */
+  --c-base2:  #e0a526;   /* Fast-WAM  (amber)  */
+  --c-base3:  #7fb3d5;   /* ManiFlow  (blue)   */
+  --c-ours:   #57c98b;   /* Flex-π accent      */
+  --c-ours-l: #74c47e;   /* Flex-π action-only */
+  --c-ours-d: #3f9e52;   /* Flex-π full joint  */
   --chart-grid: rgba(255,255,255,.075);
   --chart-axis: rgba(255,255,255,.28);
   --plate-bg:  var(--figure-cream);
@@ -112,12 +113,12 @@
   --s-dino:   #2f7d52;
   --s-action: #b8464a;
 
-  --c-base:   #8a8a80;
-  --c-base2:  #b8862c;
-  --c-base3:  #6f8090;
-  --c-ours:   #2f7d52;
-  --c-ours-l: #74b58f;
-  --c-ours-d: #226b43;
+  --c-base:   #9e9e9e;   /* π0.5      — paper's exact legend colours */
+  --c-base2:  #e0a526;   /* Fast-WAM  */
+  --c-base3:  #7fb3d5;   /* ManiFlow  */
+  --c-ours:   #2e7d3e;
+  --c-ours-l: #5ba463;   /* Flex-π action-only */
+  --c-ours-d: #2e7d3e;   /* Flex-π full joint  */
   --chart-grid: rgba(12,12,12,.10);
   --chart-axis: rgba(12,12,12,.34);
   --plate-bg:  #ffffff;
@@ -877,15 +878,20 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
   text-transform: uppercase; color: var(--fg-faint);
 }
+/* the diagram fills the left column across both rows; the right column
+   stacks the mask controls over the frontier they steer, so choosing a
+   configuration and seeing where it lands stay in one eyeful */
 .archviz__body {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 336px);
-  column-gap: clamp(36px, 5vw, 84px); row-gap: clamp(18px, 2.6vw, 34px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 384px);
+  column-gap: clamp(28px, 3.6vw, 56px); row-gap: clamp(16px, 2.2vw, 26px);
   align-items: start;
   padding: clamp(18px, 2.6vw, 28px) clamp(16px, 2.4vw, 26px);
 }
 @media (max-width: 900px) { .archviz__body { grid-template-columns: 1fr; } }
 
 .archviz__diagram { min-width: 0; }
+@media (min-width: 901px) { .archviz__diagram { grid-row: 1 / 3; align-self: center; } }
 .archviz__figrow { display: flex; gap: 14px; align-items: stretch; }
 .archviz__figrow svg { flex: 1 1 auto; min-width: 0; height: auto; aspect-ratio: 400 / 320; }
 .archviz__ctl { min-width: 0; }
@@ -1151,20 +1157,21 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
 
-/* real-world frontier, folded into the configurator card so the mask choice
-   and its speed/accuracy consequence are read together */
-.archviz__frontier {
-  grid-column: 1 / -1;
-  border-top: 1px solid var(--border-faint);
-  padding-top: clamp(14px, 2vw, 20px);
+/* real-world frontier, under the mask controls it belongs to */
+.archviz__frontier { min-width: 0; border-top: 1px solid var(--border-faint); padding-top: 14px; }
+.archviz__frontier .legend { margin: 8px 0 0; gap: 5px 12px; }
+.archviz__frontier .legend__item { font-size: 11.5px; }
+.frontier__read {
+  margin: 7px 0 0; font-family: var(--ff-mono); font-size: 12.5px; color: var(--fg-dim);
+  min-height: 1.4em;
 }
-.archviz__frontierhead { margin-bottom: 4px; }
-.archviz__frontiersub { font-size: var(--fs-fine); color: var(--fg-faint); margin-top: 2px; }
-.chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 15px; }
-.chart .fastlab { fill: var(--c-ours-d); font-family: var(--ff-body); font-style: italic; font-size: 14px; }
-.chart .dlab--hi { fill: var(--fg); font-weight: 600; }
-.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 12.5px; }
-.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 14px; }
+.frontier__read b { color: var(--c-ours); font-weight: 500; }
+.chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 13px; }
+.chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 13px; }
+.chart .fr-dot { transition: opacity .2s var(--ease); }
+.chart .fr-ring { fill: none; stroke-width: 2; opacity: 0; transition: opacity .2s var(--ease); }
+.chart .fr-ring[data-lit="on"] { opacity: 1; }
+.chart .fr-dot[data-lit="off"] { opacity: .3; }
 
 /* pareto entrance: line draws itself, points pop in as it reaches them,
    the Fast-WAM baseline fades in last. Armed via data-anim="wait", fired
