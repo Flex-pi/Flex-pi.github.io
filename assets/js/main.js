@@ -49,6 +49,32 @@
     return e;
   }
 
+  /* Grow measured bars once when the chart first enters the viewport. The
+     bars remain parallel comparisons; motion never connects methods or
+     implies a causal sequence. Static values stay available in the SVG. */
+  function armBarFlow(mount, svg) {
+    if (reduceMotion || !('IntersectionObserver' in window) || mount.getAttribute('data-bar-played') === 'true') return;
+
+    var bars = Array.prototype.slice.call(svg.querySelectorAll('.bar'));
+    if (!bars.length) return;
+    svg.classList.add('chart--barflow');
+    bars.forEach(function (bar, i) {
+      bar.style.setProperty('--ad', (Math.min(i, 18) * 0.035).toFixed(3) + 's');
+    });
+    Array.prototype.slice.call(svg.querySelectorAll('.ebar, .vlab')).forEach(function (mark, i) {
+      mark.style.setProperty('--ad', (0.28 + Math.min(i, 18) * 0.035).toFixed(3) + 's');
+    });
+
+    svg.setAttribute('data-anim', 'wait');
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      io.disconnect();
+      mount.setAttribute('data-bar-played', 'true');
+      requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+    }, { threshold: 0.28 });
+    io.observe(svg);
+  }
+
   /* ---------------------------------------------------------------------
      grouped / single-series bar chart
      --------------------------------------------------------------------- */
@@ -157,6 +183,7 @@
 
     mount.innerHTML = '';
     mount.appendChild(svg);
+    armBarFlow(mount, svg);
 
     /* legend */
     if (cfg.legendEl && nS > 1) {
@@ -257,6 +284,7 @@
 
     mount.innerHTML = '';
     mount.appendChild(svg);
+    armBarFlow(mount, svg);
 
     if (cfg.legendEl) {
       var lg = document.querySelector(cfg.legendEl);
@@ -406,6 +434,115 @@
   }
 
   /* ---------------------------------------------------------------------
+     data-efficiency slope flow
+
+     The x positions are the three evaluated demonstration budgets, not a
+     continuous interpolation. Flex-π values stay labelled; baseline values
+     appear when their measured path is hovered or keyboard-focused.
+     --------------------------------------------------------------------- */
+  var scalingFlowPlayed = false;
+  function scalingFlowChart(mount, C) {
+    var W = 1000, padL = 58, padR = 28, padT = 28, padB = 64, plotH = 292;
+    var H = padT + plotH + padB;
+    var x = [150, 505, 860];
+    var budgets = ['50', '100', '500'];
+    var series = [
+      { name: 'π₀.₅', color: C.base, values: [31.4, 44.7, 76.8] },
+      { name: 'LingBot-VA', color: '#7b8b9e', values: [17.2, 32.2, 91.6] },
+      { name: 'Fast-WAM', color: C.base2, values: [41.9, 68.1, 91.8] },
+      { name: 'Flex-π (action-only)', color: C.oursL, values: [73.4, 86.6, 93.6], ours: true, labelDy: -11 },
+      { name: 'Flex-π (full joint)', color: C.oursD, values: [78.8, 87.0, 93.3], ours: true, labelDy: 18 }
+    ];
+    function Y(v) { return padT + plotH - (v / 100) * plotH; }
+
+    var svg = el('svg', {
+      'class': 'chart chart--scaling-flow', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': 'Data efficiency on domain-randomized RoboTwin over 50 tasks. At 50, 100 and 500 demonstrations per task: pi zero point five scores 31.4, 44.7 and 76.8 percent; LingBot-VA 17.2, 32.2 and 91.6; Fast-WAM 41.9, 68.1 and 91.8; Flex-pi action-only 73.4, 86.6 and 93.6; Flex-pi full joint 78.8, 87.0 and 93.3.'
+    });
+
+    [0, 25, 50, 75, 100].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
+    });
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: Y(0), y2: Y(0) }));
+    budgets.forEach(function (b, i) {
+      svg.appendChild(el('line', { 'class': 'grid sflow__guide', x1: x[i], x2: x[i], y1: padT, y2: Y(0) }));
+      svg.appendChild(el('text', { 'class': 'glab', x: x[i], y: Y(0) + 24, 'text-anchor': 'middle' }, b + ' demos'));
+    });
+    svg.appendChild(el('text', { 'class': 'alab', x: (padL + W - padR) / 2, y: H - 11,
+      'text-anchor': 'middle' }, 'Demonstrations per task'));
+    svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
+      transform: 'translate(14,' + (padT + plotH / 2) + ') rotate(-90)' }, 'Average success'));
+
+    var groups = [];
+    function setHighlight(active) {
+      groups.forEach(function (g, i) {
+        g.setAttribute('data-dim', active !== null && i !== active ? 'true' : 'false');
+        g.setAttribute('data-highlight', active === i ? 'true' : 'false');
+      });
+    }
+
+    series.forEach(function (s, si) {
+      var d = s.values.map(function (v, i) { return (i ? 'L' : 'M') + x[i] + ' ' + Y(v); }).join(' ');
+      var g = el('g', {
+        'class': 'sflow__series' + (s.ours ? ' sflow__series--ours' : ''),
+        tabindex: '0', role: 'group',
+        'aria-label': s.name + ': ' + s.values.join(', ') + ' percent at 50, 100 and 500 demonstrations per task.',
+        style: '--c:' + s.color + ';--ad:' + (0.08 + si * 0.09).toFixed(2) + 's'
+      });
+      g.appendChild(el('path', { 'class': 'sflow__line', d: d, pathLength: 1, fill: 'none' }));
+      g.appendChild(el('path', { 'class': 'sflow__hit', d: d, fill: 'none' }));
+
+      s.values.forEach(function (v, i) {
+        g.appendChild(el('circle', { 'class': 'sflow__point', cx: x[i], cy: Y(v), r: s.ours ? 5.5 : 4.3 }));
+        var lab = el('text', {
+          'class': 'vlab sflow__value', x: x[i], y: Y(v) + (s.labelDy || -10),
+          'text-anchor': 'middle'
+        }, v.toFixed(1));
+        g.appendChild(lab);
+      });
+
+      g.addEventListener('mouseenter', function () { setHighlight(si); });
+      g.addEventListener('mouseleave', function () { setHighlight(null); });
+      g.addEventListener('focus', function () { setHighlight(si); });
+      g.addEventListener('blur', function () { setHighlight(null); });
+      svg.appendChild(g);
+      groups.push(g);
+    });
+
+    mount.innerHTML = '';
+    mount.appendChild(svg);
+
+    var lg = document.getElementById('lg-scaling');
+    if (lg) {
+      lg.innerHTML = '';
+      series.forEach(function (s) {
+        var item = document.createElement('span');
+        item.className = 'legend__item';
+        var sw = document.createElement('span');
+        sw.className = 'legend__sw legend__sw--line';
+        sw.style.setProperty('--c', s.color);
+        sw.style.background = s.color;
+        item.appendChild(sw);
+        item.appendChild(document.createTextNode(s.name));
+        lg.appendChild(item);
+      });
+    }
+
+    if (!reduceMotion && !scalingFlowPlayed && 'IntersectionObserver' in window) {
+      svg.setAttribute('data-anim', 'wait');
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        io.disconnect();
+        scalingFlowPlayed = true;
+        requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+      }, { threshold: 0.35 });
+      io.observe(svg);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      chart data + wiring
      --------------------------------------------------------------------- */
   function renderCharts() {
@@ -461,25 +598,7 @@
 
     /* RoboTwin data scaling */
     if ((m = find('scaling'))) {
-      barChart(m, {
-        series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base },
-          { name: 'LingBot-VA', label: 'LingBot-VA', color: '#7b8b9e' },
-          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
-          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
-        ],
-        groups: [
-          { label: '50 demos',  values: [31.4, 17.2, 41.9, 73.4, 78.8] },
-          { label: '100 demos', values: [44.7, 32.2, 68.1, 86.6, 87.0] },
-          { label: '500 demos', values: [76.8, 91.6, 91.8, 93.6, 93.3] }
-        ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 260,
-        tickFmt: function (t) { return t + '%'; }, valFmt: pct,
-        yLabel: 'Avg. success (%)', xLabel: 'Demonstrations per task (50 tasks total)',
-        legendEl: '#lg-scaling',
-        ariaLabel: 'Flex-π leads at every data scale, with the largest margin at 50 demos per task.'
-      });
+      scalingFlowChart(m, C);
     }
 
     /* real-robot in-distribution — five tasks + the unweighted average.

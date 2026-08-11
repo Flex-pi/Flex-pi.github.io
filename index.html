@@ -134,7 +134,7 @@
 <section class="sec" id="abstract">
   <div class="wrap reveal">
     <div class="prose">
-      <p class="lede">World-action models (WAMs) that jointly predict future observations and actions have recently
+      <p class="lede abstract__problem">World-action models (WAMs) that jointly predict future observations and actions have recently
       outperformed parameter-equivalent vision-language-action models on manipulation, but three limitations
       hamper their deployment: they predict in <em>pixel space</em>, lack explicit <em>3D grounding</em>, and bake their
       inference cost in at <em>training time</em>.</p>
@@ -1265,14 +1265,32 @@
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:30px">
-    <div class="chartbox">
+    <div class="chartbox" id="cross-modality-flow">
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Cross-modality forcing</div>
           <div class="chartbox__sub">RoboTwin average success, 5 tasks &middot; both models observe all three streams</div>
         </div>
       </div>
-      <div data-chart="xmodal"></div>
+      <div class="metricflow" role="img" aria-label="Cross-modality forcing raises RoboTwin average success from 45.2 percent to 66.4 percent, an improvement of 21.2 percentage points.">
+        <div class="metricflow__scroller">
+          <div class="metricflow__track metricflow__track--2">
+            <div class="metricflow__node" style="--delay:0ms;--node-color:var(--c-base)">
+              <span class="metricflow__value">45.2<span class="metricflow__unit">%</span></span>
+              <span class="metricflow__dot" aria-hidden="true"></span>
+              <span class="metricflow__label">Input-matched generation</span>
+            </div>
+            <div class="metricflow__link" style="--delay:110ms;--link-end:var(--c-ours)" aria-hidden="true">
+              <span class="metricflow__delta">+21.2 pp</span>
+            </div>
+            <div class="metricflow__node metricflow__node--result" style="--delay:220ms;--node-color:var(--c-ours)">
+              <span class="metricflow__value">66.4<span class="metricflow__unit">%</span></span>
+              <span class="metricflow__dot" aria-hidden="true"></span>
+              <span class="metricflow__label">Cross-modality forcing</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <p class="figcap" style="margin-top:6px">Only the generation rule differs: restricting generation to the streams
       present in the input drops success from 66.4% to 45.2%.</p>
     </div>
@@ -1558,7 +1576,7 @@
     <p class="sub__lede">The margin is widest where demonstrations are scarcest.</p>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
-    <div class="chartbox">
+    <div class="chartbox" id="data-efficiency-flow">
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Data efficiency on RoboTwin</div>
@@ -1578,14 +1596,40 @@
   </div>
 
   <div class="wrap reveal" style="margin-top:20px">
-    <div class="chartbox">
+    <div class="chartbox" id="input-stream-flow">
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Input streams, added cumulatively</div>
           <div class="chartbox__sub">RoboTwin, 5 tasks, 50 demos each, trained from scratch</div>
         </div>
       </div>
-      <div data-chart="inputs"></div>
+      <div class="metricflow" role="img" aria-label="RoboTwin average success rises from 39.6 percent with RGB to 46.4 percent with RGB and DINO, and to 66.4 percent after adding pointmaps.">
+        <div class="metricflow__scroller">
+          <div class="metricflow__track metricflow__track--3">
+            <div class="metricflow__node" style="--delay:0ms;--node-color:var(--s-rgb)">
+              <span class="metricflow__value">39.6<span class="metricflow__unit">%</span></span>
+              <span class="metricflow__dot" aria-hidden="true"></span>
+              <span class="metricflow__label">RGB</span>
+            </div>
+            <div class="metricflow__link" style="--delay:110ms;--link-end:var(--s-dino)" aria-hidden="true">
+              <span class="metricflow__delta">+6.8 pp</span>
+            </div>
+            <div class="metricflow__node" style="--delay:220ms;--node-color:var(--s-dino)">
+              <span class="metricflow__value">46.4<span class="metricflow__unit">%</span></span>
+              <span class="metricflow__dot" aria-hidden="true"></span>
+              <span class="metricflow__label">RGB + DINO</span>
+            </div>
+            <div class="metricflow__link" style="--delay:330ms;--link-end:var(--s-3d)" aria-hidden="true">
+              <span class="metricflow__delta">+20.0 pp</span>
+            </div>
+            <div class="metricflow__node metricflow__node--result" style="--delay:440ms;--node-color:var(--s-3d)">
+              <span class="metricflow__value">66.4<span class="metricflow__unit">%</span></span>
+              <span class="metricflow__dot" aria-hidden="true"></span>
+              <span class="metricflow__label">RGB + DINO + Pointmap</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <p class="figcap" style="margin-top:10px">DINO adds 6.8 points over video alone; pointmaps on top of both add a
       further 20.0. The <b>3D stream is worth roughly three times what the semantic stream is</b>, on top of it.</p>
     </div>
