@@ -469,6 +469,23 @@
       <p class="part__d">One checkpoint on a bimanual YAM workcell: an eight-stage self-repair, five contact-rich tasks scored against four baselines, and three conditions it was never fine-tuned on.</p>
     </div>
   </div>
+
+  <!-- The scoreboard the part description just promised. It cuts across all
+       three sections below — self-repair is 01, the contact-rich tasks are 02,
+       the same tasks held out are 03 — so it opens the part rather than
+       sitting inside any one of them. -->
+  <div class="wrap wrap--wide reveal" style="margin-top:28px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div class="chartbox__title chartbox__title--lead">Flex-π leads on every task</div>
+        <div class="legend" id="lg-taskgap"></div>
+      </div>
+      <div data-chart="taskgap"></div>
+      <p class="figcap" style="margin-top:10px">One row per task, against whichever baseline was strongest on
+      it. The action-only path clears every one of them before joint generation adds the rest.</p>
+    </div>
+  </div>
+
 </div>
 
 <!-- ====================== precision & long horizon ====================== -->
@@ -634,6 +651,7 @@
     per method.</p>
   </div>
 
+
   <!-- task: putting into bag -->
   <div class="wrap wrap--wide reveal vfeature">
     <div class="vfeature__bar vfeature__bar--plain">
@@ -773,25 +791,6 @@
       lose most of what they had &mdash; π<sub>0.5</sub> falls from 42.8% to 17.2%, ManiFlow from 31.9% to 6.9%.
       Flex-π (full joint) gives up <b>6.7 points</b>, because the zip is found by geometry and contact rather than
       by the look of the fabric. Fast-WAM was not run on this task.</p>
-    </div>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">Scored against every baseline</h4>
-  </div>
-  <div class="wrap wrap--wide reveal" style="margin-top:20px">
-    <div class="chartbox">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">In-distribution performance</div>
-          <div class="chartbox__sub">Rubric score as a fraction of the maximum</div>
-        </div>
-        <div class="legend" id="lg-real"></div>
-      </div>
-      <div data-chart="real"></div>
-      <p class="figcap" style="margin-top:10px">The action-only path beats every baseline on all five tasks;
-      joint generation adds 6.6 points more. <b>83.0%</b> against 58.0% for the best baseline. Fast-WAM was run
-      on three of the five tasks, so its average covers those three.</p>
     </div>
   </div>
 

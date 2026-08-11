@@ -1310,6 +1310,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .chartbox[id] { scroll-margin-top: 86px; }
 .chartbox__head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: baseline; margin-bottom: 18px; }
 .chartbox__title { font-weight: 600; font-size: 16px; letter-spacing: -.005em; }
+/* for a figure that carries a section's headline claim rather than labelling a
+   panel — sized between .chartbox__title and .sub__title */
+.chartbox__title--lead { font-size: clamp(18px, 1.9vw, 23px); letter-spacing: -.012em; line-height: 1.2; }
 .chartbox__sub { font-size: 13.5px; color: var(--fg-dim); }
 .chartbox--compact {
   width: min(100%, 740px); margin-inline: auto;
@@ -1363,6 +1366,18 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 /* binomial standard error whiskers, as in the paper's real-robot figures */
 .chart .ebar line { stroke: var(--chart-err); stroke-width: 1.2; stroke-linecap: butt; }
 .chart .ptlab { fill: var(--fg-muted); font-family: var(--ff-mono); font-size: var(--fs-meta); }
+
+/* dumbbell rows: the run from the strongest baseline to Flex-π is the result,
+   so it is drawn as one connected object rather than separate marks */
+.chart .db-run { stroke: var(--chart-axis); stroke-width: 3.5; stroke-linecap: round; opacity: .55; }
+.chart .db-dot--base { fill: var(--c-base); }
+.chart .db-dot--fast { fill: var(--bg-raise); stroke: var(--c-ours-l); stroke-width: 2.5; }
+.chart .db-dot--joint { fill: var(--c-ours-d); }
+.chart .db-delta { fill: var(--c-ours); font-family: var(--ff-mono); font-size: var(--fs-meta); font-weight: 500; }
+/* which baseline the grey dot actually is, per row */
+.chart .db-who { fill: var(--fg-dim); font-family: var(--ff-body); font-size: var(--fs-fine); }
+
+.legend__sw--dot { border-radius: 50%; }
 /* benchmark summary: method rows on the left, one panel per benchmark */
 .chart .benchlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 13.5px; }
 .chart .benchlab--hi { fill: var(--fg); font-weight: 600; }
