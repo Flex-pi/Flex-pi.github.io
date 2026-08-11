@@ -1441,6 +1441,45 @@
 
     var LABEL = { rgb: 'RGB', dino: 'DINO', p3d: 'Pointmap' };
     var pairs = Array.prototype.slice.call(strip.querySelectorAll('.predpair'));
+
+    /* ------------------------------------------------------------------
+       The two clips in a pair are the same episode, so they have to run in
+       step. The reveal only uncovers the row: the future is put at the
+       rollout's position the moment it becomes visible, and nudged back
+       whenever it drifts. Drift is real — the decodes are up to 70 ms
+       shorter than their rollouts, so one loop boundary is enough to walk
+       them apart — and the collapsed row is display:none, which the
+       autoplay observer reads as off-screen and pauses.
+       ------------------------------------------------------------------ */
+    var SYNC_TOL = 0.18;
+
+    function partsOf(fig) {
+      return {
+        real: fig.querySelector('.player:not(.predpair__gen) video'),
+        gen: fig.querySelector('.predpair__gen video')
+      };
+    }
+
+    function syncPair(fig, force) {
+      var p = partsOf(fig);
+      if (!p.real || !p.gen || !p.gen.getAttribute('src')) return;
+      /* durations arrive with the metadata; before that there is nothing to
+         seek against and a seek would be discarded anyway */
+      if (!isFinite(p.gen.duration) || !isFinite(p.real.duration)) return;
+      var t = Math.min(p.real.currentTime, Math.max(0, p.gen.duration - 0.05));
+      if (force || Math.abs(p.gen.currentTime - t) > SYNC_TOL) p.gen.currentTime = t;
+    }
+
+    function shown() { return strip.getAttribute('data-pred') !== 'hidden'; }
+
+    pairs.forEach(function (fig) {
+      var p = partsOf(fig);
+      if (!p.real || !p.gen) return;
+      /* the rollout is the clock: every tick corrects the future against it */
+      p.real.addEventListener('timeupdate', function () { if (shown()) syncPair(fig); });
+      /* a fresh source starts at zero, so catch it as soon as it can seek */
+      p.gen.addEventListener('loadeddata', function () { if (shown()) syncPair(fig, true); });
+    });
     var modeBtns = modes
       ? Array.prototype.slice.call(modes.querySelectorAll('.predmode'))
       : [];
@@ -1504,10 +1543,15 @@
         : ' Hide the predicted futures';
       if (note) note.hidden = !hidden;
       syncPressed();
-      /* a paused-off-screen clip in a collapsed row should not keep decoding */
-      strip.querySelectorAll('.predpair__gen video').forEach(function (v) {
-        if (hidden) v.pause();
-        else if (v.getAttribute('src')) v.play().catch(function () {});
+      /* a paused-off-screen clip in a collapsed row should not keep decoding;
+         on the way back it joins the rollout where the rollout already is */
+      pairs.forEach(function (fig) {
+        var v = fig.querySelector('.predpair__gen video');
+        if (!v) return;
+        if (hidden) { v.pause(); return; }
+        if (!v.getAttribute('src')) return;
+        syncPair(fig, true);
+        v.play().catch(function () {});
       });
     }
 
