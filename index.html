@@ -49,7 +49,6 @@
       <a href="#generalization">Cluttered Scenes</a>
       <a href="#streams">Architecture</a>
       <a href="#method">Method</a>
-      <a href="#explorer" class="nav-hide">Flexibility</a>
       <a href="#simulation">Benchmarks</a>
       <a href="#bibtex" class="nav-hide">BibTeX</a>
     </div>
@@ -78,7 +77,6 @@
     <a data-level="1" href="#part-2">How it works</a>
     <a data-level="2" data-part="part-2" href="#method">One latent space</a>
     <a data-level="2" data-part="part-2" href="#predictions">Predicted futures</a>
-    <a data-level="2" data-part="part-2" href="#explorer">Compute flexibility</a>
     <a data-level="1" href="#part-3">How it compares</a>
     <a data-level="2" data-part="part-3" href="#simulation">Benchmarks</a>
     <a data-level="2" data-part="part-3" href="#limitations">Conclusion</a>
@@ -1447,24 +1445,6 @@
 </section>
 
 <hr class="rule">
-
-<!-- ====================== explorer ====================== -->
-<section class="sec" id="explorer">
-  <div class="wrap reveal">
-    <h3 class="sec__title">Measured inference latency on the real robot</h3>
-    <p class="sec__sub">Single RTX 5090, bfloat16, torch.compile &middot; 4 denoise steps.</p>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:32px">
-    <div class="chartbox">
-      <div data-chart="latency"></div>
-      <p class="figcap" style="margin-top:10px">Flex-π's action-only path (60&nbsp;ms) <b>undercuts every
-      baseline</b> — π<sub>0.5</sub> (66&nbsp;ms), Fast-WAM (86&nbsp;ms), ManiFlow (103&nbsp;ms) — while full
-      joint generation (193&nbsp;ms) trades speed for the highest task completion. Chunked execution decouples
-      inference rate from control rate on the 30&nbsp;Hz robot — one query per 32-step chunk.</p>
-    </div>
-  </div>
-</section>
 
 <!-- ====================== part III ====================== -->
 <div class="part" id="part-3">
