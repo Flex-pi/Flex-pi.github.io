@@ -664,14 +664,38 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 
 .predpair { display: flex; flex-direction: column; gap: 8px; }
 .predpair .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
-/* Display-only colour match for each real rollout in the prediction comparison. */
-.predpair[data-wb-id="selfrepair"] { --wb-brightness: .92; --wb-warmth: .25; }
-.predpair[data-wb-id="bag"]        { --wb-brightness: .84; --wb-warmth: .25; }
-.predpair[data-wb-id="platerack"]  { --wb-brightness: .92; --wb-warmth: .09; }
-.predpair[data-wb-id="utensils"]   { --wb-brightness: .92; --wb-warmth: .13; }
-.predpair[data-wb-id="kitchen"]    { --wb-brightness: .82; --wb-warmth: .25; }
+/* Display-only grade for each real rollout in the prediction comparison.
+   The head-camera footage comes off the workcell flat and under-exposed — the
+   white 3D-printed grippers read grey and the orange parts read brown, which
+   on the self-repair pair made the gripper look like the wrong part. This used
+   to pull the rollout further DOWN (brightness .82-.92, saturate .80, sepia up
+   to .25) to white-balance it against the decode below it; the match was made
+   in the wrong direction and cost the footage its colour.
+
+   Correcting all the way to YAVG ~130 overshot and read too bright, so each
+   clip now sits at the midpoint of the two grades. Measured full-clip YAVG is
+   123.3 selfrepair / 108.5 bag / 119.2 platerack / 98.5 utensils / 120.5
+   kitchen; the old and new factors and the midpoint they land on are:
+
+     selfrepair  .92 / 1.06 -> 0.99     bag        .84 / 1.18 -> 1.01
+     platerack   .92 / 1.09 -> 1.01     utensils   .92 / 1.16 -> 1.04
+     kitchen     .82 / 1.08 -> 0.95
+
+   which puts graded YAVG at 102-122 instead of a flat 130. Brightness is the
+   only axis that moved back: the saturate lift and the dropped sepia are what
+   fixed the grey grippers, so they stay.
+
+   --wb-warmth is kept as a hook but defaults to 0: any sepia at all is what
+   greyed the parts. Raise it per clip only to fix a genuine colour cast.
+   initLightbox() copies the computed filter onto the expanded video, so the
+   graded and the full-screen view agree. */
+.predpair[data-wb-id="selfrepair"] { --wb-brightness: .99; }
+.predpair[data-wb-id="bag"]        { --wb-brightness: 1.01; }
+.predpair[data-wb-id="platerack"]  { --wb-brightness: 1.01; }
+.predpair[data-wb-id="utensils"]   { --wb-brightness: 1.04; }
+.predpair[data-wb-id="kitchen"]    { --wb-brightness: .95; }
 .predpair__real video {
-  filter: brightness(var(--wb-brightness, .82)) saturate(.80) sepia(var(--wb-warmth, .06));
+  filter: brightness(var(--wb-brightness, 1)) saturate(1.12) sepia(var(--wb-warmth, 0));
 }
 .predpair__gen { border-color: color-mix(in srgb, var(--dot) 42%, transparent); }
 /* Slightly cool the decoded RGB futures; semantic and pointmap streams stay unchanged. */

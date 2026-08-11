@@ -713,7 +713,7 @@
         valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
         yLabel: 'Task completion (%)', legendEl: '#lg-summary',
         ariaLabel: 'Averaged over the real-robot suite, Flex-π full joint reaches 83.0 percent on seen tasks ' +
-          'against 58.0 for the best baseline, 76.1 on held-out conditions against 43.2, and 95.0 when trained ' +
+          'against 58.0 for the best baseline, 76.1 on unseen conditions against 43.2, and 95.0 when trained ' +
           'on half the demonstrations against 60.0.'
       });
     }
@@ -773,11 +773,11 @@
             a: [45.0, 55.0, 5.0, 70.0, 75.0],  b: [40.0, 32.5, 0.0, 70.0, 70.0],
             aN: [10, 10, 10, 10, 10], bN: [10, 10, 10, 10, 10] }
         ],
-        aName: 'in-distribution', bName: 'held-out',
+        aName: 'in-distribution', bName: 'unseen',
         max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250,
         bandFrac: 0.74, maxBarW: 34,
         yLabel: 'Task completion (%)', legendEl: '#lg-gen',
-        ariaLabel: 'Moving to held-out conditions, Flex-π full joint loses 2.5 points on Put Plate on the Rack ' +
+        ariaLabel: 'Moving to unseen conditions, Flex-π full joint loses 2.5 points on Put Plate on the Rack ' +
           'and 5 on Sort Utensils, while ManiFlow loses 32.5 and 22.5 and π0.5 loses 7.5 and 5.'
       });
     }
@@ -838,7 +838,7 @@
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
         ],
         groups: [
-          { label: 'Put Plate on the Rack, single plate',
+          { label: 'Put Plate on the Rack',
             a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [42.5, 60.0, 25.0, 80.0, 95.0] }
         ],
         aName: 'full data', bName: 'half data',
@@ -850,14 +850,19 @@
     }
 
     /* Both simulation benchmarks in one figure, replacing the two tables.
-       Numbers are paper v22: Table 1 (RoboTwin, Avg. column) and the LIBERO
-       table in Sec. 4.3.
+       Numbers are paper v23: Table 1 (RoboTwin, Avg. column) and the LIBERO
+       wraptable in Sec. 4.3.
 
-       These are the flexible checkpoint this page is about — one model, run
-       action-only or jointly. The paper also reports Flex-π*, a second model
-       fine-tuned for one fixed mode without stream dropout, but only on LIBERO;
-       it stays in the caption rather than adding two rows whose RoboTwin cells
-       would be empty.
+       Two kinds of checkpoint appear here. Flex-π is the flexible one this page
+       is about — one model per benchmark, run action-only or jointly. Flex-π* is
+       fine-tuned for a single fixed mode without stream dropout; the paper
+       reports it on LIBERO only, so its RoboTwin cells are empty.
+
+       LIBERO-Plus is deliberately not shown. The data exists (Appendix Table 5:
+       Flex-π 80.9 full joint / 78.3 action-only against Fast-WAM 65.3, with
+       π0.5 at 84.7 and Qwen-RobotManip at 91.4 ahead), and a third `lbp` panel
+       renders correctly if it is ever wanted — benchChart is generic over
+       cfg.panels, so it is one panel entry plus one key per row.
 
        π0 has no RoboTwin entry in any version of the paper — the 62.2 this
        figure used to carry traces to nothing in v17 through v22 — so its
@@ -868,8 +873,8 @@
 
        Baselines share one grey: identity lives in the label, and a colour each
        would be the clutter this figure exists to remove. Both panels run 0-100
-       with no truncation — LIBERO really does hold every method inside a
-       three-point band, and that saturation is worth seeing. */
+       with no truncation — on LIBERO every method but π0 really does land inside
+       2.3 points (96.9-99.2), and that saturation is worth seeing. */
     if ((m = find('bench'))) {
       benchChart(m, {
         panels: [
@@ -878,21 +883,24 @@
         ],
         groups: [
           { label: 'Vision-language-action', rows: [
-            { name: 'π₀',                   rt: null, lb: 94.1 },
-            { name: 'π₀.₅',                 rt: 79.8, lb: 96.9 },
-            { name: 'X-VLA',                rt: 72.9, lb: 98.1 },
-            { name: 'Flex-π (action-only)', ours: 'l', rt: 94.6, lb: 98.4 }
+            { name: 'π₀',                    rt: null, lb: 94.1 },
+            { name: 'π₀.₅',                  rt: 79.8, lb: 96.9 },
+            { name: 'X-VLA',                 rt: 72.9, lb: 98.1 },
+            { name: 'Flex-π (action-only)',  ours: 'l', rt: 94.6, lb: 98.4 },
+            { name: 'Flex-π* (action-only)', ours: 'l', rt: null, lb: 98.7 }
           ]},
           { label: 'World-action', rows: [
-            { name: 'Fast-WAM',            rt: 91.8, lb: 97.6 },
-            { name: 'LingBot-VA',          rt: 92.2, lb: 98.5 },
-            { name: 'Flex-π (full joint)', ours: 'd', rt: 94.6, lb: 98.5 }
+            { name: 'Fast-WAM',             rt: 91.8, lb: 97.6 },
+            { name: 'LingBot-VA',           rt: 92.2, lb: 98.5 },
+            { name: 'Flex-π (full joint)',  ours: 'd', rt: 94.6, lb: 98.5 },
+            { name: 'Flex-π* (full joint)', ours: 'd', rt: null, lb: 99.2 }
           ]}
         ],
         ariaLabel: 'Simulation results. On RoboTwin Flex-π reaches 94.6% in both modes, ahead of LingBot-VA at ' +
           '92.2, Fast-WAM at 91.8, π0.5 at 79.8 and X-VLA at 72.9. On LIBERO the methods sit between 94.1 and ' +
-          '98.5: Flex-π reaches 98.4 action-only and 98.5 at full joint generation, level with LingBot-VA, ' +
-          'ahead of X-VLA at 98.1, Fast-WAM at 97.6, π0.5 at 96.9 and π0 at 94.1. π0 has no RoboTwin result.'
+          '99.2: Flex-π reaches 98.4 action-only and 98.5 at full joint generation, and the fixed-mode Flex-π* ' +
+          'reaches 98.7 and 99.2, level with the best published result. π0 has no RoboTwin result, and Flex-π* ' +
+          'is reported on LIBERO only.'
       });
     }
 
@@ -1966,8 +1974,13 @@
        generated without being observed. --------------------------------- */
     var SNAME = { rgb: 'RGB', dino: 'DINO', p3d: '3D' };
     var SKEYS = ['rgb', 'dino', 'p3d'];
+    /* Opens on the action-only fast path: all three streams observed, none
+       generated. That is the mode we recommend deploying and the one the
+       latency claim rests on, so it is what the card should show first — the
+       reader can add output streams from there. The static HTML in #archviz
+       mirrors this state so it is correct before the script runs. */
     var mIn  = { rgb: true, dino: true, p3d: true };
-    var mOut = { rgb: true, dino: true, p3d: true };
+    var mOut = { rgb: false, dino: false, p3d: false };
 
     var PRESETS = {
       joint:  { i: { rgb: 1, dino: 1, p3d: 1 }, o: { rgb: 1, dino: 1, p3d: 1 } },
