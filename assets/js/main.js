@@ -601,6 +601,44 @@
       scalingFlowChart(m, C);
     }
 
+    /* results at a glance, directly under the intro reel. Three aggregate
+       slices of the real-robot suite, no per-task detail — that is what the
+       #real-robot and #generalization charts below are for.
+
+       Each bar is an unweighted mean over the tasks it covers, and the three
+       groups cover different task sets, so read them as three summaries and
+       not as a controlled seen-to-unseen delta:
+         seen   five in-distribution tasks       = the Average of the 'real' chart
+         unseen the three tasks that have a held-out condition
+                plate 72.5/55.0/33.8/85.0/95.0  (paired chart, held-out)
+                sort  40.0/32.5/ 0.0/70.0/70.0  (paired chart, held-out)
+                bag   17.2/ 6.9/  — /57.5/63.3  (softbag chart, unseen bag)
+         half   Put Plate on the Rack at half the demonstrations
+       Fast-WAM was not run on the bag, so its unseen mean covers two tasks. */
+    if ((m = find('summary'))) {
+      barChart(m, {
+        series: [
+          { name: 'π0.5', label: 'π₀.₅', color: C.base },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
+          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
+          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
+          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
+        ],
+        groups: [
+          { label: 'Seen|five tasks',        values: [52.1, 58.0, 31.7, 76.4, 83.0] },
+          { label: 'Unseen|three tasks',     values: [43.2, 31.5, 16.9, 70.8, 76.1] },
+          { label: 'Half data|Put Plate',    values: [42.5, 60.0, 25.0, 80.0, 95.0] }
+        ],
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 220, padB: 52, maxBarW: 38,
+        tickFmt: function (t) { return t + '%'; },
+        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
+        yLabel: 'Task completion (%)', legendEl: '#lg-summary',
+        ariaLabel: 'Averaged over the real-robot suite, Flex-π full joint reaches 83.0 percent on seen tasks ' +
+          'against 58.0 for the best baseline, 76.1 on held-out conditions against 43.2, and 95.0 when trained ' +
+          'on half the demonstrations against 60.0.'
+      });
+    }
+
     /* real-robot in-distribution — five tasks + the unweighted average.
        Source: real_world_eval/flex_pi_final_results.json (normalized_score).
        Fast-WAM was only run on three tasks; its average covers those three. */
@@ -1000,6 +1038,108 @@
     draw();
     if (reduceMotion) { btn.textContent = 'Resume sampling'; }
     else { timer = setInterval(draw, 2400); }
+  }
+
+  /* ---------------------------------------------------------------------
+     auto-scrolling strip (the at-a-glance rollout row).
+
+     The strip drifts left to right on its own so every task is seen without
+     anyone touching it. Rather than duplicating the cards to scroll into —
+     which puts every task on the page twice the moment anyone scrolls by
+     hand — the leading card is moved to the end once it has passed the left
+     edge, and the offset is reduced by exactly the width it freed. Nothing
+     moves on screen at that instant, so the loop is seamless and the strip
+     keeps however many cards it was written with.
+
+     It yields to the reader: hovering, focusing a child or holding a pointer
+     down all pause it, and it stops entirely while off screen. Honour
+     prefers-reduced-motion by never starting.
+     --------------------------------------------------------------------- */
+  function initAutoStrips() {
+    if (reduceMotion) return;
+
+    document.querySelectorAll('[data-autoscroll]').forEach(function (strip) {
+      if (strip.children.length < 3) return;
+
+      var speed = parseFloat(strip.getAttribute('data-autoscroll')) || 26; /* px per second */
+      var raf = 0, last = 0, holds = 0;
+
+      /* The drift is sub-pixel per frame — 26 px/s is 0.43 px at 60 Hz — and
+         scrollLeft quantises to the device pixel grid on the way in. Reading
+         it back to compute the next step therefore loses the remainder every
+         frame, and on a 1x display it floors to zero and the strip never
+         moves at all. Keep the true position here and only ever write it. */
+      var pos = 0;
+
+      /* card width plus the gap, straight off the layout so it tracks the
+         responsive column sizing without restating it here */
+      function pitch() {
+        var a = strip.children[0], b = strip.children[1];
+        return b ? b.offsetLeft - a.offsetLeft : 0;
+      }
+
+      function recycle() {
+        var p = pitch();
+        while (p > 0 && pos >= p) {
+          var card = strip.firstElementChild;
+          var vid = card.querySelector('video');
+          var playing = vid && !vid.paused;
+          strip.appendChild(card);
+          /* re-inserting is synchronous, but a browser that queued a pause on
+             removal would otherwise leave this card frozen for good */
+          if (playing && vid.paused) vid.play().catch(function () {});
+          pos -= p;
+          p = pitch();
+        }
+      }
+
+      function step(now) {
+        var dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+        last = now;
+        if (!holds) {
+          pos += speed * dt;
+          recycle();
+          strip.scrollLeft = pos;
+        }
+        raf = requestAnimationFrame(step);
+      }
+      function start() { if (!raf) { last = 0; raf = requestAnimationFrame(step); } }
+      function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
+      /* a counter, not a flag: hover, focus and touch can overlap */
+      function hold() { holds++; }
+      function release() {
+        holds = Math.max(0, holds - 1);
+        if (!holds) pos = strip.scrollLeft;   /* resume from wherever they left it */
+      }
+
+      strip.addEventListener('mouseenter', hold);
+      strip.addEventListener('mouseleave', release);
+      strip.addEventListener('focusin', hold);
+      strip.addEventListener('focusout', release);
+      strip.addEventListener('pointerdown', function () {
+        hold();
+        var up = function () {
+          release();
+          window.removeEventListener('pointerup', up);
+          window.removeEventListener('pointercancel', up);
+        };
+        window.addEventListener('pointerup', up);
+        window.addEventListener('pointercancel', up);
+      });
+
+      /* Start regardless, then let the observer park it while off screen.
+         Gating the start on the observer instead would leave the strip dead
+         for good if that first callback never arrives. */
+      start();
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          if (entries[entries.length - 1].isIntersecting) start(); else stop();
+        }, { threshold: 0 });
+        io.observe(strip);
+        strip._autoIO = io;   /* keep a reference so it cannot be collected */
+      }
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -1961,6 +2101,7 @@
     initFrontier();      /* before initArchviz: the masks drive its highlight */
     initMaskDemo();
     initSyncedVideos();  /* before initVideos: the leader must not play unheard */
+    initAutoStrips();  /* clones strip children, so before initVideos() sees them */
     initVideos();
     initTaskSwitch();
     initBagGallery();

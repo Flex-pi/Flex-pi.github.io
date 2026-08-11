@@ -678,6 +678,29 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .predpair__cap { margin-top: 3px; font-size: 14px; line-height: 1.5; color: var(--fg-muted); }
 .predpair__cap b { display: block; color: var(--fg); font-weight: 600; font-size: 15px; margin-bottom: 2px; }
 
+/* one rollout per scored task, under the at-a-glance figure. Same scrolling
+   strip as .predstrip, but it drifts on its own (initAutoStrips) — so no
+   scroll snapping, which would fight the drift, and scroll-behavior stays
+   auto against the smooth scrolling set on the root. */
+.taskstrip {
+  display: grid; grid-auto-flow: column;
+  grid-auto-columns: clamp(230px, calc((100% - 2 * clamp(14px, 2vw, 22px)) / 3.2), 420px);
+  gap: clamp(14px, 2vw, 22px);
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-behavior: auto;
+  padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.taskstrip::-webkit-scrollbar { height: 8px; }
+.taskstrip::-webkit-scrollbar-track { background: transparent; }
+.taskstrip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.taskstrip__item { display: flex; flex-direction: column; gap: 8px; margin: 0; min-width: 0; }
+.taskstrip .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
+.taskstrip__cap { margin-top: 3px; font-size: 14px; line-height: 1.5; color: var(--fg-muted); }
+.taskstrip__cap b { display: block; color: var(--fg); font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+@media (max-width: 620px) { .taskstrip { grid-auto-columns: 82vw; } }
+
 .vgrid { display: grid; gap: clamp(14px, 2vw, 22px); }
 .vgrid--2 { grid-template-columns: repeat(2, 1fr); }
 .vgrid--3 { grid-template-columns: repeat(3, 1fr); }

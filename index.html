@@ -172,6 +172,75 @@
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
   </div>
+
+  <!-- results at a glance: the aggregate figure, then one rollout per task.
+       Deliberately coarse — per-task numbers live in the sections below. -->
+  <div class="wrap wrap--wide reveal" style="margin-top:34px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Results at a glance</div>
+          <div class="chartbox__sub">Real-robot task completion, averaged over the suite</div>
+        </div>
+        <div class="legend" id="lg-summary"></div>
+      </div>
+      <div data-chart="summary"></div>
+      <p class="figcap" style="margin-top:10px"><b>Seen</b> averages the five in-distribution tasks,
+      <b>Unseen</b> the three that have a held-out condition, <b>Half data</b> is Put Plate on the Rack
+      trained on half the demonstrations. Per-task numbers are in the sections below.</p>
+    </div>
+
+    <!-- drifts on its own so all five tasks are seen without a scroll.
+         initAutoStrips() recycles the leading card to the end as it passes,
+         so this stays five cards however long it runs. -->
+    <div class="taskstrip" data-autoscroll="26" style="margin-top:16px">
+      <figure class="taskstrip__item">
+        <div class="player" data-player data-caption="Put Plate on the Rack — a flat plate seated in the rack without tipping.">
+          <video src="assets/videos/task-plate-rack.mp4" poster="assets/videos/task-plate-rack.jpg"
+                 loop muted playsinline preload="none" data-autoplay
+                 aria-label="Two robot arms lifting a flat plate and seating it on a rack"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="taskstrip__cap"><b>Put Plate on the Rack</b>A flat plate seated in the rack without tipping.</figcaption>
+      </figure>
+      <figure class="taskstrip__item">
+        <div class="player" data-player data-caption="Sort Utensils — singulating thin objects from a cluttered surface.">
+          <video src="assets/videos/clutter-sortutensils.mp4" poster="assets/videos/clutter-sortutensils.jpg"
+                 loop muted playsinline preload="none" data-autoplay
+                 aria-label="Two robot arms singulating utensils from a cluttered table and sorting them"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="taskstrip__cap"><b>Sort Utensils</b>Singulating thin objects from clutter.</figcaption>
+      </figure>
+      <figure class="taskstrip__item">
+        <div class="player" data-player data-caption="Kitchen Organization — seating a bowl and then a plate, on a held-out rack.">
+          <video src="assets/videos/unseen-kitchen.mp4" poster="assets/videos/unseen-kitchen.jpg"
+                 loop muted playsinline preload="none" data-autoplay
+                 aria-label="Two robot arms seating a bowl and then a plate into a kitchen rack"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="taskstrip__cap"><b>Kitchen Organization</b>Seating a bowl and then a plate.</figcaption>
+      </figure>
+      <figure class="taskstrip__item">
+        <div class="player" data-player data-caption="Self-Repair Gripper — driving the screw home, the tightest stage of the sequence.">
+          <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg"
+                 loop muted playsinline preload="none" data-autoplay
+                 aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="taskstrip__cap"><b>Self-Repair Gripper</b>The eight-stage gripper-repair sequence.</figcaption>
+      </figure>
+      <figure class="taskstrip__item">
+        <div class="player" data-player data-caption="Soft-Bag Zipping — unzip, drop the pen in, zip closed, on a held-out bag.">
+          <video src="assets/videos/unseen-putpen.mp4" poster="assets/videos/unseen-putpen.jpg"
+                 loop muted playsinline preload="none" data-autoplay
+                 aria-label="Two robot arms unzipping a bag, placing a pen inside and zipping it closed"></video>
+          <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+        </div>
+        <figcaption class="taskstrip__cap"><b>Soft-Bag Zipping</b>Unzip, drop the pen in, zip closed.</figcaption>
+      </figure>
+    </div>
+  </div>
 </section>
 
 <hr class="rule">
