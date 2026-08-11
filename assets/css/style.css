@@ -1419,7 +1419,9 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart--barflow[data-anim] .ebar,
 .chart--barflow[data-anim] .vlab { opacity: 0; }
 .chart--barflow[data-anim="in"] .bar {
-  transform: scaleY(1); opacity: 1;
+  /* --bar-o is set by armBarFlow() from the bar's own opacity attribute, so a
+     deliberately faded bar lands back on its own value rather than on 1. */
+  transform: scaleY(1); opacity: var(--bar-o, 1);
   transition: transform .58s cubic-bezier(.22,.72,.26,1) var(--ad, 0s),
               opacity .3s var(--ease) var(--ad, 0s);
 }

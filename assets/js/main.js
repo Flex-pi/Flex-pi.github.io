@@ -52,6 +52,15 @@
   /* Grow measured bars once when the chart first enters the viewport. The
      bars remain parallel comparisons; motion never connects methods or
      implies a causal sequence. Static values stay available in the SVG. */
+  /* Stagger and durations, kept in step with .chart--barflow in style.css:
+     the last bar starts at CAP*STEP and grows for .58s, the last annotation
+     starts at .28 + CAP*STEP and fades for .34s. */
+  var FLOW_STEP = 0.035, FLOW_CAP = 18;
+  var FLOW_SETTLE_MS = Math.ceil(1000 * Math.max(
+    FLOW_CAP * FLOW_STEP + 0.58,
+    0.28 + FLOW_CAP * FLOW_STEP + 0.34
+  )) + 120;
+
   function armBarFlow(mount, svg) {
     if (reduceMotion || !('IntersectionObserver' in window) || mount.getAttribute('data-bar-played') === 'true') return;
 
@@ -59,10 +68,16 @@
     if (!bars.length) return;
     svg.classList.add('chart--barflow');
     bars.forEach(function (bar, i) {
-      bar.style.setProperty('--ad', (Math.min(i, 18) * 0.035).toFixed(3) + 's');
+      bar.style.setProperty('--ad', (Math.min(i, FLOW_CAP) * FLOW_STEP).toFixed(3) + 's');
+      /* A bar that carries its own opacity — the faded in-distribution half of
+         a paired chart — has it as an SVG presentation attribute, which any CSS
+         declaration outranks. Hand the value to the stylesheet so the entrance
+         settles on it instead of flattening it to 1. */
+      var o = bar.getAttribute('opacity');
+      if (o !== null) bar.style.setProperty('--bar-o', o);
     });
     Array.prototype.slice.call(svg.querySelectorAll('.ebar, .vlab')).forEach(function (mark, i) {
-      mark.style.setProperty('--ad', (0.28 + Math.min(i, 18) * 0.035).toFixed(3) + 's');
+      mark.style.setProperty('--ad', (0.28 + Math.min(i, FLOW_CAP) * FLOW_STEP).toFixed(3) + 's');
     });
 
     svg.setAttribute('data-anim', 'wait');
@@ -70,7 +85,18 @@
       if (!entries[0].isIntersecting) return;
       io.disconnect();
       mount.setAttribute('data-bar-played', 'true');
-      requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+      requestAnimationFrame(function () {
+        svg.setAttribute('data-anim', 'in');
+        /* Then give the marks back to their own attributes. The entrance rules
+           set opacity on every .bar, .ebar and .vlab, and they never stopped
+           applying: the faded halves of the paired charts stayed opaque for the
+           rest of the session, and only came right if a theme toggle re-rendered
+           the chart without the animation. */
+        setTimeout(function () {
+          svg.removeAttribute('data-anim');
+          svg.classList.remove('chart--barflow');
+        }, FLOW_SETTLE_MS);
+      });
     }, { threshold: 0.28 });
     io.observe(svg);
   }
