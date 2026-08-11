@@ -2092,11 +2092,8 @@
        generated without being observed. --------------------------------- */
     var SNAME = { rgb: 'RGB', dino: 'DINO', p3d: '3D' };
     var SKEYS = ['rgb', 'dino', 'p3d'];
-    /* Opens on the action-only fast path: all three streams observed, none
-       generated. That is the mode we recommend deploying and the one the
-       latency claim rests on, so it is what the card should show first — the
-       reader can add output streams from there. The static HTML in #archviz
-       mirrors this state so it is correct before the script runs. */
+    /* the card opens on the action-only fast path — everything observed,
+       no future generated */
     var mIn  = { rgb: true, dino: true, p3d: true };
     var mOut = { rgb: false, dino: false, p3d: false };
 
