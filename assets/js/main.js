@@ -49,6 +49,32 @@
     return e;
   }
 
+  /* Grow measured bars once when the chart first enters the viewport. The
+     bars remain parallel comparisons; motion never connects methods or
+     implies a causal sequence. Static values stay available in the SVG. */
+  function armBarFlow(mount, svg) {
+    if (reduceMotion || !('IntersectionObserver' in window) || mount.getAttribute('data-bar-played') === 'true') return;
+
+    var bars = Array.prototype.slice.call(svg.querySelectorAll('.bar'));
+    if (!bars.length) return;
+    svg.classList.add('chart--barflow');
+    bars.forEach(function (bar, i) {
+      bar.style.setProperty('--ad', (Math.min(i, 18) * 0.035).toFixed(3) + 's');
+    });
+    Array.prototype.slice.call(svg.querySelectorAll('.ebar, .vlab')).forEach(function (mark, i) {
+      mark.style.setProperty('--ad', (0.28 + Math.min(i, 18) * 0.035).toFixed(3) + 's');
+    });
+
+    svg.setAttribute('data-anim', 'wait');
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      io.disconnect();
+      mount.setAttribute('data-bar-played', 'true');
+      requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+    }, { threshold: 0.28 });
+    io.observe(svg);
+  }
+
   /* ---------------------------------------------------------------------
      grouped / single-series bar chart
      --------------------------------------------------------------------- */
@@ -157,6 +183,7 @@
 
     mount.innerHTML = '';
     mount.appendChild(svg);
+    armBarFlow(mount, svg);
 
     /* legend */
     if (cfg.legendEl && nS > 1) {
@@ -257,6 +284,7 @@
 
     mount.innerHTML = '';
     mount.appendChild(svg);
+    armBarFlow(mount, svg);
 
     if (cfg.legendEl) {
       var lg = document.querySelector(cfg.legendEl);
@@ -406,6 +434,115 @@
   }
 
   /* ---------------------------------------------------------------------
+     data-efficiency slope flow
+
+     The x positions are the three evaluated demonstration budgets, not a
+     continuous interpolation. Flex-π values stay labelled; baseline values
+     appear when their measured path is hovered or keyboard-focused.
+     --------------------------------------------------------------------- */
+  var scalingFlowPlayed = false;
+  function scalingFlowChart(mount, C) {
+    var W = 1000, padL = 58, padR = 28, padT = 28, padB = 64, plotH = 292;
+    var H = padT + plotH + padB;
+    var x = [150, 505, 860];
+    var budgets = ['50', '100', '500'];
+    var series = [
+      { name: 'π₀.₅', color: C.base, values: [31.4, 44.7, 76.8] },
+      { name: 'LingBot-VA', color: '#7b8b9e', values: [17.2, 32.2, 91.6] },
+      { name: 'Fast-WAM', color: C.base2, values: [41.9, 68.1, 91.8] },
+      { name: 'Flex-π (action-only)', color: C.oursL, values: [73.4, 86.6, 93.6], ours: true, labelDy: -11 },
+      { name: 'Flex-π (full joint)', color: C.oursD, values: [78.8, 87.0, 93.3], ours: true, labelDy: 18 }
+    ];
+    function Y(v) { return padT + plotH - (v / 100) * plotH; }
+
+    var svg = el('svg', {
+      'class': 'chart chart--scaling-flow', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': 'Data efficiency on domain-randomized RoboTwin over 50 tasks. At 50, 100 and 500 demonstrations per task: pi zero point five scores 31.4, 44.7 and 76.8 percent; LingBot-VA 17.2, 32.2 and 91.6; Fast-WAM 41.9, 68.1 and 91.8; Flex-pi action-only 73.4, 86.6 and 93.6; Flex-pi full joint 78.8, 87.0 and 93.3.'
+    });
+
+    [0, 25, 50, 75, 100].forEach(function (t) {
+      svg.appendChild(el('line', { 'class': 'grid', x1: padL, x2: W - padR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(el('text', { 'class': 'tick', x: padL - 9, y: Y(t) + 3.5, 'text-anchor': 'end' }, t + '%'));
+    });
+    svg.appendChild(el('line', { 'class': 'axis', x1: padL, x2: W - padR, y1: Y(0), y2: Y(0) }));
+    budgets.forEach(function (b, i) {
+      svg.appendChild(el('line', { 'class': 'grid sflow__guide', x1: x[i], x2: x[i], y1: padT, y2: Y(0) }));
+      svg.appendChild(el('text', { 'class': 'glab', x: x[i], y: Y(0) + 24, 'text-anchor': 'middle' }, b + ' demos'));
+    });
+    svg.appendChild(el('text', { 'class': 'alab', x: (padL + W - padR) / 2, y: H - 11,
+      'text-anchor': 'middle' }, 'Demonstrations per task'));
+    svg.appendChild(el('text', { 'class': 'alab', x: 0, y: 0, 'text-anchor': 'middle',
+      transform: 'translate(14,' + (padT + plotH / 2) + ') rotate(-90)' }, 'Average success'));
+
+    var groups = [];
+    function setHighlight(active) {
+      groups.forEach(function (g, i) {
+        g.setAttribute('data-dim', active !== null && i !== active ? 'true' : 'false');
+        g.setAttribute('data-highlight', active === i ? 'true' : 'false');
+      });
+    }
+
+    series.forEach(function (s, si) {
+      var d = s.values.map(function (v, i) { return (i ? 'L' : 'M') + x[i] + ' ' + Y(v); }).join(' ');
+      var g = el('g', {
+        'class': 'sflow__series' + (s.ours ? ' sflow__series--ours' : ''),
+        tabindex: '0', role: 'group',
+        'aria-label': s.name + ': ' + s.values.join(', ') + ' percent at 50, 100 and 500 demonstrations per task.',
+        style: '--c:' + s.color + ';--ad:' + (0.08 + si * 0.09).toFixed(2) + 's'
+      });
+      g.appendChild(el('path', { 'class': 'sflow__line', d: d, pathLength: 1, fill: 'none' }));
+      g.appendChild(el('path', { 'class': 'sflow__hit', d: d, fill: 'none' }));
+
+      s.values.forEach(function (v, i) {
+        g.appendChild(el('circle', { 'class': 'sflow__point', cx: x[i], cy: Y(v), r: s.ours ? 5.5 : 4.3 }));
+        var lab = el('text', {
+          'class': 'vlab sflow__value', x: x[i], y: Y(v) + (s.labelDy || -10),
+          'text-anchor': 'middle'
+        }, v.toFixed(1));
+        g.appendChild(lab);
+      });
+
+      g.addEventListener('mouseenter', function () { setHighlight(si); });
+      g.addEventListener('mouseleave', function () { setHighlight(null); });
+      g.addEventListener('focus', function () { setHighlight(si); });
+      g.addEventListener('blur', function () { setHighlight(null); });
+      svg.appendChild(g);
+      groups.push(g);
+    });
+
+    mount.innerHTML = '';
+    mount.appendChild(svg);
+
+    var lg = document.getElementById('lg-scaling');
+    if (lg) {
+      lg.innerHTML = '';
+      series.forEach(function (s) {
+        var item = document.createElement('span');
+        item.className = 'legend__item';
+        var sw = document.createElement('span');
+        sw.className = 'legend__sw legend__sw--line';
+        sw.style.setProperty('--c', s.color);
+        sw.style.background = s.color;
+        item.appendChild(sw);
+        item.appendChild(document.createTextNode(s.name));
+        lg.appendChild(item);
+      });
+    }
+
+    if (!reduceMotion && !scalingFlowPlayed && 'IntersectionObserver' in window) {
+      svg.setAttribute('data-anim', 'wait');
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        io.disconnect();
+        scalingFlowPlayed = true;
+        requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+      }, { threshold: 0.35 });
+      io.observe(svg);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      chart data + wiring
      --------------------------------------------------------------------- */
   function renderCharts() {
@@ -461,24 +598,44 @@
 
     /* RoboTwin data scaling */
     if ((m = find('scaling'))) {
+      scalingFlowChart(m, C);
+    }
+
+    /* results at a glance, directly under the intro reel. Three aggregate
+       slices of the real-robot suite, no per-task detail — that is what the
+       #real-robot and #generalization charts below are for.
+
+       Each bar is an unweighted mean over the tasks it covers, and the three
+       groups cover different task sets, so read them as three summaries and
+       not as a controlled seen-to-unseen delta:
+         seen   five in-distribution tasks       = the Average of the 'real' chart
+         unseen the three tasks that have a held-out condition
+                plate 72.5/55.0/33.8/85.0/95.0  (paired chart, held-out)
+                sort  40.0/32.5/ 0.0/70.0/70.0  (paired chart, held-out)
+                bag   17.2/ 6.9/  — /57.5/63.3  (softbag chart, unseen bag)
+         half   Put Plate on the Rack at half the demonstrations
+       Fast-WAM was not run on the bag, so its unseen mean covers two tasks. */
+    if ((m = find('summary'))) {
       barChart(m, {
         series: [
           { name: 'π0.5', label: 'π₀.₅', color: C.base },
-          { name: 'LingBot-VA', label: 'LingBot-VA', color: '#7b8b9e' },
+          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
           { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
           { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
-          { label: '50 demos',  values: [31.4, 17.2, 41.9, 73.4, 78.8] },
-          { label: '100 demos', values: [44.7, 32.2, 68.1, 86.6, 87.0] },
-          { label: '500 demos', values: [76.8, 91.6, 91.8, 93.6, 93.3] }
+          { label: 'Seen|five tasks',        values: [52.1, 58.0, 31.7, 76.4, 83.0] },
+          { label: 'Unseen|three tasks',     values: [43.2, 31.5, 16.9, 70.8, 76.1] },
+          { label: 'Half data|Put Plate',    values: [42.5, 60.0, 25.0, 80.0, 95.0] }
         ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 260,
-        tickFmt: function (t) { return t + '%'; }, valFmt: pct,
-        yLabel: 'Avg. success (%)', xLabel: 'Demonstrations per task (50 tasks total)',
-        legendEl: '#lg-scaling',
-        ariaLabel: 'Flex-π leads at every data scale, with the largest margin at 50 demos per task.'
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 220, padB: 52, maxBarW: 38,
+        tickFmt: function (t) { return t + '%'; },
+        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
+        yLabel: 'Task completion (%)', legendEl: '#lg-summary',
+        ariaLabel: 'Averaged over the real-robot suite, Flex-π full joint reaches 83.0 percent on seen tasks ' +
+          'against 58.0 for the best baseline, 76.1 on held-out conditions against 43.2, and 95.0 when trained ' +
+          'on half the demonstrations against 60.0.'
       });
     }
 
@@ -881,6 +1038,108 @@
     draw();
     if (reduceMotion) { btn.textContent = 'Resume sampling'; }
     else { timer = setInterval(draw, 2400); }
+  }
+
+  /* ---------------------------------------------------------------------
+     auto-scrolling strip (the at-a-glance rollout row).
+
+     The strip drifts left to right on its own so every task is seen without
+     anyone touching it. Rather than duplicating the cards to scroll into —
+     which puts every task on the page twice the moment anyone scrolls by
+     hand — the leading card is moved to the end once it has passed the left
+     edge, and the offset is reduced by exactly the width it freed. Nothing
+     moves on screen at that instant, so the loop is seamless and the strip
+     keeps however many cards it was written with.
+
+     It yields to the reader: hovering, focusing a child or holding a pointer
+     down all pause it, and it stops entirely while off screen. Honour
+     prefers-reduced-motion by never starting.
+     --------------------------------------------------------------------- */
+  function initAutoStrips() {
+    if (reduceMotion) return;
+
+    document.querySelectorAll('[data-autoscroll]').forEach(function (strip) {
+      if (strip.children.length < 3) return;
+
+      var speed = parseFloat(strip.getAttribute('data-autoscroll')) || 26; /* px per second */
+      var raf = 0, last = 0, holds = 0;
+
+      /* The drift is sub-pixel per frame — 26 px/s is 0.43 px at 60 Hz — and
+         scrollLeft quantises to the device pixel grid on the way in. Reading
+         it back to compute the next step therefore loses the remainder every
+         frame, and on a 1x display it floors to zero and the strip never
+         moves at all. Keep the true position here and only ever write it. */
+      var pos = 0;
+
+      /* card width plus the gap, straight off the layout so it tracks the
+         responsive column sizing without restating it here */
+      function pitch() {
+        var a = strip.children[0], b = strip.children[1];
+        return b ? b.offsetLeft - a.offsetLeft : 0;
+      }
+
+      function recycle() {
+        var p = pitch();
+        while (p > 0 && pos >= p) {
+          var card = strip.firstElementChild;
+          var vid = card.querySelector('video');
+          var playing = vid && !vid.paused;
+          strip.appendChild(card);
+          /* re-inserting is synchronous, but a browser that queued a pause on
+             removal would otherwise leave this card frozen for good */
+          if (playing && vid.paused) vid.play().catch(function () {});
+          pos -= p;
+          p = pitch();
+        }
+      }
+
+      function step(now) {
+        var dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+        last = now;
+        if (!holds) {
+          pos += speed * dt;
+          recycle();
+          strip.scrollLeft = pos;
+        }
+        raf = requestAnimationFrame(step);
+      }
+      function start() { if (!raf) { last = 0; raf = requestAnimationFrame(step); } }
+      function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
+      /* a counter, not a flag: hover, focus and touch can overlap */
+      function hold() { holds++; }
+      function release() {
+        holds = Math.max(0, holds - 1);
+        if (!holds) pos = strip.scrollLeft;   /* resume from wherever they left it */
+      }
+
+      strip.addEventListener('mouseenter', hold);
+      strip.addEventListener('mouseleave', release);
+      strip.addEventListener('focusin', hold);
+      strip.addEventListener('focusout', release);
+      strip.addEventListener('pointerdown', function () {
+        hold();
+        var up = function () {
+          release();
+          window.removeEventListener('pointerup', up);
+          window.removeEventListener('pointercancel', up);
+        };
+        window.addEventListener('pointerup', up);
+        window.addEventListener('pointercancel', up);
+      });
+
+      /* Start regardless, then let the observer park it while off screen.
+         Gating the start on the observer instead would leave the strip dead
+         for good if that first callback never arrives. */
+      start();
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          if (entries[entries.length - 1].isIntersecting) start(); else stop();
+        }, { threshold: 0 });
+        io.observe(strip);
+        strip._autoIO = io;   /* keep a reference so it cannot be collected */
+      }
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -1322,6 +1581,45 @@
 
     var LABEL = { rgb: 'RGB', dino: 'DINO', p3d: 'Pointmap' };
     var pairs = Array.prototype.slice.call(strip.querySelectorAll('.predpair'));
+
+    /* ------------------------------------------------------------------
+       The two clips in a pair are the same episode, so they have to run in
+       step. The reveal only uncovers the row: the future is put at the
+       rollout's position the moment it becomes visible, and nudged back
+       whenever it drifts. Drift is real — the decodes are up to 70 ms
+       shorter than their rollouts, so one loop boundary is enough to walk
+       them apart — and the collapsed row is display:none, which the
+       autoplay observer reads as off-screen and pauses.
+       ------------------------------------------------------------------ */
+    var SYNC_TOL = 0.18;
+
+    function partsOf(fig) {
+      return {
+        real: fig.querySelector('.player:not(.predpair__gen) video'),
+        gen: fig.querySelector('.predpair__gen video')
+      };
+    }
+
+    function syncPair(fig, force) {
+      var p = partsOf(fig);
+      if (!p.real || !p.gen || !p.gen.getAttribute('src')) return;
+      /* durations arrive with the metadata; before that there is nothing to
+         seek against and a seek would be discarded anyway */
+      if (!isFinite(p.gen.duration) || !isFinite(p.real.duration)) return;
+      var t = Math.min(p.real.currentTime, Math.max(0, p.gen.duration - 0.05));
+      if (force || Math.abs(p.gen.currentTime - t) > SYNC_TOL) p.gen.currentTime = t;
+    }
+
+    function shown() { return strip.getAttribute('data-pred') !== 'hidden'; }
+
+    pairs.forEach(function (fig) {
+      var p = partsOf(fig);
+      if (!p.real || !p.gen) return;
+      /* the rollout is the clock: every tick corrects the future against it */
+      p.real.addEventListener('timeupdate', function () { if (shown()) syncPair(fig); });
+      /* a fresh source starts at zero, so catch it as soon as it can seek */
+      p.gen.addEventListener('loadeddata', function () { if (shown()) syncPair(fig, true); });
+    });
     var modeBtns = modes
       ? Array.prototype.slice.call(modes.querySelectorAll('.predmode'))
       : [];
@@ -1385,10 +1683,15 @@
         : ' Hide the predicted futures';
       if (note) note.hidden = !hidden;
       syncPressed();
-      /* a paused-off-screen clip in a collapsed row should not keep decoding */
-      strip.querySelectorAll('.predpair__gen video').forEach(function (v) {
-        if (hidden) v.pause();
-        else if (v.getAttribute('src')) v.play().catch(function () {});
+      /* a paused-off-screen clip in a collapsed row should not keep decoding;
+         on the way back it joins the rollout where the rollout already is */
+      pairs.forEach(function (fig) {
+        var v = fig.querySelector('.predpair__gen video');
+        if (!v) return;
+        if (hidden) { v.pause(); return; }
+        if (!v.getAttribute('src')) return;
+        syncPair(fig, true);
+        v.play().catch(function () {});
       });
     }
 
@@ -1798,6 +2101,7 @@
     initFrontier();      /* before initArchviz: the masks drive its highlight */
     initMaskDemo();
     initSyncedVideos();  /* before initVideos: the leader must not play unheard */
+    initAutoStrips();  /* clones strip children, so before initVideos() sees them */
     initVideos();
     initTaskSwitch();
     initBagGallery();
