@@ -134,17 +134,17 @@
 <section class="sec" id="abstract">
   <div class="wrap reveal">
     <div class="prose">
-      <p class="lede abstract__problem">World-action models (WAMs) predict the future to act better, but
+      <p class="lede abstract__problem"><strong>Problem:</strong> World-action models (WAMs) predict the future to act better, but
       they mainly predict <em>RGB latents</em> trained for pixel reconstruction — with no explicit
       signal for the 3D geometry or object semantics that manipulation needs.</p>
 
-      <p class="lede abstract__method">We introduce <strong>Flex-π</strong>, a 6B-parameter WAM that jointly
+      <p class="lede abstract__method"><strong>Method:</strong> We introduce <strong>Flex-π</strong>, a 6B-parameter WAM that jointly
       denoises RGB, 3D geometry, and object-centric DINO semantics with actions in a shared
       <em>latent space</em>. Per-stream dropout with <em>cross-modality forcing</em> yields a
       <strong>single checkpoint</strong> that runs on any subset of streams — from fast action-only
       inference to full joint generation — with no new sensors or visual priors.</p>
 
-      <p>The result is a demonstration-efficient policy that beats the strongest baselines by up to
+      <p class="lede abstract__payoff"><strong>Result:</strong> A demonstration-efficient policy that beats the strongest baselines by up to
       <strong>2–7×</strong> on dexterous, precise, real-world bimanual tasks in and out of
       distribution — while running <em>faster</em> than π<sub>0.5</sub>.</p>
     </div>
@@ -156,8 +156,8 @@
 <section class="sec" id="overview">
   <div class="wrap reveal">
     <h3 class="sec__title">Flex-π in action</h3>
-    <p class="sec__sub">One checkpoint, deployed on a bimanual YAM workcell across contact-rich, sub-millimetre and
-    long-horizon tasks — from teleoperated data collection through to self-repair.</p>
+    <p class="sec__sub">Deployed on a bimanual YAM workcell across contact-rich, sub-millimeter and
+    long-horizon tasks.</p>
   </div>
 
   <div class="wrap wrap--wide reveal introvid" style="margin-top:30px">

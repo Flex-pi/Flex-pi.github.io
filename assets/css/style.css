@@ -507,7 +507,8 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .prose a:hover { border-bottom-color: var(--primary); }
 .lede { font-size: clamp(19px, 2.1vw, 22px); line-height: 1.58; color: var(--fg); }
 .abstract__problem,
-.abstract__method {
+.abstract__method,
+.abstract__payoff {
   position: relative; margin-bottom: clamp(22px, 2.8vw, 30px);
   padding: clamp(14px, 2vw, 18px) clamp(16px, 2.5vw, 22px);
   border-radius: var(--radius);
@@ -520,8 +521,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   border: 1px solid color-mix(in srgb, var(--c-ours) 28%, var(--border-soft));
   background: color-mix(in srgb, var(--c-ours) 10%, var(--bg-raise));
 }
+.abstract__payoff {
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border-soft));
+  background: color-mix(in srgb, var(--primary) 11%, var(--bg-raise));
+}
 .abstract__problem em,
-.abstract__method em {
+.abstract__method em,
+.abstract__payoff em {
   color: inherit; font-weight: inherit;
 }
 
