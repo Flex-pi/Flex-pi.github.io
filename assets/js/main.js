@@ -1734,12 +1734,11 @@
     }
 
     document.querySelectorAll('[data-player]').forEach(function (p) {
-      var btn = p.querySelector('.player__expand');
-      if (!btn) return;
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
+      if (p.classList.contains('player--todo')) return;
+      if (!p.querySelector('.player__expand') && !p.querySelector('video')) return;
+      p.addEventListener('click', function () {
         var v = p.querySelector('video:not([hidden])') || p.querySelector('video');
-        if (!v) return;
+        if (!v || !(v.currentSrc || v.src)) return;
         open(v.currentSrc || v.src, v.getAttribute('poster'), p.getAttribute('data-caption'), p);
       });
     });

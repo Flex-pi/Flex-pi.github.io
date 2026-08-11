@@ -578,6 +578,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   position: relative; background: var(--muted); overflow: hidden;
   border-radius: var(--radius); border: 1px solid var(--border-faint); line-height: 0;
 }
+.player:has(.player__expand) { cursor: pointer; }
 .player video { width: 100%; height: auto; display: block; background: var(--muted); }
 .player--todo {
   aspect-ratio: 16 / 9; background: #b9b9b9;
