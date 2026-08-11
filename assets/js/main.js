@@ -385,7 +385,7 @@
         svg.appendChild(el('text', {
           'class': 'vlab' + (r.ours ? ' vlab--hi' : ''),
           x: px(pi, v) + 6, y: cy + 4
-        }, v.toFixed(1) + (r.dagger && r.dagger.indexOf(p.key) > -1 ? '†' : '')));
+        }, v.toFixed(1)));
       });
       y += ROW;
     });
@@ -850,39 +850,49 @@
     }
 
     /* Both simulation benchmarks in one figure, replacing the two tables.
-       Only methods with a published number on both RoboTwin and LIBERO are
-       here; Motus has no LIBERO entry and GR00T-N1, OpenVLA-OFT and UniVLA
-       have no RoboTwin one, so all four are out rather than leaving half-empty
-       rows. Baselines share one grey: with seven rows the identity lives in
-       the label, and a colour each would be the clutter this figure exists to
-       remove. All three panels run 0-100 with no truncation — LIBERO really
-       does sit in a five-point band for every method, and that saturation is
-       the reason the LIBERO-Plus panel is worth having. */
+       Numbers are paper v22: Table 1 (RoboTwin, Avg. column) and the LIBERO
+       table in Sec. 4.3.
+
+       These are the flexible checkpoint this page is about — one model, run
+       action-only or jointly. The paper also reports Flex-π*, a second model
+       fine-tuned for one fixed mode without stream dropout, but only on LIBERO;
+       it stays in the caption rather than adding two rows whose RoboTwin cells
+       would be empty.
+
+       π0 has no RoboTwin entry in any version of the paper — the 62.2 this
+       figure used to carry traces to nothing in v17 through v22 — so its
+       RoboTwin cell is empty rather than carrying an unsourced number.
+
+       Left out: Motus and LingBot-VA 2.0 (RoboTwin only), GR00T-N1,
+       OpenVLA-OFT and MolmoAct2-Think (LIBERO only), and Qwen-RobotManip.
+
+       Baselines share one grey: identity lives in the label, and a colour each
+       would be the clutter this figure exists to remove. Both panels run 0-100
+       with no truncation — LIBERO really does hold every method inside a
+       three-point band, and that saturation is worth seeing. */
     if ((m = find('bench'))) {
       benchChart(m, {
         panels: [
-          { key: 'rt',   title: 'RoboTwin',     note: '50 tasks, clean + randomized' },
-          { key: 'lb',   title: 'LIBERO',       note: 'four standard suites' },
-          { key: 'plus', title: 'LIBERO-Plus',  note: 'perturbed, weighted total' }
+          { key: 'rt', title: 'RoboTwin', note: '50 tasks, clean + randomized' },
+          { key: 'lb', title: 'LIBERO',   note: 'four standard suites' }
         ],
         groups: [
           { label: 'Vision-language-action', rows: [
-            { name: 'π₀',      rt: 62.2, lb: 94.1, plus: 53.6 },
-            { name: 'π₀.₅',    rt: 79.8, lb: 96.9, plus: 84.7, dagger: ['plus'] },
-            { name: 'X-VLA',   rt: 72.9, lb: 98.1, plus: null },
-            { name: 'Flex-π (action-only)', ours: 'l', rt: 93.6, lb: 98.7, plus: null }
+            { name: 'π₀',                   rt: null, lb: 94.1 },
+            { name: 'π₀.₅',                 rt: 79.8, lb: 96.9 },
+            { name: 'X-VLA',                rt: 72.9, lb: 98.1 },
+            { name: 'Flex-π (action-only)', ours: 'l', rt: 94.6, lb: 98.4 }
           ]},
           { label: 'World-action', rows: [
-            { name: 'Fast-WAM',   rt: 91.8, lb: 97.6, plus: 65.3, dagger: ['plus'] },
-            { name: 'LingBot-VA', rt: 92.2, lb: 98.5, plus: null },
-            { name: 'Flex-π (full joint)', ours: 'd', rt: 93.1, lb: 99.2, plus: null }
+            { name: 'Fast-WAM',            rt: 91.8, lb: 97.6 },
+            { name: 'LingBot-VA',          rt: 92.2, lb: 98.5 },
+            { name: 'Flex-π (full joint)', ours: 'd', rt: 94.6, lb: 98.5 }
           ]}
         ],
-        ariaLabel: 'Simulation results. On RoboTwin Flex-π reaches 93.6% action-only and 93.1% at full joint ' +
-          'generation, above LingBot-VA 92.2, Fast-WAM 91.8, π0.5 79.8, X-VLA 72.9 and π0 62.2. On LIBERO every ' +
-          'method sits between 94 and 99, with Flex-π highest at 98.7 and 99.2. On LIBERO-Plus, which perturbs ' +
-          'the LIBERO tasks, π0.5 leads at 84.7 against Fast-WAM 65.3 and π0 53.6; the Flex-π evaluation is still ' +
-          'running.'
+        ariaLabel: 'Simulation results. On RoboTwin Flex-π reaches 94.6% in both modes, ahead of LingBot-VA at ' +
+          '92.2, Fast-WAM at 91.8, π0.5 at 79.8 and X-VLA at 72.9. On LIBERO the methods sit between 94.1 and ' +
+          '98.5: Flex-π reaches 98.4 action-only and 98.5 at full joint generation, level with LingBot-VA, ' +
+          'ahead of X-VLA at 98.1, Fast-WAM at 97.6, π0.5 at 96.9 and π0 at 94.1. π0 has no RoboTwin result.'
       });
     }
 

@@ -1459,8 +1459,8 @@
 <section class="sec" id="simulation">
   <div class="wrap reveal">
     <h3 class="sec__title">Simulation benchmarks</h3>
-    <p class="sec__sub">One model is the best VLA in its fast mode and the best WAM in its full mode — on RoboTwin
-    the two deployment modes land within half a point of each other.</p>
+    <p class="sec__sub">One checkpoint leads both categories on RoboTwin — 94.6% whether or not it generates
+    futures — and sits inside the leading cluster on LIBERO, where every method lands within three points.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:40px">
@@ -1468,21 +1468,23 @@
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Both benchmarks, one checkpoint</div>
-          <div class="chartbox__sub">Success rate (%) &middot; methods with a published number on both</div>
+          <div class="chartbox__sub">Success rate (%) &middot; one set of weights, run action-only or jointly</div>
         </div>
       </div>
       <div data-chart="bench"></div>
-      <p class="figcap" style="margin-top:12px">Flex-π is the strongest entry in <b>both</b> categories on both
-      benchmarks &mdash; <b>93.6%</b> on RoboTwin action-only and <b>99.2%</b> on LIBERO at full joint generation
-      &mdash; from one set of weights run in two modes. RoboTwin is the average over 50 tasks trained on 2,500
-      clean plus 25,000 randomized demos; π<sub>0.5</sub> gives up 5.9&nbsp;points moving from clean to randomized
-      scenes (82.7&nbsp;&rarr;&nbsp;76.8) while Flex-π gives up none (93.5&nbsp;&rarr;&nbsp;93.6), which we
-      attribute to the 3D and DINO streams carrying appearance-invariant structure. Every method lands inside a
-      five-point band on LIBERO, which is why the perturbed LIBERO-Plus set is the more telling of the two.
-      The two groups are vision-language-action and world-action models. <b>†</b>&nbsp;= our own evaluation of the released checkpoint, since neither method reports LIBERO-Plus.
-      Flex-π&rsquo;s LIBERO-Plus run is still going, so those two cells are empty rather than estimated.
-      Motus, GR00T-N1, OpenVLA-OFT and UniVLA report only one of the two benchmarks and are left out; their
-      numbers are in the paper.</p>
+      <p class="figcap" style="margin-top:12px">On RoboTwin one set of weights takes the top of <b>both</b>
+      categories &mdash; <b>94.6%</b> in the fast action-only mode and <b>94.6%</b> at full joint generation, a tie
+      to within 0.02&nbsp;points. That is the 50-task average over 2,500 clean plus 25,000 randomized demos, and
+      the randomization is where the gap opens: &pi;<sub>0.5</sub> gives up 5.9&nbsp;points moving from clean to
+      randomized scenes (82.7&nbsp;&rarr;&nbsp;76.8) while Flex-&pi; gives up none (94.5&nbsp;&rarr;&nbsp;94.6 and
+      94.3&nbsp;&rarr;&nbsp;94.8), which we attribute to the 3D and DINO streams carrying appearance-invariant
+      structure. LIBERO separates the leaders by four points at most, so it reads as saturation rather than a
+      ranking; the strongest published result there is Qwen-RobotManip at 99.2%, from a corpus about 76&times; the
+      size of ours. Fine-tuning a separate checkpoint per mode, without stream dropout, trades this flexibility for
+      98.7% action-only and 99.2% at full joint generation, but the paper reports that variant on LIBERO only.
+      &pi;<sub>0</sub> has no published RoboTwin result, hence the empty cell. Motus and LingBot-VA&nbsp;2.0 report
+      RoboTwin but not LIBERO, and GR00T-N1, OpenVLA-OFT and MolmoAct2-Think the reverse; all of them are in the
+      paper.</p>
     </div>
   </div>
 
