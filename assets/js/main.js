@@ -316,6 +316,85 @@
   }
 
   /* ---------------------------------------------------------------------
+     benchmark summary: one row per method, one panel per benchmark
+     Rows rather than columns because seven method names have to stay legible,
+     and three panels side by side because the benchmarks do not share a story
+     — only the 0-100 scale. A cell with no published number draws an em dash
+     where its bar would start, so the row stays readable as a row.
+     --------------------------------------------------------------------- */
+  function benchChart(mount, cfg) {
+    var W = 1000, padL = 190, padR = 10, padT = 46, padB = 16;
+    var ROW = 27, GRP = 30, BAR = 13, GAP = 44;
+
+    var rows = [];                      /* flattened, group headers included */
+    cfg.groups.forEach(function (g) {
+      rows.push({ header: g.label });
+      g.rows.forEach(function (r) { rows.push(r); });
+    });
+    var H = padT + rows.reduce(function (a, r) { return a + (r.header ? GRP : ROW); }, 0) + padB;
+
+    var svg = el('svg', {
+      'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': cfg.ariaLabel || 'benchmark summary'
+    });
+
+    var nP = cfg.panels.length;
+    var panelW = (W - padL - padR - GAP * (nP - 1)) / nP;
+    function px(pi, v) { return padL + pi * (panelW + GAP) + (v / 100) * panelW; }
+
+    cfg.panels.forEach(function (p, pi) {
+      var x0 = px(pi, 0);
+      svg.appendChild(el('text', { 'class': 'glab', x: x0, y: padT - 26 }, p.title));
+      svg.appendChild(el('text', { 'class': 'tick', x: x0, y: padT - 12 }, p.note));
+      [0, 50, 100].forEach(function (t) {
+        svg.appendChild(el('line', { 'class': 'grid', x1: px(pi, t), x2: px(pi, t),
+          y1: padT - 4, y2: H - padB }));
+        svg.appendChild(el('text', { 'class': 'tick', x: px(pi, t), y: H - padB + 12,
+          'text-anchor': t === 0 ? 'start' : t === 100 ? 'end' : 'middle' }, t + '%'));
+      });
+      svg.appendChild(el('line', { 'class': 'axis', x1: x0, x2: x0, y1: padT - 4, y2: H - padB }));
+    });
+
+    var y = padT;
+    rows.forEach(function (r) {
+      if (r.header) {
+        /* right-aligned in the label gutter so it cannot run into the panels */
+        svg.appendChild(el('text', { 'class': 'benchgrp', x: padL - 12, y: y + GRP - 11,
+          'text-anchor': 'end' }, r.header));
+        y += GRP;
+        return;
+      }
+      var cy = y + ROW / 2;
+      svg.appendChild(el('text', {
+        'class': 'benchlab' + (r.ours ? ' benchlab--hi' : ''),
+        x: padL - 12, y: cy + 4, 'text-anchor': 'end'
+      }, r.name));
+
+      cfg.panels.forEach(function (p, pi) {
+        var v = r[p.key];
+        if (v === null || v === undefined) {
+          svg.appendChild(el('text', { 'class': 'tick', x: px(pi, 0) + 7, y: cy + 4 }, '—'));
+          return;
+        }
+        var fill = r.ours ? (r.ours === 'd' ? 'var(--c-ours-d)' : 'var(--c-ours-l)') : 'var(--c-base)';
+        var bar = el('rect', { 'class': 'bar', x: px(pi, 0), y: cy - BAR / 2,
+          width: Math.max(1, px(pi, v) - px(pi, 0)), height: BAR, fill: fill, rx: 1.5 });
+        bar.appendChild(el('title', {}, r.name + ' — ' + p.title + ': ' + v + '%'));
+        svg.appendChild(bar);
+        svg.appendChild(el('text', {
+          'class': 'vlab' + (r.ours ? ' vlab--hi' : ''),
+          x: px(pi, v) + 6, y: cy + 4
+        }, v.toFixed(1) + (r.dagger && r.dagger.indexOf(p.key) > -1 ? '†' : '')));
+      });
+      y += ROW;
+    });
+
+    mount.innerHTML = '';
+    mount.appendChild(svg);
+  }
+
+  /* ---------------------------------------------------------------------
      pareto (latency vs success) scatter + line
      --------------------------------------------------------------------- */
   var paretoPts = [];
@@ -767,6 +846,43 @@
         yLabel: 'Task completion (%)', legendEl: '#lg-dataeff',
         ariaLabel: 'Halving the demonstrations costs π0.5 37.5 points, ManiFlow 27.5, Fast-WAM 12.5, ' +
           'Flex-π action-only 10 and Flex-π full joint only 2.5.'
+      });
+    }
+
+    /* Both simulation benchmarks in one figure, replacing the two tables.
+       Only methods with a published number on both RoboTwin and LIBERO are
+       here; Motus has no LIBERO entry and GR00T-N1, OpenVLA-OFT and UniVLA
+       have no RoboTwin one, so all four are out rather than leaving half-empty
+       rows. Baselines share one grey: with seven rows the identity lives in
+       the label, and a colour each would be the clutter this figure exists to
+       remove. All three panels run 0-100 with no truncation — LIBERO really
+       does sit in a five-point band for every method, and that saturation is
+       the reason the LIBERO-Plus panel is worth having. */
+    if ((m = find('bench'))) {
+      benchChart(m, {
+        panels: [
+          { key: 'rt',   title: 'RoboTwin',     note: '50 tasks, clean + randomized' },
+          { key: 'lb',   title: 'LIBERO',       note: 'four standard suites' },
+          { key: 'plus', title: 'LIBERO-Plus',  note: 'perturbed, weighted total' }
+        ],
+        groups: [
+          { label: 'Vision-language-action', rows: [
+            { name: 'π₀',      rt: 62.2, lb: 94.1, plus: 53.6 },
+            { name: 'π₀.₅',    rt: 79.8, lb: 96.9, plus: 84.7, dagger: ['plus'] },
+            { name: 'X-VLA',   rt: 72.9, lb: 98.1, plus: null },
+            { name: 'Flex-π (action-only)', ours: 'l', rt: 93.6, lb: 98.7, plus: null }
+          ]},
+          { label: 'World-action', rows: [
+            { name: 'Fast-WAM',   rt: 91.8, lb: 97.6, plus: 65.3, dagger: ['plus'] },
+            { name: 'LingBot-VA', rt: 92.2, lb: 98.5, plus: null },
+            { name: 'Flex-π (full joint)', ours: 'd', rt: 93.1, lb: 99.2, plus: null }
+          ]}
+        ],
+        ariaLabel: 'Simulation results. On RoboTwin Flex-π reaches 93.6% action-only and 93.1% at full joint ' +
+          'generation, above LingBot-VA 92.2, Fast-WAM 91.8, π0.5 79.8, X-VLA 72.9 and π0 62.2. On LIBERO every ' +
+          'method sits between 94 and 99, with Flex-π highest at 98.7 and 99.2. On LIBERO-Plus, which perturbs ' +
+          'the LIBERO tasks, π0.5 leads at 84.7 against Fast-WAM 65.3 and π0 53.6; the Flex-π evaluation is still ' +
+          'running.'
       });
     }
 

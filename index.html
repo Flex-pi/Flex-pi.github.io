@@ -1487,72 +1487,27 @@
     the two deployment modes land within half a point of each other.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">RoboTwin</h4>
-  </div>
-  <div class="wrap reveal" style="margin-top:20px">
-    <div class="tablewrap">
-      <table class="data">
-        <caption><b>Table 2 &middot; RoboTwin.</b> Success rate (%) over 50 tasks. Training: 2,500 clean + 25,000
-        randomized demos. <b>Bold</b> = best per column within each category.</caption>
-        <thead>
-          <tr><th scope="col">Method</th><th scope="col">Clean</th><th scope="col">Rand.</th><th scope="col">Avg.</th></tr>
-        </thead>
-        <tbody>
-          <tr class="grp"><th colspan="4" scope="colgroup">Vision-language-action models</th></tr>
-          <tr><td>π<sub>0</sub> <span class="cite">(2024)</span></td><td>65.9</td><td>58.4</td><td>62.2</td></tr>
-          <tr><td>X-VLA <span class="cite">(2025)</span></td><td>72.9</td><td>72.8</td><td>72.9</td></tr>
-          <tr><td>π<sub>0.5</sub> <span class="cite">(2025)</span></td><td>82.7</td><td>76.8</td><td>79.8</td></tr>
-          <tr class="ours"><td>Flex-π <span class="cite">(action-only)</span></td><td class="best">93.5</td><td class="best">93.6</td><td class="best">93.6</td></tr>
-          <tr class="grp"><th colspan="4" scope="colgroup">World-action models</th></tr>
-          <tr><td>Motus <span class="cite">(2025)</span></td><td>88.7</td><td>87.0</td><td>87.8</td></tr>
-          <tr><td>Fast-WAM <span class="cite">(2026)</span></td><td>91.9</td><td>91.8</td><td>91.8</td></tr>
-          <tr><td>LingBot-VA <span class="cite">(2026)</span></td><td class="best">92.9</td><td>91.6</td><td>92.2</td></tr>
-          <tr class="ours"><td>Flex-π <span class="cite">(full joint)</span></td><td class="best">92.9</td><td class="best">93.3</td><td class="best">93.1</td></tr>
-        </tbody>
-      </table>
+  <div class="wrap wrap--wide reveal" style="margin-top:40px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Both benchmarks, one checkpoint</div>
+          <div class="chartbox__sub">Success rate (%) &middot; methods with a published number on both</div>
+        </div>
+      </div>
+      <div data-chart="bench"></div>
+      <p class="figcap" style="margin-top:12px">Flex-π is the strongest entry in <b>both</b> categories on both
+      benchmarks &mdash; <b>93.6%</b> on RoboTwin action-only and <b>99.2%</b> on LIBERO at full joint generation
+      &mdash; from one set of weights run in two modes. RoboTwin is the average over 50 tasks trained on 2,500
+      clean plus 25,000 randomized demos; π<sub>0.5</sub> gives up 5.9&nbsp;points moving from clean to randomized
+      scenes (82.7&nbsp;&rarr;&nbsp;76.8) while Flex-π gives up none (93.5&nbsp;&rarr;&nbsp;93.6), which we
+      attribute to the 3D and DINO streams carrying appearance-invariant structure. Every method lands inside a
+      five-point band on LIBERO, which is why the perturbed LIBERO-Plus set is the more telling of the two.
+      The two groups are vision-language-action and world-action models. <b>†</b>&nbsp;= our own evaluation of the released checkpoint, since neither method reports LIBERO-Plus.
+      Flex-π&rsquo;s LIBERO-Plus run is still going, so those two cells are empty rather than estimated.
+      Motus, GR00T-N1, OpenVLA-OFT and UniVLA report only one of the two benchmarks and are left out; their
+      numbers are in the paper.</p>
     </div>
-    <p class="figcap" style="margin-top:14px">π<sub>0.5</sub> loses 5.9&nbsp;points moving from clean to randomized
-    scenes; Flex-π loses none — we attribute this to the 3D and DINO streams providing appearance-invariant
-    structure.</p>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:64px">
-    <h4 class="sub__title">LIBERO</h4>
-    <p class="sub__lede">One flexible checkpoint already matches the strongest published method in each group —
-    <b>98.1%</b> action-only and <b>98.5%</b> at full joint generation. The mode-committed checkpoints in the table
-    below go higher still.</p>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:22px">
-    <div class="tablewrap">
-      <table class="data">
-        <caption><b>Table 1 &middot; LIBERO.</b> Mean success rate (%) over the four standard LIBERO suites;
-        the LIBERO-Plus column is the official task-count-weighted total over its perturbed task set, not a
-        four-suite average. &ldquo;&mdash;&rdquo; = no published number. Flex-π rows are the mode-committed
-        checkpoints. <b>Bold</b> = best per column within each category.</caption>
-        <thead>
-          <tr><th scope="col">Method</th><th scope="col">LIBERO</th><th scope="col">LIBERO-Plus</th></tr>
-        </thead>
-        <tbody>
-          <tr class="grp"><th colspan="3" scope="colgroup">Vision-language-action models</th></tr>
-          <tr><td>π<sub>0</sub></td><td>94.1</td><td>53.6</td></tr>
-          <tr><td>π<sub>0.5</sub></td><td>96.9</td><td class="best">84.7<sup>&dagger;</sup></td></tr>
-          <tr><td>GR00T-N1</td><td>93.9</td><td class="na">&mdash;</td></tr>
-          <tr><td>OpenVLA-OFT</td><td>97.1</td><td>69.6</td></tr>
-          <tr><td>UniVLA</td><td>95.2</td><td>42.9</td></tr>
-          <tr><td>X-VLA</td><td>98.1</td><td class="na">&mdash;</td></tr>
-          <tr class="ours"><td>Flex-π <span class="cite">(action-only)</span></td><td class="best">98.7</td><td class="na">&mdash;</td></tr>
-          <tr class="grp"><th colspan="3" scope="colgroup">World-action models</th></tr>
-          <tr><td>LingBot-VA</td><td>98.5</td><td class="na">&mdash;</td></tr>
-          <tr><td>Fast-WAM</td><td>97.6</td><td class="best">65.3<sup>&dagger;</sup></td></tr>
-          <tr class="ours"><td>Flex-π <span class="cite">(full joint)</span></td><td class="best">99.2</td><td class="na">&mdash;</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="figcap" style="margin-top:14px"><sup>&dagger;</sup>Neither Fast-WAM nor π<sub>0.5</sub> reports
-    LIBERO-Plus, so those entries are our own evaluations of the released checkpoints. Flex-π's LIBERO-Plus
-    evaluation is still in progress and is therefore not reported here.</p>
   </div>
 
 </section>
