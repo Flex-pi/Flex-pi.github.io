@@ -1167,7 +1167,10 @@
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">Three streams, one shared space</h4>
     <p class="sub__lede">RGB and 3D pointmaps go through the <em>same</em> frozen video-generation VAE. DINOv3
-    semantics come from a separate frozen encoder and are projected into the same backbone by a linear adapter.</p>
+    semantics come from a separate frozen encoder and are projected into the same backbone by a linear adapter.
+    Proprioception and the language instruction condition every stream. The
+    <a href="#archviz">diagram at the top of the page</a> runs that path live &mdash; its two masks are the ones
+    described below.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:34px">
@@ -1196,21 +1199,10 @@
     </div>
   </div>
 
-  <div class="wrap wrap--wide reveal" style="margin-top:40px">
-    <figure>
-      <div class="plate plate--wide">
-        <img src="assets/figures/fig2_arch.png" alt="Flex-π architecture. RGB observations and 3D pointmaps are encoded by a single pre-trained Wan-2.2 VAE into latent tokens; DINOv3 produces semantic tokens. A stream presence mask selects which visual streams enter the model via per-stream projectors feeding a shared 5B visual transformer backbone. A smaller 1B action expert cross-attends to the backbone to produce an action chunk. An output generation mask sets which future visual streams are mutually visible." loading="lazy">
-      </div>
-      <p class="scrollhint">&larr; scroll figure &rarr;</p>
-      <figcaption class="figcap"><span class="tag">Figure 2</span><b>Flex-π architecture.</b>
-      A <em>stream presence mask</em> <b>m</b><sup>in</sup> selects which visual streams enter the model through
-      lightweight per-stream projectors, which feed one shared <em>Visual Transformer Backbone</em> (5B parameters,
-      initialized from Wan-2.2). A smaller <em>Action Expert</em> (~1B) cross-attends to the backbone to emit an
-      action chunk. An <em>output generation mask</em> <b>m</b><sup>out</sup> sets which future visual streams are
-      mutually visible when jointly generated with the actions. Proprioception and the language instruction
-      condition every stream.</figcaption>
-    </figure>
-  </div>
+  <!-- The paper's Figure 2 used to sit here as a raster. It was a still copy of
+       the animated #archviz diagram at the top of the page, and being an image it
+       kept its own light background in both themes. The live diagram carries the
+       same content, so the still is gone and the lede above links to it. -->
 
   <div class="wrap reveal" style="margin-top:60px">
     <h4 class="sub__title">Why latents instead of pixels</h4>
