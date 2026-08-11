@@ -204,6 +204,124 @@
     }
   }
 
+  /* Legend items: { label, color, dot: round swatch, hollow: outline only }.
+     Shared by the charts whose marks are not plain filled rectangles. */
+  function buildLegend(sel, items) {
+    if (!sel) return;
+    var lg = document.querySelector(sel);
+    if (!lg) return;
+    lg.innerHTML = '';
+    (items || []).forEach(function (s) {
+      var span = document.createElement('span');
+      span.className = 'legend__item';
+      var sw = document.createElement('span');
+      sw.className = 'legend__sw' + (s.dot ? ' legend__sw--dot' : '');
+      if (s.hollow) {
+        sw.style.background = 'var(--bg-raise)';
+        sw.style.boxShadow = 'inset 0 0 0 2.5px ' + s.color;
+      } else {
+        sw.style.background = s.color;
+      }
+      span.appendChild(sw);
+      span.appendChild(document.createTextNode(s.label));
+      lg.appendChild(span);
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     dumbbell chart: one row per task, the strongest baseline on that task
+     against Flex-π's two deployment modes.
+
+     A grouped bar chart of the same numbers spends 28 bars to say what the
+     distance between two dots says on its own, and it draws "Fast-WAM was
+     never run here" exactly like "Fast-WAM scored zero". Collapsing the
+     baselines to whichever was strongest on each task avoids both, and
+     makes the claim — every task, not just the average — the shape of the
+     figure rather than something to verify bar by bar.
+     --------------------------------------------------------------------- */
+  function dumbbellChart(mount, cfg) {
+    var W = 1000;
+    var padL = cfg.padL != null ? cfg.padL : 178;
+    var padR = 96;                     /* room for the end value and the delta */
+    var padT = 26;
+    var padB = 40;
+    var rowH = cfg.rowH != null ? cfg.rowH : 48;
+    var rows = cfg.rows;
+    var hi = cfg.max != null ? cfg.max : 100;
+    var plotH = rows.length * rowH;
+    var H = padT + plotH + padB;
+    var plotW = W - padL - padR;
+
+    function X(v) { return padL + (v / hi) * plotW; }
+
+    var svg = el('svg', {
+      'class': 'chart', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'img',
+      'aria-label': cfg.ariaLabel || 'per-task comparison against the strongest baseline'
+    });
+
+    (cfg.xTicks || []).forEach(function (t) {
+      var x = X(t);
+      svg.appendChild(el('line', { 'class': 'grid', x1: x, x2: x, y1: padT, y2: padT + plotH }));
+      svg.appendChild(el('text', {
+        'class': 'tick', x: x, y: padT + plotH + 18, 'text-anchor': 'middle'
+      }, t + '%'));
+    });
+    svg.appendChild(el('line', {
+      'class': 'axis', x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH
+    }));
+
+    rows.forEach(function (r, i) {
+      var cy = padT + i * rowH + rowH / 2;
+
+      /* strongest baseline on this task, and which method that was */
+      var bName = null, bVal = -Infinity;
+      Object.keys(r.baselines).forEach(function (k) {
+        var v = r.baselines[k];
+        if (v !== null && v !== undefined && v > bVal) { bVal = v; bName = k; }
+      });
+
+      svg.appendChild(el('text', {
+        'class': 'dlab dlab--hi', x: padL - 18, y: cy + 4.5, 'text-anchor': 'end'
+      }, r.label));
+
+      svg.appendChild(el('line', {
+        'class': 'db-run', x1: X(bVal), x2: X(r.joint), y1: cy, y2: cy
+      }));
+
+      function dot(v, cls, rad, title) {
+        var c = el('circle', { 'class': 'db-dot ' + cls, cx: X(v), cy: cy, r: rad });
+        c.appendChild(el('title', {}, title));
+        svg.appendChild(c);
+      }
+      dot(bVal, 'db-dot--base', 5.5,
+        'Strongest baseline on ' + r.label + ' — ' + bName + ', ' + bVal.toFixed(1) + '%');
+      dot(r.actionOnly, 'db-dot--fast', 5,
+        'Flex-π (action-only) — ' + r.actionOnly.toFixed(1) + '%');
+      dot(r.joint, 'db-dot--joint', 6.5,
+        'Flex-π (full joint) — ' + r.joint.toFixed(1) + '%');
+
+      /* name the baseline on its own dot — which method is strongest changes
+         from task to task, and a legend cannot say that. One right-aligned
+         text so the two parts stay set without measuring glyph widths. */
+      var who = el('text', { x: X(bVal) - 12, y: cy + 4, 'text-anchor': 'end' });
+      who.appendChild(el('tspan', { 'class': 'db-who' }, bName));
+      who.appendChild(el('tspan', { 'class': 'vlab', dx: 6 }, bVal.toFixed(1)));
+      svg.appendChild(who);
+      svg.appendChild(el('text', {
+        'class': 'vlab vlab--hi', x: X(r.joint) + 13, y: cy + 4
+      }, r.joint.toFixed(1)));
+      svg.appendChild(el('text', {
+        'class': 'db-delta', x: W - 6, y: cy + 4, 'text-anchor': 'end'
+      }, '+' + (r.joint - bVal).toFixed(1)));
+    });
+
+    mount.innerHTML = '';
+    mount.appendChild(svg);
+
+    buildLegend(cfg.legendEl, cfg.legend);
+  }
+
   /* ---------------------------------------------------------------------
      paired bar chart: one light "before" bar and one solid "after" bar per
      method, with the drop between them written above the pair. Used for
@@ -687,7 +805,7 @@
        Each bar is an unweighted mean over the tasks it covers, and the three
        groups cover different task sets, so read them as three summaries and
        not as a controlled seen-to-unseen delta:
-         seen   five in-distribution tasks       = the Average of the 'real' chart
+         seen   five in-distribution tasks, unweighted mean
          unseen the three tasks that have a held-out condition
                 plate 72.5/55.0/33.8/85.0/95.0  (paired chart, held-out)
                 sort  40.0/32.5/ 0.0/70.0/70.0  (paired chart, held-out)
@@ -718,35 +836,35 @@
       });
     }
 
-    /* real-robot in-distribution — five tasks + the unweighted average.
-       Source: real_world_eval/flex_pi_final_results.json (normalized_score).
-       Fast-WAM was only run on three tasks; its average covers those three. */
-    if ((m = find('real'))) {
-      barChart(m, {
-        series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base },
-          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
-          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
-          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
+    /* the five tasks against whichever baseline was strongest on each, at the
+       head of the part. The unweighted average over these rows is the
+       'Seen' bar of the summary figure at the top of the page, so it is not
+       repeated here. */
+    if ((m = find('taskgap'))) {
+      dumbbellChart(m, {
+        rows: [
+          { label: 'Put Plate on the Rack',
+            baselines: { 'π₀.₅': 72.5, 'ManiFlow': 75.8, 'Fast-WAM': 12.5 }, actionOnly: 84.2, joint: 95.0 },
+          { label: 'Sort Utensils',
+            baselines: { 'π₀.₅': 45.0, 'ManiFlow': 55.0, 'Fast-WAM': 5.0 },  actionOnly: 70.0, joint: 75.0 },
+          { label: 'Kitchen Organization',
+            baselines: { 'π₀.₅': 73.8, 'ManiFlow': 93.8, 'Fast-WAM': 77.5 }, actionOnly: 96.2, joint: 98.8 },
+          { label: 'Self-Repair Gripper',
+            baselines: { 'π₀.₅': 26.2, 'ManiFlow': 33.3 },                   actionOnly: 66.9, joint: 76.0 },
+          { label: 'Soft-Bag Zipping',
+            baselines: { 'π₀.₅': 42.8, 'ManiFlow': 31.9 },                   actionOnly: 64.9, joint: 70.0 }
         ],
-        groups: [
-          { label: 'Put Plate|on the Rack', values: [72.5, 75.8, 12.5, 84.2, 95.0], n: [20, 20, 20, 20, 20] },
-          { label: 'Sort|Utensils',         values: [45.0, 55.0, 5.0, 70.0, 75.0],  n: [10, 10, 10, 10, 10] },
-          { label: 'Kitchen|Organization',  values: [73.8, 93.8, 77.5, 96.2, 98.8], n: [20, 20, 20, 20, 20] },
-          { label: 'Self-Repair|Gripper',   values: [26.2, 33.3, null, 66.9, 76.0], n: [20, 20, null, 20, 20] },
-          { label: 'Soft-Bag|Zipping',      values: [42.8, 31.9, null, 64.9, 70.0], n: [20, 20, null, 20, 20] },
-          /* the average pools every rollout behind it: 90 across the five
-             tasks, 50 for Fast-WAM's three. */
-          { label: 'Average',               values: [52.1, 58.0, 31.7, 76.4, 83.0], n: [90, 90, 50, 90, 90] }
+        max: 100, xTicks: [0, 20, 40, 60, 80, 100],
+        legendEl: '#lg-taskgap',
+        legend: [
+          { label: 'Strongest baseline', color: C.base, dot: true },
+          { label: 'Flex-π (action-only)', color: C.oursL, dot: true, hollow: true },
+          { label: 'Flex-π (full joint)', color: C.oursD, dot: true }
         ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 250, padB: 58,
-        padT: 46, vlabRotate: true,
-        tickFmt: function (t) { return t + '%'; },
-        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
-        yLabel: 'Task completion (%)', legendEl: '#lg-real',
-        ariaLabel: 'Across five real-robot tasks Flex-π full joint averages 83.0 percent task completion and ' +
-          'action-only 76.4, against 58.0 for ManiFlow, 52.1 for π0.5 and 31.7 for Fast-WAM.'
+        ariaLabel: 'On all five real-robot tasks Flex-π beats the strongest baseline for that task. Full joint ' +
+          'generation leads by 19.2 points on Put Plate on the Rack, 20.0 on Sort Utensils, 5.0 on Kitchen ' +
+          'Organization, 42.7 on Self-Repair Gripper and 27.2 on Soft-Bag Zipping. The faster action-only ' +
+          'path also clears every baseline.'
       });
     }
 
