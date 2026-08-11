@@ -1715,6 +1715,12 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
    revealing "no visible change" the PSNR claim itself, made tangible.
    All three clips are kept in step by the data-sync group in main.js.
    ========================================================================== */
+/* The plate's light ground is there for figures with white baked into them, and
+   there are none left on the page. Figure 3 fills the plate edge to edge with
+   video, so all the ground does is draw a white frame around it — which in the
+   dark theme is the brightest thing on the screen. It opts out; .plate keeps
+   its meaning for any future figure that does need paper behind it. */
+.plate.vaefig { background: none; border: 0; padding: 0; overflow: visible; }
 .vaefig { display: flex; gap: 10px; align-items: stretch; }
 .vaefig img, .vaefig video { min-width: 0; }   /* out-specify .plate img's 460px floor */
 .vaefig__cell { position: relative; flex: 1 1 0; min-width: 0; }
