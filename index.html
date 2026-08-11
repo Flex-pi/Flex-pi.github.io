@@ -197,7 +197,7 @@
                  aria-label="Two robot arms lifting a flat plate and seating it on a rack"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="taskstrip__cap"><b>Put Plate on the Rack</b>A flat plate seated in the rack without tipping.</figcaption>
+        <figcaption class="taskstrip__cap"><b>Put Plate on the Rack</b></figcaption>
       </figure>
       <figure class="taskstrip__item">
         <div class="player" data-player data-caption="Sort Utensils — singulating thin objects from a cluttered surface.">
@@ -206,7 +206,7 @@
                  aria-label="Two robot arms singulating utensils from a cluttered table and sorting them"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="taskstrip__cap"><b>Sort Utensils</b>Singulating thin objects from clutter.</figcaption>
+        <figcaption class="taskstrip__cap"><b>Sort Utensils</b></figcaption>
       </figure>
       <figure class="taskstrip__item">
         <div class="player" data-player data-caption="Kitchen Organization — seating a bowl and then a plate, on an unseen rack.">
@@ -215,7 +215,7 @@
                  aria-label="Two robot arms seating a bowl and then a plate into a kitchen rack"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="taskstrip__cap"><b>Kitchen Organization</b>Seating a bowl and then a plate.</figcaption>
+        <figcaption class="taskstrip__cap"><b>Kitchen Organization</b></figcaption>
       </figure>
       <figure class="taskstrip__item">
         <div class="player" data-player data-caption="Self-Repair Gripper — driving the screw home, the tightest stage of the sequence.">
@@ -224,7 +224,7 @@
                  aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="taskstrip__cap"><b>Self-Repair Gripper</b>The eight-stage gripper-repair sequence.</figcaption>
+        <figcaption class="taskstrip__cap"><b>Self-Repair Gripper</b></figcaption>
       </figure>
       <figure class="taskstrip__item">
         <div class="player" data-player data-caption="Soft-Bag Zipping — unzip, drop the pen in, zip closed, on an unseen bag.">
@@ -233,7 +233,7 @@
                  aria-label="Two robot arms unzipping a bag, placing a pen inside and zipping it closed"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="taskstrip__cap"><b>Soft-Bag Zipping</b>Unzip, drop the pen in, zip closed.</figcaption>
+        <figcaption class="taskstrip__cap"><b>Soft-Bag Zipping</b></figcaption>
       </figure>
     </div>
   </div>
@@ -528,8 +528,9 @@
 
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">Precision against π<sub>0.5</sub> and ManiFlow</h4>
-    <p class="sub__lede">The three stages that decide the task, each shown next to a baseline attempting the same
-    thing. Clearances run from ±1.75&nbsp;mm down to ±0.25&nbsp;mm at the tightest one.</p>
+    <p class="sub__lede">Two insertions and the screwing — the three stages the baselines rarely get past. Each is
+    shown twice: a baseline attempting the stage on the left, Flex-π completing it on the right. Stage 7 is the
+    tightest of the eight, a 4&nbsp;mm bit into a 4.5&nbsp;mm socket.</p>
   </div>
 
   <div class="wrap wrap--wide reveal acompare-block">
@@ -623,22 +624,24 @@
   <div class="wrap wrap--wide reveal" style="margin-top:26px">
     <div class="vgrid vgrid--2">
       <figure>
+        <h5 class="acompare__name">Retrying the gripper insertion</h5>
         <div class="player" data-player data-caption="Flex-π retrying the gripper insertion — backing off and re-aligning instead of committing to a missed approach.">
           <span class="player__badge player__badge--ours player__badge--bl">Retry</span>
           <video src="assets/videos/selfrepair-retry.mp4" poster="assets/videos/selfrepair-retry.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π backing off and re-aligning to seat the gripper after a missed insertion"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b>Retrying the gripper insertion</b>A missed approach is not a lost
-        episode — the policy backs off, re-aligns, and seats the part on the next attempt.</figcaption>
+        <figcaption class="vcard__cap">The first approach misses the holder. The arm pulls back, lines the part
+        up again and seats it on the second try.</figcaption>
       </figure>
       <figure>
+        <h5 class="acompare__name">Retrying the screwing</h5>
         <div class="player" data-player data-caption="Flex-π retrying the screwing — lifting the bit, re-centring, and re-engaging the socket.">
           <span class="player__badge player__badge--ours player__badge--bl">Retry</span>
           <video src="assets/videos/selfrepair-screw-in-retry.mp4" poster="assets/videos/selfrepair-screw-in-retry.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π lifting the driver bit and re-engaging the screw socket after a glancing contact"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b>Retrying the screwing</b>At ±0.25&nbsp;mm the bit can glance off the
-        socket — the policy lifts, re-centres, and re-engages rather than grinding on a bad seat.</figcaption>
+        <figcaption class="vcard__cap">The bit glances off the socket instead of dropping in. The arm lifts the
+        driver clear, re-centres it over the screw head and comes back down.</figcaption>
       </figure>
     </div>
   </div>
@@ -651,9 +654,9 @@
 <section class="sec" id="real-robot">
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">02</span>Dexterity under sustained contact</h3>
-    <p class="sec__sub">Five contact-rich tasks on a stationary bimanual YAM workcell — two 6-DoF arms, three
-    calibrated stereo cameras. Each rollout is scored under a per-task partial-credit rubric, 10 or 20 rollouts
-    per method.</p>
+    <p class="sec__sub">Zipping a soft bag: the fabric moves under every grasp, so the zip has to be found by
+    geometry and contact rather than by where it looked a moment ago. Five bags the policy was trained on, and
+    one it was never shown.</p>
   </div>
 
 
@@ -800,6 +803,8 @@
 
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">The workcell</h4>
+    <p class="sub__lede">Two 6-DoF YAM arms on a stationary workcell, three calibrated stereo cameras. Every
+    real-robot number on this page comes from this one rig.</p>
   </div>
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="vgrid vgrid--2">
@@ -1109,22 +1114,21 @@
       <div data-chart="gen"></div>
       <p class="figcap" style="margin-top:10px">Faded bars are the in-distribution score, solid bars the unseen
       one, and the number above each pair is the drop. Flex-&pi; (full joint) gives up 2.5 and 5 points and the
-      action-only path 5 and none; ManiFlow gives up 32.5 and 22.5. Put Plate on the Rack averages its two unseen conditions &mdash; a plate it has never
-      handled, and unfamiliar objects crowding the table &mdash; into a single bar.</p>
+      action-only path 5 and none; ManiFlow gives up 32.5 and 22.5. Put Plate on the Rack averages its two unseen
+      conditions &mdash; a plate it has never handled, and unfamiliar objects crowding the table &mdash; into a
+      single bar.</p>
     </div>
   </div>
 
   <div class="wrap reveal" style="margin-top:64px">
-    <h4 class="sub__title">Data efficiency</h4>
-    <p class="sub__lede">The same comparison after retraining every method on half the demonstrations.</p>
+    <h4 class="sub__title">Training on 50% of the data</h4>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:20px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Training on 50% of the data</div>
-          <div class="chartbox__sub">Put Plate on the Rack</div>
+          <div class="chartbox__title">Put Plate on the Rack</div>
         </div>
         <div class="legend" id="lg-dataeff"></div>
       </div>
@@ -1143,7 +1147,7 @@
         <div class="part__n">Part II</div>
         <h2 class="part__t">How it works</h2>
       </div>
-      <p class="part__d">What is behind the diagram above: the shared latent space that carries appearance, geometry and semantics together, and what the policy predicts in it while it acts.</p>
+      <p class="part__d">What is behind the diagram above: the shared latent space that carries appearance, geometry and semantics together, and the two masks that let one set of weights cover every input/output combination.</p>
     </div>
   </div>
 </div>
@@ -1161,8 +1165,8 @@
     <p class="sub__lede">RGB and 3D pointmaps go through the <em>same</em> frozen video-generation VAE. DINOv3
     semantics come from a separate frozen encoder and are projected into the same backbone by a linear adapter.
     Proprioception and the language instruction condition every stream. The
-    <a href="#archviz">diagram at the top of the page</a> runs that path live: choose which streams are observed
-    and which are generated, and it redraws.</p>
+    <a href="#archviz">diagram at the top of the page</a> runs that path live &mdash; its two masks are the ones
+    described below.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:34px">
@@ -1245,6 +1249,25 @@
       z-RMSE in metres). One unseen plate-rack episode, 997 frames of head-camera video at 4&times; speed;
       the RGB panel is the scene the pointmap encodes.</figcaption>
     </figure>
+  </div>
+
+  <div class="wrap reveal" style="margin-top:60px">
+    <h4 class="sub__title">Cross-modality forcing</h4>
+    <p class="sub__lede">Dropping a stream from the input does not stop the model generating its future — and
+    being forced to do so is worth <b>21.2 points</b> of RoboTwin success.</p>
+  </div>
+
+  <div class="wrap reveal" style="margin-top:18px">
+    <div class="prose">
+      <p>Because the two masks are drawn independently, a stream dropped from the input is still denoised at the
+      output: the model must synthesize that modality's future from whatever streams remain — imagining future
+      pointmaps from RGB and DINO with no 3D input at all, or DINO semantics from RGB and geometry.</p>
+      <p>The benefit is not merely robustness to missing sensors. Requiring each modality to be predictable from the
+      others prevents the shared backbone from degenerating into three weakly-coupled channels, and instead demands
+      a representation in which appearance, geometry and semantics are <em>mutually predictive</em>. Ablating it —
+      while holding the mask distribution fixed, so both models observe the same streams — costs
+      <strong>21.2 points</strong> of RoboTwin success.</p>
+    </div>
   </div>
 
 </section>

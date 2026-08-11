@@ -1210,7 +1210,7 @@
           : 'Not yet evaluated on the real-robot suite.';
       }
     };
-    setFrontierMode(7, 7);
+    setFrontierMode(0, 7);
   }
 
   /* ---------------------------------------------------------------------
