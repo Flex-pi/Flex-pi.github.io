@@ -962,85 +962,6 @@
   }
 
   /* ---------------------------------------------------------------------
-     stream-dropout mask demo
-     --------------------------------------------------------------------- */
-  function initMaskDemo() {
-    var wrap = document.getElementById('mask-demo');
-    if (!wrap) return;
-    var STREAMS = [
-      { k: 'V', v: '--s-rgb', name: 'RGB' },
-      { k: 'D', v: '--s-dino', name: 'DINO' },
-      { k: 'P', v: '--s-3d', name: 'pointmap' }
-    ];
-    var rows = {};
-    ['in', 'out'].forEach(function (which) {
-      var host = wrap.querySelector('[data-mask="' + which + '"]');
-      rows[which] = STREAMS.map(function (s) {
-        var c = document.createElement('span');
-        c.className = 'cell';
-        c.style.setProperty('--dot', 'var(' + s.v + ')');
-        c.textContent = s.k;
-        c.setAttribute('data-on', 'true');
-        host.appendChild(c);
-        return c;
-      });
-    });
-
-    var noteEl = document.getElementById('mask-note');
-    var nEl = document.getElementById('mask-n');
-    var btn = document.getElementById('mask-toggle');
-    var n = 0, timer = null, running = !reduceMotion;
-
-    function draw() {
-      var mi, tries = 0;
-      do { mi = STREAMS.map(function () { return Math.random() < 0.5; }); tries++; }
-      while (!mi.some(Boolean) && tries < 20);
-      if (!mi.some(Boolean)) mi[0] = true;               // rejection sampling guarantee
-      var mo = STREAMS.map(function () { return Math.random() < 0.5; });
-
-      n += 1;
-      nEl.textContent = String(n);
-      rows.in.forEach(function (c, i) { c.setAttribute('data-on', mi[i] ? 'true' : 'false'); });
-      rows.out.forEach(function (c, i) { c.setAttribute('data-on', mo[i] ? 'true' : 'false'); });
-
-      var forced = STREAMS.filter(function (s, i) { return !mi[i] && mo[i]; });
-      var msg;
-      if (!mo.some(Boolean)) {
-        msg = 'No future is read by the action expert — this draw trains the <b>action-only fast path</b>. ' +
-              'All three visual streams are still denoised and still incur their loss.';
-      } else if (forced.length) {
-        msg = '<b>Cross-modality forcing:</b> the ' + forced.map(function (s) { return s.name; }).join(' and ') +
-              ' stream' + (forced.length > 1 ? 's are' : ' is') + ' never observed, yet ' +
-              (forced.length > 1 ? 'their futures are' : 'its future is') +
-              ' generated from the remaining streams and read by the action expert.';
-      } else {
-        msg = 'The action expert reads ' + STREAMS.filter(function (s, i) { return mo[i]; })
-              .map(function (s) { return s.name; }).join(' + ') +
-              ' futures, conditioning actions on a jointly generated future.';
-      }
-      noteEl.innerHTML = msg;
-    }
-
-    function start() { running = true; btn.textContent = 'Pause sampling'; timer = setInterval(draw, 2400); draw(); }
-    function stop() { running = false; btn.textContent = 'Resume sampling'; clearInterval(timer); timer = null; }
-
-    btn.addEventListener('click', function () { running ? stop() : start(); });
-
-    /* only run while visible */
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) {
-        if (e.isIntersecting) { if (running && !timer) { timer = setInterval(draw, 2400); } }
-        else if (timer) { clearInterval(timer); timer = null; }
-      });
-    }, { threshold: 0.15 });
-    io.observe(wrap);
-
-    draw();
-    if (reduceMotion) { btn.textContent = 'Resume sampling'; }
-    else { timer = setInterval(draw, 2400); }
-  }
-
-  /* ---------------------------------------------------------------------
      auto-scrolling strip (the at-a-glance rollout row).
 
      The strip drifts left to right on its own so every task is seen without
@@ -1143,7 +1064,9 @@
   }
 
   /* ---------------------------------------------------------------------
-     videos: play only while on screen  (16 clips — do not run them all)
+     videos: warm up shortly before they enter the viewport, then play only
+     while they are nearby. This keeps the full video library off the initial
+     loading path without making the next row feel late.
      --------------------------------------------------------------------- */
   function initVideos() {
     var vids = Array.prototype.slice.call(document.querySelectorAll('video[data-autoplay]'));
@@ -1161,7 +1084,7 @@
           v.pause();
         }
       });
-    }, { threshold: 0.25, rootMargin: '120px 0px' });
+    }, { threshold: 0.01, rootMargin: '700px 0px' });
     vids.forEach(function (v) { io.observe(v); });
   }
 
@@ -1501,6 +1424,10 @@
       lastFocus = document.activeElement;
       lv.src = src;
       if (poster) lv.poster = poster;
+      /* Preserve comparison-only colour matching when a clip is expanded. */
+      var sourceVideo = p && p.querySelector('video');
+      var sourceFilter = sourceVideo ? getComputedStyle(sourceVideo).filter : 'none';
+      lv.style.filter = sourceFilter && sourceFilter !== 'none' ? sourceFilter : '';
       cap.textContent = caption || '';
       native = bakedRate(p);
       var sb = speedBadge(p);
@@ -1516,6 +1443,7 @@
     function close() {
       lb.setAttribute('data-open', 'false');
       lv.pause(); lv.removeAttribute('src'); lv.load();
+      lv.style.filter = '';
       document.body.style.overflow = '';
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
@@ -2099,7 +2027,6 @@
     initTheme();
     renderCharts();
     initFrontier();      /* before initArchviz: the masks drive its highlight */
-    initMaskDemo();
     initSyncedVideos();  /* before initVideos: the leader must not play unheard */
     initAutoStrips();  /* clones strip children, so before initVideos() sees them */
     initVideos();

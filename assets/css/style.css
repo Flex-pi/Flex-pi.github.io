@@ -509,9 +509,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .abstract__problem {
   position: relative; margin-bottom: clamp(22px, 2.8vw, 30px);
   padding: clamp(14px, 2vw, 18px) clamp(16px, 2.5vw, 22px);
-  border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border-faint));
+  border: 1px solid color-mix(in srgb, var(--c-base2) 26%, var(--border-soft));
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--primary) 4.5%, var(--bg-raise));
+  background: color-mix(in srgb, var(--c-base2) 10%, var(--bg-raise));
 }
 .abstract__problem em {
   color: inherit; font-weight: inherit;
@@ -664,7 +664,18 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 
 .predpair { display: flex; flex-direction: column; gap: 8px; }
 .predpair .player video { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
+/* Display-only colour match for each real rollout in the prediction comparison. */
+.predpair[data-wb-id="selfrepair"] { --wb-brightness: .92; --wb-warmth: .25; }
+.predpair[data-wb-id="bag"]        { --wb-brightness: .84; --wb-warmth: .25; }
+.predpair[data-wb-id="platerack"]  { --wb-brightness: .92; --wb-warmth: .09; }
+.predpair[data-wb-id="utensils"]   { --wb-brightness: .92; --wb-warmth: .13; }
+.predpair[data-wb-id="kitchen"]    { --wb-brightness: .82; --wb-warmth: .25; }
+.predpair__real video {
+  filter: brightness(var(--wb-brightness, .82)) saturate(.80) sepia(var(--wb-warmth, .06));
+}
 .predpair__gen { border-color: color-mix(in srgb, var(--dot) 42%, transparent); }
+/* Slightly cool the decoded RGB futures; semantic and pointmap streams stay unchanged. */
+.predstrip[data-stream="rgb"] .predpair__gen video { filter: saturate(.95); }
 /* a slot with no exported decode for the selected stream falls back to the
    placeholder: the video and its expand button sit idle underneath, and the
    caption written by JS into data-todo names the missing stream */
@@ -1300,6 +1311,32 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .chartbox__head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: baseline; margin-bottom: 18px; }
 .chartbox__title { font-weight: 600; font-size: 16px; letter-spacing: -.005em; }
 .chartbox__sub { font-size: 13.5px; color: var(--fg-dim); }
+.chartbox--compact {
+  width: min(100%, 740px); margin-inline: auto;
+  padding: clamp(12px, 1.6vw, 16px);
+}
+.chartbox--compact .chartbox__head { margin-bottom: 6px; }
+.chartbox--compact .chartbox__title { font-size: 14px; }
+.chartbox--compact .chartbox__sub { font-size: 11.5px; }
+.chartbox--compact .metricflow { padding: 5px 0 0; }
+.chartbox--compact .metricflow__scroller { padding-bottom: 4px; }
+.chartbox--compact .metricflow__track--2 {
+  grid-template-columns: minmax(150px, 1fr) minmax(76px, .48fr) minmax(150px, 1fr);
+  min-width: 460px;
+}
+.chartbox--compact .metricflow__value { font-size: clamp(27px, 3vw, 32px); }
+.chartbox--compact .metricflow__dot {
+  width: 10px; height: 10px; margin-top: 8px; border-width: 2px;
+}
+.chartbox--compact .metricflow__node--result .metricflow__dot {
+  box-shadow: 0 0 0 1px var(--node-color), 0 0 0 4px color-mix(in srgb, var(--node-color) 12%, transparent);
+}
+.chartbox--compact .metricflow__label { margin-top: 7px; font-size: 12px; }
+.chartbox--compact .metricflow__link { height: 68px; }
+.chartbox--compact .metricflow__link::before { top: 39px; }
+.chartbox--compact .metricflow__link::after { top: 35px; }
+.chartbox--compact .metricflow__delta { top: 0; padding: 2px 7px; font-size: 9.5px; }
+.chartbox--compact .figcap { font-size: 11.5px; line-height: 1.45; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-left: auto; }
 .legend__item { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--fg-muted); white-space: nowrap; }
 .legend__sw { width: 10px; height: 10px; border-radius: 2px; flex: none; background: var(--c); }
@@ -1577,37 +1614,6 @@ table.data td.na { color: var(--fg-faint); }
 table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; }
 
 /* ==========================================================================
-   mask matrix
-   ========================================================================== */
-.masks { display: grid; gap: 14px; }
-.maskrow {
-  display: flex; flex-wrap: wrap; align-items: center;
-  gap: 10px clamp(20px, 4vw, 46px); padding: 12px 15px;
-  border: 1px solid var(--border-faint); border-radius: var(--radius); background: var(--surface);
-}
-.maskrow__lab { font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--fg-faint); }
-.maskset { display: flex; align-items: center; gap: 7px; }
-.maskset__tag { font-family: var(--ff-mono); font-size: var(--fs-meta); color: var(--fg-faint); width: 30px; flex: none; }
-.cellrow { display: flex; gap: 5px; }
-.cell {
-  width: 26px; height: 26px; border-radius: 3px; display: grid; place-items: center;
-  font-family: var(--ff-mono); font-size: 11px; font-weight: 500;
-  border: 1.5px solid var(--dot); color: var(--dot);
-  background: transparent; transition: background .3s var(--ease), opacity .3s var(--ease);
-}
-.cell[data-on="true"] { background: color-mix(in srgb, var(--dot) 24%, transparent); }
-.cell[data-on="false"] { border-style: dashed; opacity: .38; }
-.masknote { font-size: 13.5px; color: var(--fg-dim); line-height: 1.5; }
-.masknote b { color: var(--fg-muted); }
-.maskctl { display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
-.maskctl button {
-  font-size: 14px; padding: 6px 12px; border-radius: var(--radius);
-  background: var(--surface-2); color: var(--fg-muted);
-  border: 1px solid var(--border-soft); cursor: pointer;
-}
-.maskctl button:hover { background: var(--surface-3); color: var(--fg); }
-
-/* ==========================================================================
    task specs + stage rubric
    ========================================================================== */
 .specs {
@@ -1778,7 +1784,7 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
 }
 
 @media print {
-  .nav, .lb, .player__expand, .bib__copy, .maskctl, .stage__cue, .stage__expand { display: none !important; }
+  .nav, .lb, .player__expand, .bib__copy, .stage__cue, .stage__expand { display: none !important; }
   .chart--scaling-flow { min-width: 0; }
   html, body { background: #fff; color: #000; }
 }

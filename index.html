@@ -18,6 +18,8 @@
 <meta name="twitter:description" content="One checkpoint, any observed inputs, any generated futures.">
 <meta name="twitter:image" content="https://flex-pi.github.io/assets/videos/hero.jpg">
 
+<link rel="preload" as="image" href="assets/videos/hero.jpg" fetchpriority="high">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -166,7 +168,7 @@
   <div class="wrap wrap--wide reveal introvid" style="margin-top:30px">
     <div class="player" data-player data-caption="Overview reel across the real-robot task suite.">
       <video src="assets/videos/intro.mp4" poster="assets/videos/intro.jpg"
-             loop muted playsinline preload="metadata" data-autoplay
+             loop muted playsinline preload="none" data-autoplay
              aria-label="An overview reel cutting between teleoperated data collection, plate placement, utensil sorting, a bimanual handover, a fine insertion and screw driving"></video>
       <span class="player__badge player__badge--bl">Autonomous, 1.7x speed</span>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
@@ -263,7 +265,7 @@
       <figure>
         <div class="player" data-player data-caption="The observation as a normal colour image — the appearance stream. Placeholder footage.">
           <video src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
+                 loop muted playsinline preload="none" data-autoplay
                  aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
@@ -272,7 +274,7 @@
       <figure>
         <div class="player" data-player data-caption="The same observation as a patch-resolution feature map — the semantics stream. Placeholder footage; an illustrative rendering, not model output.">
           <video src="assets/videos/stream-dino.mp4" poster="assets/videos/stream-dino.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
+                 loop muted playsinline preload="none" data-autoplay
                  aria-label="The same scene as a patch-resolution PCA feature map, illustrating object-level semantics"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
@@ -281,7 +283,7 @@
       <figure>
         <div class="player" data-player data-caption="The same observation as a false-colour depth map — the geometry stream. Placeholder footage; an illustrative rendering, not model output.">
           <video src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay
+                 loop muted playsinline preload="none" data-autoplay
                  aria-label="The same scene as a false-colour depth map, illustrating the 3D pointmap stream"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
@@ -494,7 +496,7 @@
     <div class="player" data-player data-caption="Driving the screw home — the tightest stage of the sequence at ±0.25 mm. Placeholder footage.">
       <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
       <video src="assets/videos/task-selfrepair-screw.mp4" poster="assets/videos/task-selfrepair-screw.jpg"
-             loop muted playsinline preload="metadata" data-autoplay
+             loop muted playsinline preload="none" data-autoplay
              aria-label="Robot arm driving a fastener into a part held on a tray"></video>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
@@ -526,7 +528,7 @@
       <div class="acompare__side acompare__side--pi">
         <div class="player" data-player data-caption="π0.5 attempting to seat the gripper. Autonomous, 2× speed.">
           <span class="player__badge player__badge--bl">Autonomous · 2×</span>
-          <video src="assets/videos/selfrepair-insert-gripper-pi05.mp4" poster="assets/videos/selfrepair-insert-gripper-pi05.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to seat the gripper in its holder"></video>
+          <video src="assets/videos/selfrepair-insert-gripper-pi05.mp4" poster="assets/videos/selfrepair-insert-gripper-pi05.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Baseline policy failing to seat the gripper in its holder"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">π<sub>0.5</sub></span> <span class="what">misses the holder</span></div>
@@ -534,7 +536,7 @@
       <div class="acompare__side acompare__side--ours">
         <div class="player" data-player data-caption="Flex-π seating the replacement gripper into its holder. Autonomous, 1× speed.">
           <span class="player__badge player__badge--ours player__badge--bl">Autonomous · 1×</span>
-          <video src="assets/videos/selfrepair-insert-gripper-ours.mp4" poster="assets/videos/selfrepair-insert-gripper-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π seating the replacement gripper into its holder"></video>
+          <video src="assets/videos/selfrepair-insert-gripper-ours.mp4" poster="assets/videos/selfrepair-insert-gripper-ours.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π seating the replacement gripper into its holder"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">seats the gripper</span></div>
@@ -548,7 +550,7 @@
       <div class="acompare__side acompare__side--mf">
         <div class="player" data-player data-caption="ManiFlow attempting to start the screw in its hole. Autonomous, 2× speed.">
           <span class="player__badge player__badge--bl">Autonomous &middot; 2&times;</span>
-          <video src="assets/videos/selfrepair-insert-screw-maniflow.mp4" poster="assets/videos/selfrepair-insert-screw-maniflow.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to align the screw shank"></video>
+          <video src="assets/videos/selfrepair-insert-screw-maniflow.mp4" poster="assets/videos/selfrepair-insert-screw-maniflow.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Baseline policy failing to align the screw shank"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">ManiFlow</span> <span class="what">cannot align the shank</span></div>
@@ -556,7 +558,7 @@
       <div class="acompare__side acompare__side--ours">
         <div class="player" data-player data-caption="Flex-π starting the screw in its hole. Autonomous, 1× speed.">
           <span class="player__badge player__badge--ours player__badge--bl">Autonomous · 1×</span>
-          <video src="assets/videos/selfrepair-insert-screw-ours.mp4" poster="assets/videos/selfrepair-insert-screw-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π starting the screw in the hole"></video>
+          <video src="assets/videos/selfrepair-insert-screw-ours.mp4" poster="assets/videos/selfrepair-insert-screw-ours.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π starting the screw in the hole"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">starts the screw</span></div>
@@ -570,7 +572,7 @@
       <div class="acompare__side acompare__side--mf">
         <div class="player" data-player data-caption="ManiFlow at the tightest stage. Autonomous, 2× speed.">
           <span class="player__badge player__badge--bl">Autonomous · 2×</span>
-          <video src="assets/videos/selfrepair-screw-in-maniflow.mp4" poster="assets/videos/selfrepair-screw-in-maniflow.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to seat the driver bit"></video>
+          <video src="assets/videos/selfrepair-screw-in-maniflow.mp4" poster="assets/videos/selfrepair-screw-in-maniflow.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Baseline policy failing to seat the driver bit"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">ManiFlow</span> <span class="what">never seats the bit</span></div>
@@ -578,7 +580,7 @@
       <div class="acompare__side acompare__side--ours">
         <div class="player" data-player data-caption="Flex-π driving the screw home — the tightest stage at ±0.25 mm. Autonomous, 1× speed.">
           <span class="player__badge player__badge--ours player__badge--bl">Autonomous · 1×</span>
-          <video src="assets/videos/selfrepair-screw-in-ours.mp4" poster="assets/videos/selfrepair-screw-in-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π driving the screw home"></video>
+          <video src="assets/videos/selfrepair-screw-in-ours.mp4" poster="assets/videos/selfrepair-screw-in-ours.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π driving the screw home"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">drives the screw home</span></div>
@@ -607,7 +609,7 @@
       <figure>
         <div class="player" data-player data-caption="Flex-π retrying the gripper insertion — backing off and re-aligning instead of committing to a missed approach.">
           <span class="player__badge player__badge--ours player__badge--bl">Retry</span>
-          <video src="assets/videos/selfrepair-retry.mp4" poster="assets/videos/selfrepair-retry.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π backing off and re-aligning to seat the gripper after a missed insertion"></video>
+          <video src="assets/videos/selfrepair-retry.mp4" poster="assets/videos/selfrepair-retry.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π backing off and re-aligning to seat the gripper after a missed insertion"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Retrying the gripper insertion</b>A missed approach is not a lost
@@ -616,7 +618,7 @@
       <figure>
         <div class="player" data-player data-caption="Flex-π retrying the screwing — lifting the bit, re-centring, and re-engaging the socket.">
           <span class="player__badge player__badge--ours player__badge--bl">Retry</span>
-          <video src="assets/videos/selfrepair-screw-in-retry.mp4" poster="assets/videos/selfrepair-screw-in-retry.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π lifting the driver bit and re-engaging the screw socket after a glancing contact"></video>
+          <video src="assets/videos/selfrepair-screw-in-retry.mp4" poster="assets/videos/selfrepair-screw-in-retry.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π lifting the driver bit and re-engaging the screw socket after a glancing contact"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Retrying the screwing</b>At ±0.25&nbsp;mm the bit can glance off the
@@ -654,7 +656,7 @@
       <div class="player" data-player data-bag="1" data-caption="Putting items into a bag — bag 1. Autonomous, 2× speed.">
         <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
         <video src="assets/videos/task-putpen.mp4" poster="assets/videos/task-putpen.jpg"
-               loop muted playsinline preload="metadata" data-autoplay
+               loop muted playsinline preload="none" data-autoplay
                aria-label="Two robot arms placing items into a bag"></video>
         <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
       </div>
@@ -725,7 +727,7 @@
       <div class="acompare__side acompare__side--pi">
         <div class="player" data-player data-caption="π0.5 attempting to unzip the bag.">
           <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
-          <video src="assets/videos/putpen-unzip-pi05.mp4" poster="assets/videos/putpen-unzip-pi05.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to unzip the bag"></video>
+          <video src="assets/videos/putpen-unzip-pi05.mp4" poster="assets/videos/putpen-unzip-pi05.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Baseline policy failing to unzip the bag"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">π<sub>0.5</sub></span> <span class="what">fails to unzip the bag</span></div>
@@ -733,7 +735,7 @@
       <div class="acompare__side acompare__side--ours">
         <div class="player" data-player data-caption="Flex-π unzipping the bag.">
           <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
-          <video src="assets/videos/putpen-unzip-ours.mp4" poster="assets/videos/putpen-unzip-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π unzipping the bag"></video>
+          <video src="assets/videos/putpen-unzip-ours.mp4" poster="assets/videos/putpen-unzip-ours.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π unzipping the bag"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">unzips the bag</span></div>
@@ -747,7 +749,7 @@
       <div class="acompare__side acompare__side--mf">
         <div class="player" data-player data-caption="ManiFlow attempting to zip the bag closed.">
           <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
-          <video src="assets/videos/putpen-zipclose-maniflow.mp4" poster="assets/videos/putpen-zipclose-maniflow.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Baseline policy failing to zip the bag closed"></video>
+          <video src="assets/videos/putpen-zipclose-maniflow.mp4" poster="assets/videos/putpen-zipclose-maniflow.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Baseline policy failing to zip the bag closed"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">ManiFlow</span> <span class="what">fails to zip the bag closed</span></div>
@@ -755,7 +757,7 @@
       <div class="acompare__side acompare__side--ours">
         <div class="player" data-player data-caption="Flex-π zipping the bag closed.">
           <span class="player__badge player__badge--bl">Autonomous &middot; 2&times; speed</span>
-          <video src="assets/videos/putpen-zipclose-ours.mp4" poster="assets/videos/putpen-zipclose-ours.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Flex-π zipping the bag closed"></video>
+          <video src="assets/videos/putpen-zipclose-ours.mp4" poster="assets/videos/putpen-zipclose-ours.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π zipping the bag closed"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="acompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">zips the bag closed</span></div>
@@ -891,7 +893,7 @@
         <div class="player" data-player data-task="platerack" data-cond="unseen" data-caption="Bimanual Put Plate on the Rack, unseen setting — a plate and rack of a type never seen in fine-tuning. Autonomous, 2.5× speed.">
           <span class="player__badge player__badge--bl">Autonomous &middot; 2.5&times; speed</span>
           <video src="assets/videos/task-plate-rack.mp4" poster="assets/videos/task-plate-rack.jpg?v=2"
-                 muted playsinline preload="metadata" data-autoplay
+                 muted playsinline preload="none" data-autoplay
                  aria-label="Two robot arms seating a plate into a rack with novel distractor objects filling the workspace"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
@@ -1011,7 +1013,7 @@
       <div class="vcompare__side vcompare__side--base">
         <div class="player" data-player data-caption="Baseline behaviour under an unseen scene. Placeholder footage.">
           <span class="player__badge">Placeholder footage</span>
-          <video src="assets/videos/cmp-handover-baseline.mp4" poster="assets/videos/cmp-handover-baseline.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Bimanual arms mis-aligning during an exchange and failing the task"></video>
+          <video src="assets/videos/cmp-handover-baseline.mp4" poster="assets/videos/cmp-handover-baseline.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Bimanual arms mis-aligning during an exchange and failing the task"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="vcompare__tag"><span class="who">π<sub>0.5</sub></span> <span class="what">misaligns during the exchange</span></div>
@@ -1019,7 +1021,7 @@
       <div class="vcompare__side vcompare__side--ours">
         <div class="player" data-player data-caption="Flex-π under the same held-out condition. Placeholder footage.">
           <span class="player__badge player__badge--ours">Placeholder footage</span>
-          <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Bimanual arms completing an exchange and placing the object"></video>
+          <video src="assets/videos/task-handover.mp4" poster="assets/videos/task-handover.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Bimanual arms completing an exchange and placing the object"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="vcompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">completes the handover</span></div>
@@ -1033,7 +1035,7 @@
       <div class="vcompare__side vcompare__side--base">
         <div class="player" data-player data-caption="Baseline behaviour on a precision placement. Placeholder footage.">
           <span class="player__badge">Placeholder footage</span>
-          <video src="assets/videos/cmp-plate-baseline.mp4" poster="assets/videos/cmp-plate-baseline.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Bimanual arms failing to seat a flat part correctly"></video>
+          <video src="assets/videos/cmp-plate-baseline.mp4" poster="assets/videos/cmp-plate-baseline.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Bimanual arms failing to seat a flat part correctly"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="vcompare__tag"><span class="who">π<sub>0.5</sub></span> <span class="what">fails to seat the plate</span></div>
@@ -1041,7 +1043,7 @@
       <div class="vcompare__side vcompare__side--ours">
         <div class="player" data-player data-caption="Flex-π on an unseen plate and rack. Placeholder footage.">
           <span class="player__badge player__badge--ours">Placeholder footage</span>
-          <video src="assets/videos/gen-big-plate.mp4" poster="assets/videos/gen-big-plate.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot gripper grasping and placing a large unfamiliar plate"></video>
+          <video src="assets/videos/gen-big-plate.mp4" poster="assets/videos/gen-big-plate.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Robot gripper grasping and placing a large unfamiliar plate"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="vcompare__tag"><span class="who">Flex-π (joint)</span> <span class="what">transfers to novel geometry</span></div>
@@ -1061,7 +1063,7 @@
       <figure>
         <div class="player" data-player data-caption="Unseen plate and rack of a different type than those seen in training. Placeholder footage.">
           <span class="player__badge player__badge--ours">98%</span>
-          <video src="assets/videos/gen-big-plate.mp4" poster="assets/videos/gen-big-plate.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot gripper grasping a large flat plate"></video>
+          <video src="assets/videos/gen-big-plate.mp4" poster="assets/videos/gen-big-plate.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Robot gripper grasping a large flat plate"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Unseen big plate</b>
@@ -1070,7 +1072,7 @@
       <figure>
         <div class="player" data-player data-caption="Put Plate on the Rack with unseen distractor objects added to the scene. Placeholder footage.">
           <span class="player__badge player__badge--ours">92%</span>
-          <video src="assets/videos/gen-plate-distractor.mp4" poster="assets/videos/gen-plate-distractor.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Bimanual manipulation with extra unfamiliar objects on the table"></video>
+          <video src="assets/videos/gen-plate-distractor.mp4" poster="assets/videos/gen-plate-distractor.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Bimanual manipulation with extra unfamiliar objects on the table"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Plate + distractors</b>Novel objects in scene.
@@ -1079,7 +1081,7 @@
       <figure>
         <div class="player" data-player data-caption="Sort Utensils with unseen distractor objects. Placeholder footage.">
           <span class="player__badge player__badge--ours">70%</span>
-          <video src="assets/videos/gen-sort-distractor.mp4" poster="assets/videos/gen-sort-distractor.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Sorting task with additional unfamiliar objects present"></video>
+          <video src="assets/videos/gen-sort-distractor.mp4" poster="assets/videos/gen-sort-distractor.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Sorting task with additional unfamiliar objects present"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Sort + distractors</b>
@@ -1088,7 +1090,7 @@
       <figure>
         <div class="player" data-player data-caption="Clean the Kitchen Rack with unseen distractor objects — the setting where the baseline collapses. Placeholder footage.">
           <span class="player__badge player__badge--ours">80%</span>
-          <video src="assets/videos/gen-handover-distractor.mp4" poster="assets/videos/gen-handover-distractor.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Kitchen rack task with additional unfamiliar coloured objects present"></video>
+          <video src="assets/videos/gen-handover-distractor.mp4" poster="assets/videos/gen-handover-distractor.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Kitchen rack task with additional unfamiliar coloured objects present"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Kitchen Rack + distractors</b>Where π<sub>0.5</sub> collapses.
@@ -1223,7 +1225,7 @@
       <div class="plate vaefig">
         <div class="vaefig__cell">
           <video class="vaefig__rgb" src="assets/videos/recon-rgb.mp4" poster="assets/videos/recon-rgb.jpg"
-                 loop muted playsinline preload="metadata" data-autoplay data-sync="fig3"
+                 loop muted playsinline preload="none" data-autoplay data-sync="fig3"
                  aria-label="The RGB observation the pointmap corresponds to: two robot arms over a wooden table, lifting a plate onto a rack."></video>
           <span class="juxta__tag">RGB</span>
           <span class="juxta__tag juxta__tag--r">4&times; speed</span>
@@ -1262,59 +1264,6 @@
   </div>
 
   <div class="wrap reveal" style="margin-top:60px">
-    <h4 class="sub__title">One checkpoint, any combination of streams</h4>
-    <p class="sub__lede">Because the two masks are <em>sampled</em> per example rather than fixed, one training run
-    covers every deployment regime — and at inference the masks stop being training noise and become choices.</p>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:34px">
-    <figure>
-      <div class="plate plate--wide">
-        <img src="assets/figures/fig4_flex.png" alt="Four training regimes shown as rows: full joint generation, action-only generation, 3D-plus-action joint generation, and cross-modality forcing. Each row shows the input presence mask, the output generation mask, the attention pattern among future tokens, and which streams are computed at inference." loading="lazy">
-      </div>
-      <p class="scrollhint">&larr; scroll figure &rarr;</p>
-      <figcaption class="figcap"><span class="tag">Figure 4</span><b>Each row is one per-sample training draw — and one deployable configuration.</b>
-      <b>m</b><sup>in</sup> selects which streams are <em>observed</em> at time <em>t</em>;
-      <b>m</b><sup>out</sup> selects which futures the action tokens <em>read</em>. The rows show full joint
-      generation, the action-only fast path, one of many intermediate regimes, and
-      <em>cross-modality forcing</em> (below).</figcaption>
-    </figure>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:34px">
-    <div class="prose">
-      <p>Each training sample draws an input presence mask <b>m</b><sup>in</sup> over the three visual input
-      streams and an output attention mask <b>m</b><sup>out</sup> over the three future visual streams. Every entry
-      is masked independently with 50% probability; rejection sampling on <b>m</b><sup>in</sup> guarantees at least
-      one visual input survives, and the action stream is never masked.</p>
-      <p>Crucially, <b>m</b><sup>out</sup> is an <em>attention</em> mask, not a loss gate: every future stream is
-      always denoised and always incurs its flow-matching loss. What the mask changes is which futures the action
-      tokens read, so actions are conditioned on a jointly generated future rather than on three independent ones.</p>
-    </div>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:30px">
-    <div class="masks" id="mask-demo" aria-live="off">
-      <div class="maskrow">
-        <div class="maskrow__lab">Draw <span id="mask-n">1</span></div>
-        <div class="maskset">
-          <span class="maskset__tag">m<sup>in</sup></span>
-          <div class="cellrow" data-mask="in"></div>
-        </div>
-        <div class="maskset">
-          <span class="maskset__tag">m<sup>out</sup></span>
-          <div class="cellrow" data-mask="out"></div>
-        </div>
-      </div>
-      <p class="masknote" id="mask-note">Observed streams enter the backbone; the action expert reads the checked futures.</p>
-      <div class="maskctl">
-        <button type="button" id="mask-toggle">Pause sampling</button>
-        <span class="explorer__hint">simulated per-sample dropout draws</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:60px">
     <h4 class="sub__title">Cross-modality forcing</h4>
     <p class="sub__lede">Dropping a stream from the input does not stop the model generating its future — and
     being forced to do so is worth <b>21.2 points</b> of RoboTwin success.</p>
@@ -1334,7 +1283,7 @@
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:30px">
-    <div class="chartbox" id="cross-modality-flow">
+    <div class="chartbox chartbox--compact" id="cross-modality-flow">
       <div class="chartbox__head">
         <div>
           <div class="chartbox__title">Cross-modality forcing</div>
@@ -1393,88 +1342,88 @@
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
     <div class="predstrip" id="predstrip" data-pred="hidden" data-stream="rgb">
       <!-- 1: self repair -->
-      <figure class="predpair" data-task="Self-repair"
+      <figure class="predpair" data-task="Self-repair" data-wb-id="selfrepair"
               data-pred-rgb="assets/videos/rgb-selfrepair.mp4"
               data-pred-dino="assets/videos/dino-selfrepair.mp4"
               data-pred-p3d="assets/videos/pointmap-selfrepair.mp4">
-        <div class="player" data-player data-caption="Self-repair — the real rollout. Autonomous, 2.5× speed.">
+        <div class="player predpair__real" data-player data-caption="Self-repair — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/rollout-selfrepair.mp4" poster="assets/videos/rollout-selfrepair.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
+          <video src="assets/videos/rollout-selfrepair.mp4" poster="assets/videos/rollout-selfrepair.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Robot arms repairing their own gripper, ending with the screw driven home"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" data-player data-caption="">
           <span class="player__badge predpair__badge">Predicted future</span>
-          <video loop muted playsinline preload="metadata" data-autoplay></video>
+          <video loop muted playsinline preload="none" data-autoplay></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="predpair__cap"><b>Self-repair</b>The gripper-repair sequence.</figcaption>
       </figure>
 
       <!-- 2: put the pen in the bag -->
-      <figure class="predpair" data-task="Put the Pen in the Bag"
+      <figure class="predpair" data-task="Put the Pen in the Bag" data-wb-id="bag"
               data-pred-rgb="assets/videos/rgb-bag.mp4"
               data-pred-dino="assets/videos/dino-bag.mp4"
               data-pred-p3d="assets/videos/pointmap-bag.mp4">
-        <div class="player" data-player data-caption="Put the Pen in the Bag — the real rollout. Autonomous, 2.5× speed.">
+        <div class="player predpair__real" data-player data-caption="Put the Pen in the Bag — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/rollout-bag.mp4" poster="assets/videos/rollout-bag.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms unzipping a bag, placing a pen inside and zipping it closed"></video>
+          <video src="assets/videos/rollout-bag.mp4" poster="assets/videos/rollout-bag.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Two robot arms unzipping a bag, placing a pen inside and zipping it closed"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" data-player data-caption="">
           <span class="player__badge predpair__badge">Predicted future</span>
-          <video loop muted playsinline preload="metadata" data-autoplay></video>
+          <video loop muted playsinline preload="none" data-autoplay></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="predpair__cap"><b>Put the pen in the bag</b>The unzip, insert and close sequence.</figcaption>
       </figure>
 
       <!-- 3–5: kitchen tasks -->
-      <figure class="predpair" data-task="Bimanual Put Plate on the Rack"
+      <figure class="predpair" data-task="Bimanual Put Plate on the Rack" data-wb-id="platerack"
               data-pred-rgb="assets/videos/rgb-platerack.mp4"
               data-pred-dino="assets/videos/dino-platerack.mp4"
               data-pred-p3d="assets/videos/pointmap-platerack.mp4">
-        <div class="player" data-player data-caption="Bimanual Put Plate on the Rack — the real rollout. Autonomous, 2.5× speed.">
+        <div class="player predpair__real" data-player data-caption="Bimanual Put Plate on the Rack — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/rollout-platerack.mp4" poster="assets/videos/rollout-platerack.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
+          <video src="assets/videos/rollout-platerack.mp4" poster="assets/videos/rollout-platerack.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Two robot arms lifting a flat plate and placing it onto a rack"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" data-player data-caption="">
           <span class="player__badge predpair__badge">Predicted future</span>
-          <video loop muted playsinline preload="metadata" data-autoplay></video>
+          <video loop muted playsinline preload="none" data-autoplay></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="predpair__cap"><b>Put the plate on the rack</b>A flat plate seated in the rack without tipping.</figcaption>
       </figure>
 
-      <figure class="predpair" data-task="Sort Utensils"
+      <figure class="predpair" data-task="Sort Utensils" data-wb-id="utensils"
               data-pred-rgb="assets/videos/rgb-cleantable.mp4"
               data-pred-dino="assets/videos/dino-cleantable.mp4"
               data-pred-p3d="assets/videos/pointmap-cleantable.mp4">
-        <div class="player" data-player data-caption="Sort Utensils — the real rollout. Autonomous, 2.5× speed.">
+        <div class="player predpair__real" data-player data-caption="Sort Utensils — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/rollout-cleantable.mp4" poster="assets/videos/rollout-cleantable.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms singulating utensils from a cluttered table and sorting them to their destinations"></video>
+          <video src="assets/videos/rollout-cleantable.mp4" poster="assets/videos/rollout-cleantable.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Two robot arms singulating utensils from a cluttered table and sorting them to their destinations"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" data-player data-caption="">
           <span class="player__badge predpair__badge">Predicted future</span>
-          <video loop muted playsinline preload="metadata" data-autoplay></video>
+          <video loop muted playsinline preload="none" data-autoplay></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="predpair__cap"><b>Sort the utensils</b>Singulating thin objects from clutter.</figcaption>
       </figure>
 
-      <figure class="predpair" data-task="Kitchen Organization"
+      <figure class="predpair" data-task="Kitchen Organization" data-wb-id="kitchen"
               data-pred-rgb="assets/videos/rgb-kitchen.mp4"
               data-pred-dino="assets/videos/dino-kitchen.mp4"
               data-pred-p3d="assets/videos/pointmap-kitchen.mp4">
-        <div class="player" data-player data-caption="Kitchen Organization — the real rollout. Autonomous, 2.5× speed.">
+        <div class="player predpair__real" data-player data-caption="Kitchen Organization — the real rollout. Autonomous, 2.5× speed.">
           <span class="player__badge">Real rollout</span>
-          <video src="assets/videos/rollout-kitchen.mp4" poster="assets/videos/rollout-kitchen.jpg" loop muted playsinline preload="metadata" data-autoplay aria-label="Two robot arms seating a bowl and then a plate into a kitchen rack"></video>
+          <video src="assets/videos/rollout-kitchen.mp4" poster="assets/videos/rollout-kitchen.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Two robot arms seating a bowl and then a plate into a kitchen rack"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <div class="player player--todo predpair__gen" data-player data-caption="">
           <span class="player__badge predpair__badge">Predicted future</span>
-          <video loop muted playsinline preload="metadata" data-autoplay></video>
+          <video loop muted playsinline preload="none" data-autoplay></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="predpair__cap"><b>Organize the kitchen rack</b>Seating a bowl and then a plate.</figcaption>
@@ -1510,38 +1459,12 @@
 <!-- ====================== explorer ====================== -->
 <section class="sec" id="explorer">
   <div class="wrap reveal">
-    <h3 class="sec__title">One checkpoint, four measured operating points</h3>
-    <p class="sec__sub">In simulation every step of the ladder was benchmarked, so the whole speed&ndash;accuracy
-    range one set of weights covers can be drawn as a curve.</p>
+    <h3 class="sec__title">Measured inference latency on the real robot</h3>
+    <p class="sec__sub">Single RTX 5090, bfloat16, torch.compile &middot; 4 denoise steps.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
     <div class="chartbox">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">Latency vs. success — one checkpoint throughout</div>
-          <div class="chartbox__sub">RoboTwin, video-only input</div>
-        </div>
-        <div class="legend">
-          <span class="legend__item"><span class="legend__sw legend__sw--line" style="--c:var(--c-ours);background:var(--c-ours)"></span>Flex-π</span>
-          <span class="legend__item"><span class="legend__sw legend__sw--dash" style="--c:var(--c-base2)"></span>Fast-WAM</span>
-        </div>
-      </div>
-      <div data-chart="pareto"></div>
-      <p class="figcap" style="margin-top:10px">A single checkpoint spans a <b>6&times; latency range and 25 points of
-      success</b>; the four Flex-π points differ only in the output mask.
-      <noscript>Charts require JavaScript; the underlying figure is reproduced in the paper (Figure&nbsp;6b).</noscript></p>
-    </div>
-  </div>
-
-  <div class="wrap wrap--wide reveal" style="margin-top:26px">
-    <div class="chartbox">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">Measured inference latency on the real robot</div>
-          <div class="chartbox__sub">Single RTX 5090, bfloat16, torch.compile &middot; 4 denoise steps</div>
-        </div>
-      </div>
       <div data-chart="latency"></div>
       <p class="figcap" style="margin-top:10px">Flex-π's action-only path (60&nbsp;ms) <b>undercuts every
       baseline</b> — π<sub>0.5</sub> (66&nbsp;ms), Fast-WAM (86&nbsp;ms), ManiFlow (103&nbsp;ms) — while full
@@ -1559,7 +1482,7 @@
         <div class="part__n">Part III</div>
         <h2 class="part__t">How it compares</h2>
       </div>
-      <p class="part__d">RoboTwin and LIBERO, data efficiency, stream ablations — and what the design costs.</p>
+      <p class="part__d">RoboTwin and LIBERO benchmarks — and what the design costs.</p>
     </div>
   </div>
 </div>
@@ -1640,69 +1563,6 @@
     evaluation is still in progress and is therefore not reported here.</p>
   </div>
 
-  <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">Data efficiency</h4>
-    <p class="sub__lede">The margin is widest where demonstrations are scarcest.</p>
-  </div>
-  <div class="wrap wrap--wide reveal" style="margin-top:20px">
-    <div class="chartbox" id="data-efficiency-flow">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">Data efficiency on RoboTwin</div>
-          <div class="chartbox__sub">Domain-randomized, 50-task average, by demonstrations per task</div>
-        </div>
-        <div class="legend" id="lg-scaling"></div>
-      </div>
-      <div data-chart="scaling"></div>
-      <p class="figcap" style="margin-top:10px">At 50 demos per task Flex-π reaches <b>78.8%</b> against 41.9% for
-      Fast-WAM and 31.4% for π<sub>0.5</sub>; baselines only close the gap at 500 demos per task.</p>
-    </div>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:64px">
-    <h4 class="sub__title">Which streams actually matter</h4>
-    <p class="sub__lede">An ablation over which visual streams are supplied as input at all.</p>
-  </div>
-
-  <div class="wrap reveal" style="margin-top:20px">
-    <div class="chartbox" id="input-stream-flow">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">Input streams, added cumulatively</div>
-          <div class="chartbox__sub">RoboTwin, 5 tasks, 50 demos each, trained from scratch</div>
-        </div>
-      </div>
-      <div class="metricflow" role="img" aria-label="RoboTwin average success rises from 39.6 percent with RGB to 46.4 percent with RGB and DINO, and to 66.4 percent after adding pointmaps.">
-        <div class="metricflow__scroller">
-          <div class="metricflow__track metricflow__track--3">
-            <div class="metricflow__node" style="--delay:0ms;--node-color:var(--s-rgb)">
-              <span class="metricflow__value">39.6<span class="metricflow__unit">%</span></span>
-              <span class="metricflow__dot" aria-hidden="true"></span>
-              <span class="metricflow__label">RGB</span>
-            </div>
-            <div class="metricflow__link" style="--delay:110ms;--link-end:var(--s-dino)" aria-hidden="true">
-              <span class="metricflow__delta">+6.8 pp</span>
-            </div>
-            <div class="metricflow__node" style="--delay:220ms;--node-color:var(--s-dino)">
-              <span class="metricflow__value">46.4<span class="metricflow__unit">%</span></span>
-              <span class="metricflow__dot" aria-hidden="true"></span>
-              <span class="metricflow__label">RGB + DINO</span>
-            </div>
-            <div class="metricflow__link" style="--delay:330ms;--link-end:var(--s-3d)" aria-hidden="true">
-              <span class="metricflow__delta">+20.0 pp</span>
-            </div>
-            <div class="metricflow__node metricflow__node--result" style="--delay:440ms;--node-color:var(--s-3d)">
-              <span class="metricflow__value">66.4<span class="metricflow__unit">%</span></span>
-              <span class="metricflow__dot" aria-hidden="true"></span>
-              <span class="metricflow__label">RGB + DINO + Pointmap</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <p class="figcap" style="margin-top:10px">DINO adds 6.8 points over video alone; pointmaps on top of both add a
-      further 20.0. The <b>3D stream is worth roughly three times what the semantic stream is</b>, on top of it.</p>
-    </div>
-  </div>
 </section>
 
 <hr class="rule">
