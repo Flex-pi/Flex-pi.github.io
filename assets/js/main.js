@@ -956,7 +956,7 @@
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD, hi: true }
         ],
         groups: [
-          { label: 'Put Plate on the Rack, single plate',
+          { label: 'Put Plate on the Rack',
             a: [80.0, 87.5, 37.5, 90.0, 97.5], b: [42.5, 60.0, 25.0, 80.0, 95.0] }
         ],
         aName: 'full data', bName: 'half data',
@@ -1202,7 +1202,7 @@
           : 'Not yet evaluated on the real-robot suite.';
       }
     };
-    setFrontierMode(7, 7);
+    setFrontierMode(0, 7);
   }
 
   /* ---------------------------------------------------------------------
@@ -2084,8 +2084,10 @@
        generated without being observed. --------------------------------- */
     var SNAME = { rgb: 'RGB', dino: 'DINO', p3d: '3D' };
     var SKEYS = ['rgb', 'dino', 'p3d'];
+    /* the card opens on the action-only fast path — everything observed,
+       no future generated */
     var mIn  = { rgb: true, dino: true, p3d: true };
-    var mOut = { rgb: true, dino: true, p3d: true };
+    var mOut = { rgb: false, dino: false, p3d: false };
 
     var PRESETS = {
       joint:  { i: { rgb: 1, dino: 1, p3d: 1 }, o: { rgb: 1, dino: 1, p3d: 1 } },
