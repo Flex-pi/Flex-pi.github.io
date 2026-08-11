@@ -927,7 +927,7 @@
     }
 
     /* Soft-Bag Zipping on its own: in-distribution against bags of unseen
-       colour and pattern. 20 rollouts per cell; Fast-WAM was not run here. */
+       color and pattern. 20 rollouts per cell; Fast-WAM was not run here. */
     if ((m = find('softbag'))) {
       barChart(m, {
         series: [
@@ -1015,7 +1015,7 @@
        Left out: Motus and LingBot-VA 2.0 (RoboTwin only), GR00T-N1,
        OpenVLA-OFT and MolmoAct2-Think (LIBERO only), and Qwen-RobotManip.
 
-       Baselines share one grey: identity lives in the label, and a colour each
+       Baselines share one grey: identity lives in the label, and a color each
        would be the clutter this figure exists to remove. Both panels run 0-100
        with no truncation — on LIBERO every method but π0 really does land inside
        2.3 points (96.9-99.2), and that saturation is worth seeing. */
@@ -1702,7 +1702,7 @@
       lastFocus = document.activeElement;
       lv.src = src;
       if (poster) lv.poster = poster;
-      /* Preserve comparison-only colour matching when a clip is expanded. */
+      /* Preserve comparison-only color matching when a clip is expanded. */
       var sourceVideo = p && p.querySelector('video');
       var sourceFilter = sourceVideo ? getComputedStyle(sourceVideo).filter : 'none';
       lv.style.filter = sourceFilter && sourceFilter !== 'none' ? sourceFilter : '';
@@ -2058,7 +2058,7 @@
                                   preserveAspectRatio: 'none', 'clip-path': 'url(#ac-clip)' }));
 
     /* mask the render's own tiny arm labels (illegible at strip size) with its
-       background colour, then redraw them as crisp text over the divider */
+       background color, then redraw them as crisp text over the divider */
     [1186, 1245].forEach(function (yi) {
       svg.appendChild(el('rect', { x: mx(528), y: my(yi), width: mx(562) - mx(528),
                                    height: 38 * s, fill: '#0b0b0d' }));

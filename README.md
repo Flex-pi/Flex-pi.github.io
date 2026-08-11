@@ -81,16 +81,16 @@ The visual system follows NVIDIA GEAR's
 near-black cinematic hero, then a cream `#f6f6ef` article body set in Source
 Serif 4 with JetBrains Mono for metadata, a claret accent and 4px radii.
 
-The accent is **one colour, used everywhere** — `--primary` / `--primary-ink` /
+The accent is **one color, used everywhere** — `--primary` / `--primary-ink` /
 `--primary-soft`, plus the favicon. Day `#6e1f35`, night `#b8455f` for fills and
 `#de93a8` for text, which needs the lighter value to clear contrast on `#0c0c0c`.
 It is deliberately not blue, green, amber, red or grey: those are all spoken for
-by the stream colours and the chart series (green is "ours", grey is π0.5,
+by the stream colors and the chart series (green is "ours", grey is π0.5,
 blue is ManiFlow, amber is Fast-WAM, brick red is the action stream), so an
 accent in any of them would read as carrying that meaning.
 
 **If you change the accent, change the favicon too.** It is an inline
-`data:image/svg+xml` URI in `index.html` with the colour hardcoded — a claret
+`data:image/svg+xml` URI in `index.html` with the color hardcoded — a claret
 tile with a white "F". It is deliberately not a π: at tab size a π reads as the
 π0.5/π0.6 lineage rather than as this model. Abstract marks were tried and
 rejected — three stream bars are indistinguishable from a hamburger menu icon
@@ -108,9 +108,9 @@ one serif throughout, bold title, monochrome except the model name.
 
 The accent tints the **whole "Flex-π"**, in the title and in the nav wordmark —
 the model name is one unit, and tinting a single glyph read as a logo dropped
-mid-word. It is the existing `--primary-ink`, not a second hue: that colour
+mid-word. It is the existing `--primary-ink`, not a second hue: that color
 also carries links, part numbers and the active rail tick, so a separate title
-colour would dilute what it signals.
+color would dilute what it signals.
 
 Mono is for metadata and numerals only — anything read as words (nav, buttons,
 chips, badges, diagram labels) is set in the body face. Uppercase mono labels
@@ -121,7 +121,7 @@ the nav (persisted to `localStorage`). Accent colors for the three visual
 streams (RGB / pointmap / DINO) mirror the legend of the paper's own Figures 2
 and 4.
 
-The chart series colours are the paper's own legend, sampled from its figures —
+The chart series colors are the paper's own legend, sampled from its figures —
 π0.5 `#9e9e9e`, ManiFlow `#7fb3d5`, Fast-WAM `#e0a526`, action-only `#5ba463`,
 full joint `#2e7d3e`. The day tokens carry those exact values and the night ones
 lighten the same hues; keep the two layers in step.

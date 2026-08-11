@@ -117,7 +117,7 @@
   --s-dino:   #2f7d52;
   --s-action: #b8464a;
 
-  --c-base:   #9e9e9e;   /* π0.5      — paper's exact legend colours */
+  --c-base:   #9e9e9e;   /* π0.5      — paper's exact legend colors */
   --c-base2:  #e0a526;   /* Fast-WAM  */
   --c-base3:  #7fb3d5;   /* ManiFlow  */
   --c-ours:   #2e7d3e;
@@ -146,7 +146,7 @@ body {
   text-rendering: optimizeLegibility;
   /* No transition here on purpose: when only the custom property behind
      `background: var(--bg)` changes, Chrome does not re-trigger the
-     transition and keeps painting the stale colour, so toggling the theme
+     transition and keeps painting the stale color, so toggling the theme
      left the page cream with night-mode ink. Instant swap is correct. */
 }
 h1,h2,h3,h4,h5,h6 { margin: 0; font-weight: 600; font-family: var(--ff-display); }
@@ -611,7 +611,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 
 /* predicted-future pairs (#predictions) — the real rollout stacked over the
    future the model generated for that episode, one stream per task. --dot is
-   set per pair to the stream colour and tints the prediction player. */
+   set per pair to the stream color and tints the prediction player. */
 /* horizontal strip: 2.5 pairs visible, so the half-cut third reads as "there
    is more to the right" while each pair stays big enough to see the decode.
    Two gaps sit inside that 2.5, hence the 2 * gap subtraction. Snap per pair;
@@ -685,7 +685,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
    on the self-repair pair made the gripper look like the wrong part. This used
    to pull the rollout further DOWN (brightness .82-.92, saturate .80, sepia up
    to .25) to white-balance it against the decode below it; the match was made
-   in the wrong direction and cost the footage its colour.
+   in the wrong direction and cost the footage its color.
 
    Correcting all the way to YAVG ~130 overshot and read too bright, so each
    clip now sits at the midpoint of the two grades. Measured full-clip YAVG is
@@ -701,7 +701,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
    fixed the grey grippers, so they stay.
 
    --wb-warmth is kept as a hook but defaults to 0: any sepia at all is what
-   greyed the parts. Raise it per clip only to fix a genuine colour cast.
+   greyed the parts. Raise it per clip only to fix a genuine color cast.
    initLightbox() copies the computed filter onto the expanded video, so the
    graded and the full-screen view agree. */
 .predpair[data-wb-id="selfrepair"] { --wb-brightness: .99; }
@@ -884,7 +884,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 
 /* ---------- rollout strip (Putting into Bag)
    Six rollouts of one task: five seen bags, differing only in the bag, plus the
-   held-out one. The thumbnails carry the whole distinction -- the bag's colour is
+   held-out one. The thumbnails carry the whole distinction -- the bag's color is
    the label -- so the strip is posters only, with the unselected ones held back so
    the active clip and its thumbnail read as one pair. The unseen rollout is tagged
    in place rather than split onto a Seen/Unseen control of its own: one row is the
@@ -1033,7 +1033,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .score--ours .score__v { color: var(--c-ours); }
 .score--base .score__v { color: var(--fg-faint); }
 /* a score slot standing open until the number lands. It keeps the block's shape
-   so the real value is a text swap, but drops the accent colour and greys out --
+   so the real value is a text swap, but drops the accent color and greys out --
    a placeholder that reads like a result is worse than no placeholder. */
 .score--todo .score__v { color: var(--fg-faint); opacity: .5; letter-spacing: .06em; }
 .score--todo .score__k { opacity: .5; }
@@ -1193,7 +1193,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
      the row reserves the taller of the two whether or not the chip is shown */
   .maskctl2 .regimeout { min-height: 26px; }
 }
-/* colour key in the triptych captions, matching the diagram's stream colours */
+/* color key in the triptych captions, matching the diagram's stream colors */
 .vcard__cap .capdot {
   display: inline-block; width: 9px; height: 9px; border-radius: 2px;
   background: var(--dot); margin-right: 7px;
@@ -1384,7 +1384,7 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .legend__sw { width: 10px; height: 10px; border-radius: 2px; flex: none; background: var(--c); }
 .legend__sw--line { height: 2px; border-radius: 1px; width: 14px; }
 .legend__sw--dash { height: 0; border-top: 2px dashed var(--c); background: none; width: 14px; }
-/* the faded/solid pair legend sits apart from the method colours it qualifies */
+/* the faded/solid pair legend sits apart from the method colors it qualifies */
 .legend__item--pair { color: var(--fg-dim); font-style: italic; }
 .legend__item--pair:first-of-type { margin-left: 6px; }
 

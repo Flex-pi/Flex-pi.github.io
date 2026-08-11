@@ -38,7 +38,7 @@ plainly in the caption rather than filled in.
 **Baselines.** ManiFlow and Fast-WAM now appear throughout, not just on
 self-repair. Every chart carries the same five-method series in the same order.
 
-**Colours are the paper's own legend**, sampled out of `real_robot_gen.pdf`:
+**colors are the paper's own legend**, sampled out of `real_robot_gen.pdf`:
 π<sub>0.5</sub> grey `#9e9e9e`, ManiFlow blue `#7fb3d5`, Fast-WAM amber
 `#e0a526`, action-only `#5ba463`, full joint `#2e7d3e`. This **swapped two
 roles** against the old page, where π<sub>0.5</sub> was amber and Fast-WAM grey.
@@ -46,7 +46,7 @@ The day-theme tokens hold the exact hues; the night tokens lighten the same ones
 for the dark ground. Change one, change the other.
 
 **Soft-Bag Zipping is a scored task now**, in-distribution and held out against
-bags of unseen colours and patterns.
+bags of unseen colors and patterns.
 
 **Kitchen Organization** replaces "Clean the Kitchen Rack". It is no longer the
 task where the baseline collapses — it is the most forgiving one in the suite

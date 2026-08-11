@@ -244,7 +244,7 @@
 <section class="sec" id="streams">
   <div class="wrap reveal">
     <h3 class="sec__title">Three views of one moment</h3>
-    <p class="sec__sub">Flex-π reads the same observation as appearance, semantics and geometry, and can generate
+    <p class="sec__sub">Given 1 RGB image, Flex-π encodes into latent visual streams for appearance, semantics and geometry, and can generate
     all three futures alongside the action. What goes <em>in</em> and what comes <em>out</em> are runtime arguments
     rather than architecture, so all 56 combinations are deployable from the same weights — try them below. How that
     is trained is in <a href="#method">How it works</a>.</p>
@@ -256,10 +256,10 @@
   <div class="wrap wrap--wide reveal" style="margin-top:30px">
     <div class="streamrow">
       <figure>
-        <div class="player" data-player data-caption="The observation as a normal colour image — the appearance stream. Placeholder footage.">
+        <div class="player" data-player data-caption="The observation as a normal color image — the appearance stream. Placeholder footage.">
           <video src="assets/videos/stream-rgb.mp4" poster="assets/videos/stream-rgb.jpg"
                  loop muted playsinline preload="none" data-autoplay
-                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal colour image"></video>
+                 aria-label="Bimanual robot arms working on a tabletop, shown as a normal color image"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-rgb)"></span>RGB &middot; appearance</b>The observation image, encoded by a frozen Wan-2.2 VAE into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</figcaption>
@@ -274,10 +274,10 @@
         <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-dino)"></span>DINO &middot; object semantics</b>Object-level tokens from a frozen DINOv3 encoder, folded 2&times;2 into the channel dimension to remove 75% of the tokens losslessly, then projected into the shared trunk.</figcaption>
       </figure>
       <figure>
-        <div class="player" data-player data-caption="The same observation as a false-colour depth map — the geometry stream. Placeholder footage; an illustrative rendering, not model output.">
+        <div class="player" data-player data-caption="The same observation as a false-color depth map — the geometry stream. Placeholder footage; an illustrative rendering, not model output.">
           <video src="assets/videos/stream-pointmap.mp4" poster="assets/videos/stream-pointmap.jpg"
                  loop muted playsinline preload="none" data-autoplay
-                 aria-label="The same scene as a false-colour depth map, illustrating the 3D pointmap stream"></video>
+                 aria-label="The same scene as a false-color depth map, illustrating the 3D pointmap stream"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-3d)"></span>Pointmap &middot; 3D geometry</b>A 3D pointmap pushed through the same frozen VAE &mdash; an encoder trained only on RGB reconstructs pointmaps at 31&nbsp;dB PSNR over an unseen episode (Figure&nbsp;3), so the latent space carries scene geometry directly.</figcaption>
@@ -285,8 +285,8 @@
       <div class="actionstrip" id="av-strip" aria-label="The action chunk: fourteen real joint-and-gripper trajectories from one episode, left arm above and right arm below, always predicted"></div>
     </div>
     <p class="archviz__note archviz__note--fine" style="margin-top:14px">How these panels were made: <b>RGB</b> is the source clip.
-    <b>Pointmap</b> is a false-colour ramp over image luminance and height &mdash; it mimics the look of Figure 3 but
-    carries no geometry. <b>DINO</b> is a real PCA, but over 7-D colour/context/texture patch descriptors rather
+    <b>Pointmap</b> is a false-color ramp over image luminance and height &mdash; it mimics the look of Figure 3 but
+    carries no geometry. <b>DINO</b> is a real PCA, but over 7-D color/context/texture patch descriptors rather
     than DINOv3&rsquo;s 768-D features. The <b>action</b> strip beside them plots the real 14-DoF trajectories of one
     recorded episode. None of the visual panels are model output; the paper&rsquo;s real VAE pointmap reconstruction
     is in Figure&nbsp;3 below.</p>
@@ -492,7 +492,7 @@
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">01</span>Precision and long horizons</h3>
     <p class="sec__sub">The evaluation opens with its hardest task: an eight-stage repair that ends in a
-    sub-millimetre insertion held between two moving hands.</p>
+    sub-millimeter insertion held between two moving hands.</p>
   </div>
 
   <!-- long horizon -->
@@ -788,7 +788,7 @@
         <div class="legend" id="lg-softbag"></div>
       </div>
       <div data-chart="softbag"></div>
-      <p class="figcap" style="margin-top:10px">On bags of unseen colour and pattern the baselines lose most of
+      <p class="figcap" style="margin-top:10px">On bags of unseen color and pattern the baselines lose most of
       what they had: π<sub>0.5</sub> falls from 42.8% to 17.2%, ManiFlow from 31.9% to 6.9%. Flex-π (full joint)
       gives up 6.7 points. Fast-WAM was not run on this task.</p>
     </div>
@@ -1085,7 +1085,7 @@
       <figure>
         <div class="player" data-player data-caption="Clean the Kitchen Rack with unseen distractor objects — the setting where the baseline collapses. Placeholder footage.">
           <span class="player__badge player__badge--ours">80%</span>
-          <video src="assets/videos/gen-handover-distractor.mp4" poster="assets/videos/gen-handover-distractor.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Kitchen rack task with additional unfamiliar coloured objects present"></video>
+          <video src="assets/videos/gen-handover-distractor.mp4" poster="assets/videos/gen-handover-distractor.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Kitchen rack task with additional unfamiliar colored objects present"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap"><b>Kitchen Rack + distractors</b>Where π<sub>0.5</sub> collapses.
