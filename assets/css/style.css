@@ -506,14 +506,22 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .prose a { color: var(--primary-ink); text-decoration: none; border-bottom: 1px solid var(--border); }
 .prose a:hover { border-bottom-color: var(--primary); }
 .lede { font-size: clamp(19px, 2.1vw, 22px); line-height: 1.58; color: var(--fg); }
-.abstract__problem {
+.abstract__problem,
+.abstract__method {
   position: relative; margin-bottom: clamp(22px, 2.8vw, 30px);
   padding: clamp(14px, 2vw, 18px) clamp(16px, 2.5vw, 22px);
-  border: 1px solid color-mix(in srgb, var(--c-base2) 26%, var(--border-soft));
   border-radius: var(--radius);
+}
+.abstract__problem {
+  border: 1px solid color-mix(in srgb, var(--c-base2) 26%, var(--border-soft));
   background: color-mix(in srgb, var(--c-base2) 10%, var(--bg-raise));
 }
-.abstract__problem em {
+.abstract__method {
+  border: 1px solid color-mix(in srgb, var(--c-ours) 28%, var(--border-soft));
+  background: color-mix(in srgb, var(--c-ours) 10%, var(--bg-raise));
+}
+.abstract__problem em,
+.abstract__method em {
   color: inherit; font-weight: inherit;
 }
 
