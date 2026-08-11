@@ -178,16 +178,12 @@
   <div class="wrap wrap--wide reveal" style="margin-top:34px">
     <div class="chartbox">
       <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">Results at a glance</div>
-          <div class="chartbox__sub">Real-robot task completion, averaged over the suite</div>
-        </div>
         <div class="legend" id="lg-summary"></div>
       </div>
       <div data-chart="summary"></div>
-      <p class="figcap" style="margin-top:10px"><b>Seen</b> averages the five in-distribution tasks,
-      <b>Unseen</b> the three that have a held-out condition, <b>Half data</b> is Put Plate on the Rack
-      trained on half the demonstrations. Per-task numbers are in the sections below.</p>
+      <p class="figcap" style="margin-top:10px">Task completion (%) on the real robot. <b>Seen</b>: the five
+      in-distribution tasks. <b>Unseen</b>: the three with a held-out condition. <b>50% data</b>: Put Plate on
+      the Rack at half the demonstrations.</p>
     </div>
 
     <!-- drifts on its own so all five tasks are seen without a scroll.

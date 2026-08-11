@@ -704,11 +704,11 @@
           { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
         ],
         groups: [
-          { label: 'Seen|five tasks',        values: [52.1, 58.0, 31.7, 76.4, 83.0] },
-          { label: 'Unseen|three tasks',     values: [43.2, 31.5, 16.9, 70.8, 76.1] },
-          { label: 'Half data|Put Plate',    values: [42.5, 60.0, 25.0, 80.0, 95.0] }
+          { label: 'Seen',     values: [52.1, 58.0, 31.7, 76.4, 83.0] },
+          { label: 'Unseen',   values: [43.2, 31.5, 16.9, 70.8, 76.1] },
+          { label: '50% data', values: [42.5, 60.0, 25.0, 80.0, 95.0] }
         ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 220, padB: 52, maxBarW: 38,
+        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 220, padB: 40, maxBarW: 38,
         tickFmt: function (t) { return t + '%'; },
         valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
         yLabel: 'Task completion (%)', legendEl: '#lg-summary',
