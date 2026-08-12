@@ -1687,9 +1687,12 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 /* benchmark summary: method rows on the left, one panel per benchmark */
 .chart .benchlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 13.5px; }
 .chart .benchlab--hi { fill: var(--fg); font-weight: 600; }
+/* No text-transform. These labels are acronyms now — VLAs, WAMs — and an
+   uppercase rule would print VLAS and WAMS, which is a different claim about
+   what the letters stand for. They are written in the case they render in. */
 .chart .benchgrp {
   fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta);
-  letter-spacing: var(--ls-meta); text-transform: uppercase;
+  letter-spacing: var(--ls-meta);
 }
 /* must follow .benchgrp: same specificity, so the later rule wins */
 .chart .benchgrp--ours { fill: var(--c-ours); }

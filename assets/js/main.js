@@ -1424,14 +1424,14 @@
           { key: 'lb', title: 'LIBERO',   note: 'four standard suites' }
         ],
         groups: [
-          { label: 'Vision-language-action', rows: [
+          { label: 'VLAs', rows: [
             { name: 'π₀',                    rt: 62.2, lb: 94.1 },
             { name: 'π₀.₅',                  rt: 79.8, lb: 96.9 },
             { name: 'X-VLA',                 rt: 72.9, lb: 98.1 },
             { name: 'Flex-π (action-only)',  ours: 'l', rt: 94.6, lb: 98.4 },
             { name: 'Flex-π* (action-only)', ours: 'l', rt: null, lb: 98.7 }
           ]},
-          { label: 'World-action', rows: [
+          { label: 'WAMs', rows: [
             { name: 'Fast-WAM',             rt: 91.8, lb: 97.6 },
             { name: 'LingBot-VA',           rt: 92.2, lb: 98.5 },
             { name: 'Flex-π (full joint)',  ours: 'd', rt: 94.6, lb: 98.5 },
