@@ -26,7 +26,7 @@
 <!-- ?v= is a cache key, not decoration: Pages serves both this file and the
      stylesheet with max-age=600, so a reader can hold a 10-minute-stale CSS
      against fresh markup. Bump it whenever style.css changes shape. -->
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236e1f35'/%3E%3Ctext x='16' y='24' font-size='23' font-weight='700' font-family='Georgia,serif' fill='%23ffffff' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
 <script>
 /* restore the reader's theme before first paint so there is no flash */
@@ -175,14 +175,20 @@
 
   <!-- results at a glance: the aggregate figure, then one rollout per task.
        Deliberately coarse — per-task numbers live in the sections below. -->
+  <!-- wrap--full, the same measure as the task strip directly below it: these
+       two read as one block and a narrower card above a wider strip made the
+       card look inset rather than deliberate -->
   <div class="wrap wrap--full reveal" style="margin-top:34px">
     <div class="chartbox">
       <div class="chartbox__head">
-        <div class="legend" id="lg-summary"></div>
+        <div class="chartbox__title">Task completion across the bimanual suite</div>
       </div>
       <div data-chart="summary" id="sum-chart"></div>
-      <p class="figcap" style="margin-top:4px">Task completion on the real robot, averaged over the tasks in each
-      panel. The line is the best baseline; the dark green is Flex-π's margin over it.</p>
+      <!-- ranged left on the card's own edge, under the title, rather than
+           centred: the grid it describes is left-ranged and a centred line
+           under it reads as placed by formula rather than by eye -->
+      <p class="figcap figcap--left" style="margin-top:18px">Pale green reaches the panel's best baseline; solid
+      green is the margin past it.</p>
       <details class="dtab">
         <summary>View as table</summary>
         <div class="dtab__scroll">
@@ -198,7 +204,7 @@
             </tr>
           </thead>
       <tbody>
-        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Seen tasks <span>5 tasks, in distribution</span></th></tr>
+        <tr class="dtab__grp"><th colspan="6" scope="colgroup">In distribution</th></tr>
         <tr><th scope="row">Put Plate on the Rack</th><td>95.0</td><td>84.2</td><td>75.8</td><td>72.5</td><td>12.5</td></tr>
         <tr><th scope="row">Sort Utensils</th><td>75.0</td><td>70.0</td><td>55.0</td><td>45.0</td><td>5.0</td></tr>
         <tr><th scope="row">Kitchen Organization</th><td>98.8</td><td>96.2</td><td>93.8</td><td>73.8</td><td>77.5</td></tr>
@@ -207,24 +213,28 @@
         <tr class="dtab__avg"><th scope="row">Average</th><td>83.0</td><td>76.4</td><td>58.0</td><td>52.1</td><td>31.7</td></tr>
       </tbody>
       <tbody>
-        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Unseen conditions <span>3 tasks</span></th></tr>
+        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Out of distribution</th></tr>
         <tr><th scope="row">Put Plate on the Rack</th><td>95.0</td><td>85.0</td><td>55.0</td><td>72.5</td><td>33.8</td></tr>
         <tr><th scope="row">Sort Utensils</th><td>70.0</td><td>70.0</td><td>32.5</td><td>40.0</td><td>0.0</td></tr>
         <tr><th scope="row">Soft-Bag Zipping</th><td>63.3</td><td>57.5</td><td>6.9</td><td>17.2</td><td>&mdash;</td></tr>
         <tr class="dtab__avg"><th scope="row">Average</th><td>76.1</td><td>70.8</td><td>31.5</td><td>43.2</td><td>16.9</td></tr>
       </tbody>
       <tbody>
-        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Half the data <span>1 task</span></th></tr>
+        <tr class="dtab__grp"><th colspan="6" scope="colgroup">50% data</th></tr>
         <tr><th scope="row">Put Plate on the Rack</th><td>95.0</td><td>80.0</td><td>60.0</td><td>42.5</td><td>25.0</td></tr>
       </tbody>
         </table>
         </div>
-        <p class="dtab__foot">Task completion (%). Fast-WAM was not run on Self-Repair Gripper or Soft-Bag
-        Zipping, so its averages cover 3 of 5 seen tasks and 2 of 3 unseen conditions.</p>
+        <p class="dtab__foot">Task completion (%). The figure above draws Flex-&pi; at full joint generation
+        only; the action-only column is kept here as the record, and what it trades for its speed is the
+        subject of the latency figure below. Fast-WAM was not run on Self-Repair Gripper or Soft-Bag
+        Zipping, so its averages cover 3 of 5 in-distribution tasks and 2 of 3 out-of-distribution
+        conditions.</p>
       </details>
-
     </div>
+  </div>
 
+  <div class="wrap wrap--full reveal">
     <p class="figcap" style="margin-top:26px">Click on any video below to expand it.</p>
 
     <!-- drifts on its own so all five tasks are seen without a scroll.

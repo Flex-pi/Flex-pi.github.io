@@ -47,6 +47,11 @@
   --c-ours:   #57c98b;   /* Flex-π accent      */
   --c-ours-l: #74c47e;   /* Flex-π action-only */
   --c-ours-d: #3f9e52;   /* Flex-π full joint  */
+  /* the at-a-glance figure's baselines. That figure prints every method's name
+     beside its own bar, so a hue per method identifies nothing the label does
+     not — one ink for all three, and the only colour in the figure is ours. */
+  --c-lane-base:  #625e56;
+  --lane-track:   rgba(255,255,255,.075);
   --chart-grid: rgba(255,255,255,.075);
   --chart-axis: rgba(255,255,255,.28);
   /* Error whiskers sit on top of saturated bars, so they need more presence
@@ -123,6 +128,8 @@
   --c-ours:   #2e7d3e;
   --c-ours-l: #5ba463;   /* Flex-π action-only */
   --c-ours-d: #2e7d3e;   /* Flex-π full joint  */
+  --c-lane-base:  #b0aba1;
+  --lane-track:   rgba(12,12,12,.07);
   --chart-grid: rgba(12,12,12,.10);
   --chart-axis: rgba(12,12,12,.34);
   --chart-err:  rgba(12,12,12,.46);
@@ -558,6 +565,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   text-wrap: pretty;
 }
 .figcap b, .figcap strong { color: var(--fg-muted); font-weight: 600; }
+/* for a figure that is itself ranged left — a centred line under a left-ranged
+   grid reads as placed by formula */
+.figcap--left { margin-inline: 0; text-align: start; max-width: 86ch; }
 .figcap .tag {
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
   text-transform: uppercase; color: var(--fg-faint); margin-right: 8px;
@@ -1416,65 +1426,162 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .db-dot--base { fill: var(--c-base); }
 .chart .db-dot--fast { fill: var(--bg-raise); stroke: var(--c-ours-l); stroke-width: 2.5; }
 
-/* ---------- laneChart (the at-a-glance figure, #overview)
-   Every value here is set through a class, never an SVG presentation
-   attribute: an attribute is what a stylesheet rule outranks, and that is
-   what let the entrance animation flatten the paired charts once already. */
-.chart .lane__track { fill: var(--surface-3); }
-.chart .lane__fill,
-.chart .lane__lead { fill: var(--c); }
-/* the stretch a Flex-π lane covers before it passes the best baseline. Held
-   back so the bright overhang past the rule is the thing the eye lands on. */
-.chart .lane__fill--under { opacity: .42; }
-.chart .lane__wall { stroke: var(--chart-axis); stroke-width: 1.5; }
-.chart .lane__hit { fill: transparent; pointer-events: all; cursor: default; }
-/* each bar's own value, off until the table below is opened. Same treatment as
-   .vlab, the value label every other chart on the page uses. */
-.chart .lane__val {
-  fill: var(--fg-muted); font-family: var(--ff-mono); font-size: var(--fs-meta); font-weight: 500;
-  opacity: 0; transition: opacity .2s var(--ease);
-}
-.chart .lane__val--hi { fill: var(--c-ours); }
-.chart--lanes[data-nums] .lane__val { opacity: 1; }
-/* the detail view, off until the Show numbers control is pressed. The entrance
-   rules touch only `transform`, so they never fight this. */
-/* the panel's headline margin. Mono like every other figure on the page, and
-   sized between .chartbox__title and .readout__val — it is the one number this
-   figure exists to deliver, but it is not a section heading. */
-.chart .lane__gapv {
-  fill: var(--c-ours); font-family: var(--ff-mono); font-size: 20px; font-weight: 600;
-}
-/* the panel heading, matching .chartbox__title so the three panels read as
-   sub-figures of the card rather than a type size of their own */
-.chart .lane__title {
-  fill: var(--fg); font-family: var(--ff-display); font-size: 16px; font-weight: 600;
-  letter-spacing: -.005em;
-}
-/* VLA / WAM — the role, hung off the method name in the label gutter */
-.chart .lane__role {
-  fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta);
-  letter-spacing: var(--ls-meta);
-}
-.chart--lanes .lane__series { color: var(--c); transition: opacity .22s var(--ease); }
-.chart--lanes .lane__series:focus { outline: none; }
-.chart--lanes .lane__series:focus-visible .dlab { text-decoration: underline; }
-.chart--lanes .lane__series[data-dim="true"] { opacity: .16; }
+/* ---------- resultBoard (the at-a-glance figure, #overview)
+   Lives in a .chartbox like every other figure here, and borrows the site's
+   own scales rather than inventing any: --fs-meta labels, --fs-fine names,
+   .readout__val for the one big number, 4px radii, hairlines at --border-faint.
 
-/* entrance: the lanes run left to right once, greens first, and each bright
-   overhang lights up only after its own lane has finished running. These rules
-   touch `transform` and nothing else — the faded half of a Flex-π lane keeps
-   its own opacity throughout, which is what the paired charts got wrong. */
-.chart--lanes[data-anim] .lane__fill,
-.chart--lanes[data-anim] .lane__lead {
-  transform-box: fill-box; transform-origin: left center; transform: scaleX(0);
+   The grid is the lane chart's: a label gutter sized to its widest name, then
+   three panels at 1 : 1 : 0.72. The narrow third panel is not decoration — it
+   is one task against the first panel's five, and at equal width its green
+   stretch would be the longest mark on the board, asserting that the lead grows
+   left to right. Placement is set per cell in JS so the DOM can be written
+   panel-major, which is the order the panels have to stack in on a phone. */
+.rb {
+  /* One width for the value column and one for the stacked-layout name column,
+     in px and shared by every row. They were set in em, so the 21px Flex-π
+     value reserved ~24px more than the 12px baseline values and the meter above
+     came out that much shorter than the meters under it — which put the
+     pale/solid boundary out of line with the baseline it is supposed to mark. */
+  --rb-valw: 50px;
+  --rb-namew: 108px;
+  margin-top: 12px; display: grid;
+  grid-template-columns: auto var(--cols, 1fr 1fr 1fr);
+  column-gap: clamp(18px, 2.2vw, 34px);
+  align-items: end;
 }
-.chart--lanes[data-anim="in"] .lane__fill {
-  transform: scaleX(1); transition: transform .62s var(--ease) var(--ad, 0s);
+.rb__gut, .rb__p { display: contents; }
+.rb__c { min-width: 0; }
+.rb__c--stat { padding-bottom: clamp(14px, 1.6vw, 20px); }
+/* the one rule inside the card, doing the work a group header row used to:
+   these four are not four of a kind. Its own grid item, spanning every column,
+   so the column gaps do not punch holes through it. */
+.rb__c--ours { padding-bottom: 16px; }
+.rb__rule { align-self: end; height: 1px; background: var(--border-faint); }
+.rb__c--first { padding-top: 16px; }
+.rb__c--base { padding-bottom: 11px; }
+
+.rb__eyebrow {
+  display: block; font-family: var(--ff-mono); font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--fg-faint);
 }
-.chart--lanes[data-anim="in"] .lane__lead {
-  transform: scaleX(1); transition: transform .40s var(--ease) calc(var(--ad, 0s) + .44s);
+/* the site's largest number, in the site's display face, at the site's own
+   scale — .readout__val, verbatim. Green is the only colour on the board. */
+/* Hung a hair left so the digits, not the plus sign's side bearing, line up
+   with the meter and the label above them.
+
+   600, the weight every other headline number on this site is set in
+   (.readout__val, .metricflow__value). It was briefly 700 to win against the
+   score beside it; a bold serif numeral in green reads as a price tag, and the
+   fix for that contest is to quiet the score, not to shout over it. */
+.rb__delta {
+  display: block; margin-top: 10px; margin-inline-start: -2px;
+  font-family: var(--ff-display); font-weight: 600; font-size: clamp(28px, 3.6vw, 40px);
+  line-height: 1; letter-spacing: -.025em; font-variant-numeric: tabular-nums;
+  color: var(--c-ours);
 }
-.legend__sw--vrule { width: 2px; height: 12px; border-radius: 1px; }
+.rb__sign { font-size: .66em; margin-inline-end: .03em; opacity: .82; }
+.rb__unit { font-family: var(--ff-mono); font-size: .42em; font-weight: 500; opacity: .72; }
+/* the baseline the margin is over, hung off the slice label. Not uppercased —
+   it is a method's name, not a category. */
+.rb__vs { text-transform: none; letter-spacing: 0; color: var(--fg-faint); opacity: .82; }
+
+/* a row is a name, a meter and a value; the gutter carries the name on wide
+   screens and the in-panel copy of it takes over once the gutter is gone */
+.rb__c--ours, .rb__c--base { display: flex; align-items: center; gap: 12px; }
+.rb__c--stat { display: block; }
+.rb__name { font-size: var(--fs-fine); color: var(--fg-dim); white-space: nowrap; }
+.rb__name--ours { font-size: 15px; font-weight: 600; color: var(--fg); }
+.rb__name--in { display: none; }
+.rb__role {
+  margin-inline-start: 7px; font-family: var(--ff-mono); font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta); color: var(--fg-faint);
+}
+.rb__name--ours .rb__role { color: var(--fg-dim); }
+.rb__c--best .rb__name, .rb__c--best .rb__val { color: var(--fg-muted); }
+/* the gutter is ranged right, so the names end on the same edge the panels
+   begin on — the lane chart's own treatment, and the only straight line the
+   left half of the card has */
+.rb__gut .rb__c { justify-content: flex-end; text-align: end; }
+
+/* 6px, not 3px. Against 14px for Flex-π the hierarchy is still better than 2:1,
+   and at 3px on this ground the baselines had receded past reading — they are
+   the comparison, not decoration. */
+.rb__meter {
+  position: relative; flex: 1 1 auto; height: 6px;
+  background: var(--lane-track); border-radius: 2px;
+}
+.rb__c--ours .rb__meter { height: 14px; border-radius: 2px; }
+/* its bar ends where the green on the Flex-π meter begins. Once the baselines
+   are legible that alignment reads on its own, so the row is marked in type
+   only and the block of bars stays even. */
+.rb__fill {
+  position: absolute; inset-block: 0; inset-inline-start: 0; width: var(--w);
+  background: var(--c, var(--c-lane-base)); border-radius: inherit;
+  transition: background-color .2s var(--ease);
+}
+/* ours is one object in two strengths: held back to the best baseline, full
+   strength past it */
+.rb__c--ours .rb__fill { background: color-mix(in srgb, var(--c-ours) 38%, transparent); }
+.rb__lead {
+  position: absolute; inset-block: 0; inset-inline-start: var(--x); width: var(--w);
+  background: var(--c-ours); border-radius: 0 2px 2px 0;
+}
+
+.rb__val {
+  flex: none; width: var(--rb-valw); text-align: end;
+  font-family: var(--ff-mono); font-size: 12px; color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+}
+.rb__c--ours .rb__val {
+  font-family: var(--ff-display); font-size: 19px; font-weight: 600; line-height: 1;
+  letter-spacing: -.02em; color: var(--fg-muted);
+}
+.rb__valunit {
+  font-family: var(--ff-mono); font-size: .44em; font-weight: 500;
+  color: var(--fg-dim); margin-inline-start: 1px;
+}
+.rb__val--none { opacity: .5; }
+
+.rb__c { transition: opacity .2s var(--ease); }
+.rb[data-hi="on"] .rb__c--base[data-hi="false"] { opacity: .34; }
+.rb__c[data-hi="true"] .rb__name, .rb__c[data-hi="true"] .rb__val { color: var(--fg); }
+.rb__c--base:focus { outline: none; }
+.rb__c--base:focus-visible .rb__name { text-decoration: underline; text-underline-offset: 3px; }
+
+.rb[data-anim] .rb__eyebrow, .rb[data-anim] .rb__delta,
+.rb[data-anim] .rb__name, .rb[data-anim] .rb__val {
+  opacity: 0; transform: translateY(7px);
+}
+.rb[data-anim] .rb__fill, .rb[data-anim] .rb__lead {
+  transform: scaleX(0); transform-origin: left center;
+}
+.rb[data-anim="in"] .rb__eyebrow, .rb[data-anim="in"] .rb__delta,
+.rb[data-anim="in"] .rb__name, .rb[data-anim="in"] .rb__val {
+  opacity: 1; transform: none;
+  transition: opacity .5s var(--ease), transform .5s var(--ease);
+}
+.rb[data-anim="in"] .rb__fill {
+  transform: none; transition: transform .62s var(--ease) .1s, background-color .2s var(--ease);
+}
+.rb[data-anim="in"] .rb__lead { transform: none; transition: transform .4s var(--ease) .56s; }
+
+/* Once the panels are too narrow to hold a meter each they stack, the gutter
+   goes with them, and the copy of each name that has been sitting inside every
+   cell all along takes over. */
+@media (max-width: 900px) {
+  .rb { grid-template-columns: 1fr; column-gap: 0; }
+  .rb__gut { display: none; }
+  .rb__p { display: block; }
+  .rb__p + .rb__p {
+    margin-top: clamp(26px, 4vw, 34px); padding-top: clamp(24px, 3.5vw, 32px);
+    border-top: 1px solid var(--border-faint);
+  }
+  .rb__c { grid-column: auto !important; grid-row: auto !important; }
+  .rb__name--in { display: inline; }
+  .rb__name--in.rb__name--ours { flex: none; }
+  .rb__c--ours .rb__name--in, .rb__c--base .rb__name--in { width: var(--rb-namew); flex: none; }
+}
 
 /* ---------- the numbers behind a figure, collapsed
    The chart carries shapes; the exact values live here. Closed by default so
