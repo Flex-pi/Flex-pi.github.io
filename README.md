@@ -134,17 +134,20 @@ per-configuration readouts are in the `REAL_MODE` object.
 Real-robot numbers all come from `flex_pi_final_results.json` — see `UPDATE.md`
 for the mapping and for what is still unmeasured.
 
-## ⚠ Placeholder media
+## Media still to come
 
-**The videos are placeholders and do not show Flex-π rollouts.** They stand in
-for layout while our own recordings are prepared. Clips of the bimanual
-workcell come from the [FACTR2](https://jasonjzliu.com/factr2/) project page,
-which uses the same YAM platform; one comes from
-[ENPIRE](https://research.nvidia.com/labs/gear/enpire/). This is disclosed in
-the page footer and in an on-video badge.
+The rollout videos are real. Two things on the page are not, and both say so:
 
-Replace them by dropping real files over the same paths in `assets/videos/`
-(keep the `.jpg` poster next to each `.mp4`). Filenames are semantic, e.g.
+- The **DINO and pointmap panels** in "Three views of one moment" are
+  illustrative renderings, not model output. Their lightbox captions say
+  "Illustrative, not model output." The RGB panel beside them is the source
+  clip.
+- The **generated-future panels** in "The futures behind the actions" have no
+  footage yet. They render as `.player--todo` tiles with empty captions rather
+  than standing in with something else.
+
+Drop real files over the same paths in `assets/videos/` (keep the `.jpg`
+poster next to each `.mp4`). Filenames are semantic, e.g.
 `task-plate-rack.mp4`, `gen-handover-distractor.mp4`.
 
 ## Results not yet on the page
