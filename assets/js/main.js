@@ -650,6 +650,20 @@
       p._wall = best;
       p._head = p.values[heroI];
       p._mult = (best && best.v > 0 && p._head != null) ? p._head / best.v : null;
+      /* the same comparison on the all-or-nothing measure. Task completion is a
+         rubric mean, so partial credit flatters every policy in it; counting
+         only the rollouts that finished the whole task is the harsher read and
+         the one the margins widen under. */
+      if (p.fullSuccess) {
+        var fsBest = null;
+        rows.forEach(function (r, ri) {
+          if (r.ours) return;
+          var fv = p.fullSuccess[ri];
+          if (fv !== null && fv !== undefined && (fsBest === null || fv > fsBest)) fsBest = fv;
+        });
+        var fsOurs = p.fullSuccess[heroI];
+        p._multFS = (fsBest && fsOurs != null) ? fsOurs / fsBest : null;
+      }
     });
 
     mount.innerHTML = '';
@@ -844,12 +858,12 @@
 
     /* The ratios live in the caption but are still derived here — a caption
        with the figures typed into it goes stale the first time a value moves. */
-    if (cfg.multsInto) {
-      [].forEach.call(document.querySelectorAll(cfg.multsInto), function (n) {
-        var pp = panels[+n.getAttribute('data-rb-mult')];
-        n.textContent = pp && pp._mult != null ? pp._mult.toFixed(2) + '\u00d7' : '';
+    [['data-rb-mult', '_mult'], ['data-rb-fs', '_multFS']].forEach(function (pair) {
+      [].forEach.call(document.querySelectorAll('[' + pair[0] + ']'), function (n) {
+        var pp = panels[+n.getAttribute(pair[0])];
+        n.textContent = pp && pp[pair[1]] != null ? pp[pair[1]].toFixed(2) + '\u00d7' : '';
       });
-    }
+    });
 
     /* Entrance: the meters run out from the left, panel by panel. Transform and
        opacity only — no rule here sets a colour, so nothing it does can be
@@ -1199,7 +1213,8 @@
         ],
         panels: [
           { title: 'In distribution',
-            values: [83.0, 76.4, 52.1, 31.7, 58.0],
+            values:      [83.0, 76.4, 52.1, 31.7, 58.0],
+            fullSuccess: [63.0, 50.0, 18.0, 11.7, 27.0],
             partial: [null, null, null, '3 of 5 tasks', null],
             /* #taskgap below, per task. Each column averages to the bar above. */
             tasks: [
@@ -1210,7 +1225,8 @@
               { name: 'Bag',    values: [70.0, 64.9, 42.8, null, 31.9] }
             ] },
           { title: 'Out of distribution',
-            values: [76.1, 70.8, 43.2, 16.9, 31.5],
+            values:      [76.1, 70.8, 43.2, 16.9, 31.5],
+            fullSuccess: [50.0, 45.0, 10.0,  0.0,  8.3],
             partial: [null, null, null, '2 of 3 tasks', null],
             /* #gen's unseen halves plus #softbag's unseen bag */
             tasks: [
@@ -1223,7 +1239,8 @@
              `deltaFrom` its full-data row, so the drops printed here and the
              bars drawn there cannot disagree. */
           { title: '50% data',
-            values:    [95.0, 80.0, 42.5, 25.0, 60.0],
+            values:      [95.0, 80.0, 42.5, 25.0, 60.0],
+            fullSuccess: [80.0, 60.0, 20.0,  0.0, 30.0],
             deltaFrom: [97.5, 90.0, 80.0, 37.5, 87.5], wF: 0.74,
             tasks: [
               { name: 'Plate', values: [95.0, 80.0, 42.5, 25.0, 60.0] }
@@ -1231,7 +1248,6 @@
         ],
         /* No legend: every row prints its own name and the one colour on the
            board belongs to the two rows the figure is about. */
-        multsInto: '[data-rb-mult]',
         ariaLabel: 'Task completion on the real robot, in three slices, with Flex-π run action-only and at ' +
           'full joint generation. In distribution, over five tasks: Flex-π 83.0 and 76.4 percent, π0.5 52.1, ' +
           'Fast-WAM 31.7, ManiFlow 58.0 — full joint is 1.43 times ManiFlow, the strongest baseline there. Out ' +
