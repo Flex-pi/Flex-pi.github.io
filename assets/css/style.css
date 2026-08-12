@@ -1154,9 +1154,9 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
   text-transform: uppercase; color: var(--fg-faint);
 }
-/* the diagram fills the left column across both rows; the right column
-   stacks the mask controls over the frontier they steer, so choosing a
-   configuration and seeing where it lands stay in one eyeful */
+/* the diagram on the left, the mask controls on the right. The frontier that
+   used to close this card is now a static figure of its own in Part I; the
+   masks still drive the two measured numbers at the head of the controls. */
 .archviz__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
@@ -1411,6 +1411,147 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .db-run { stroke: var(--chart-axis); stroke-width: 3.5; stroke-linecap: round; opacity: .55; }
 .chart .db-dot--base { fill: var(--c-base); }
 .chart .db-dot--fast { fill: var(--bg-raise); stroke: var(--c-ours-l); stroke-width: 2.5; }
+
+/* ---------- laneChart (the at-a-glance figure, #overview)
+   Every value here is set through a class, never an SVG presentation
+   attribute: an attribute is what a stylesheet rule outranks, and that is
+   what let the entrance animation flatten the paired charts once already. */
+.chart .lane__track { fill: var(--surface-3); }
+.chart .lane__fill,
+.chart .lane__lead { fill: var(--c); }
+/* the stretch a Flex-π lane covers before it passes the best baseline. Held
+   back so the bright overhang past the rule is the thing the eye lands on. */
+.chart .lane__fill--under { opacity: .42; }
+.chart .lane__wall { stroke: var(--chart-axis); stroke-width: 1.5; }
+.chart .lane__hit { fill: transparent; pointer-events: all; cursor: default; }
+/* each bar's own value, off until the table below is opened. Same treatment as
+   .vlab, the value label every other chart on the page uses. */
+.chart .lane__val {
+  fill: var(--fg-muted); font-family: var(--ff-mono); font-size: var(--fs-meta); font-weight: 500;
+  opacity: 0; transition: opacity .2s var(--ease);
+}
+.chart .lane__val--hi { fill: var(--c-ours); }
+.chart--lanes[data-nums] .lane__val { opacity: 1; }
+/* the detail view, off until the Show numbers control is pressed. The entrance
+   rules touch only `transform`, so they never fight this. */
+/* the panel's headline margin. Mono like every other figure on the page, and
+   sized between .chartbox__title and .readout__val — it is the one number this
+   figure exists to deliver, but it is not a section heading. */
+.chart .lane__gapv {
+  fill: var(--c-ours); font-family: var(--ff-mono); font-size: 20px; font-weight: 600;
+}
+/* the panel heading, matching .chartbox__title so the three panels read as
+   sub-figures of the card rather than a type size of their own */
+.chart .lane__title {
+  fill: var(--fg); font-family: var(--ff-display); font-size: 16px; font-weight: 600;
+  letter-spacing: -.005em;
+}
+/* VLA / WAM — the role, hung off the method name in the label gutter */
+.chart .lane__role {
+  fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+}
+.chart--lanes .lane__series { color: var(--c); transition: opacity .22s var(--ease); }
+.chart--lanes .lane__series:focus { outline: none; }
+.chart--lanes .lane__series:focus-visible .dlab { text-decoration: underline; }
+.chart--lanes .lane__series[data-dim="true"] { opacity: .16; }
+
+/* entrance: the lanes run left to right once, greens first, and each bright
+   overhang lights up only after its own lane has finished running. These rules
+   touch `transform` and nothing else — the faded half of a Flex-π lane keeps
+   its own opacity throughout, which is what the paired charts got wrong. */
+.chart--lanes[data-anim] .lane__fill,
+.chart--lanes[data-anim] .lane__lead {
+  transform-box: fill-box; transform-origin: left center; transform: scaleX(0);
+}
+.chart--lanes[data-anim="in"] .lane__fill {
+  transform: scaleX(1); transition: transform .62s var(--ease) var(--ad, 0s);
+}
+.chart--lanes[data-anim="in"] .lane__lead {
+  transform: scaleX(1); transition: transform .40s var(--ease) calc(var(--ad, 0s) + .44s);
+}
+.legend__sw--vrule { width: 2px; height: 12px; border-radius: 1px; }
+
+/* ---------- the numbers behind a figure, collapsed
+   The chart carries shapes; the exact values live here. Closed by default so
+   the figure stays the thing you see first, and it doubles as the accessible
+   alternative to an SVG. */
+.dtab { margin-top: 16px; border-top: 1px solid var(--border-faint); padding-top: 12px; }
+.dtab > summary {
+  cursor: pointer; list-style: none; width: fit-content;
+  font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
+  text-transform: uppercase; color: var(--fg-faint);
+  transition: color .16s var(--ease);
+}
+.dtab > summary::-webkit-details-marker { display: none; }
+.dtab > summary::before {
+  content: "\25B8"; display: inline-block; margin-right: 8px;
+  transition: transform .18s var(--ease);
+}
+.dtab[open] > summary::before { transform: rotate(90deg); }
+.dtab > summary:hover, .dtab[open] > summary { color: var(--fg-dim); }
+.dtab > summary:focus-visible { outline: 1px solid var(--primary); outline-offset: 3px; }
+/* a wide table must scroll inside its own box, never the page */
+.dtab__scroll { overflow-x: auto; margin-top: 14px; }
+.dtab table { border-collapse: collapse; width: 100%; font-size: var(--fs-fine); }
+.dtab th, .dtab td { padding: 7px 12px; text-align: right; white-space: nowrap; }
+.dtab thead th {
+  font-family: var(--ff-mono); font-size: var(--fs-meta); letter-spacing: var(--ls-meta);
+  color: var(--fg-faint); font-weight: 400; border-bottom: 1px solid var(--border-soft);
+}
+.dtab tbody th, .dtab thead th:first-child { text-align: left; font-weight: 400; color: var(--fg-muted); }
+.dtab td { font-family: var(--ff-mono); color: var(--fg-dim); }
+/* ours are the first two columns, and stay the accent they are on the chart */
+.dtab td:nth-child(2) { color: var(--c-ours); font-weight: 600; }
+.dtab td:nth-child(3) { color: var(--c-ours); }
+.dtab tbody tr + tr th, .dtab tbody tr + tr td { border-top: 1px solid var(--border-faint); }
+.dtab__grp th {
+  padding-top: 18px; font-family: var(--ff-mono); font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--fg-faint);
+}
+.dtab__grp th span { text-transform: none; letter-spacing: 0; opacity: .8; }
+.dtab__avg th, .dtab__avg td { border-top: 1px solid var(--border-soft) !important; color: var(--fg); }
+.dtab__avg th { color: var(--fg); }
+.dtab__foot { margin: 14px 0 0; font-size: var(--fs-meta); color: var(--fg-faint); line-height: 1.6; }
+
+/* ---------- chart tooltip
+   A card that follows the pointer, because the numbers were previously handed
+   to a line of text under the figure that nobody reads and to the browser's
+   own tooltip, which takes about a second to appear. Positioned inside the
+   chart mount, so the mount is the containing block. */
+[data-chart] { position: relative; }
+.chartip {
+  position: absolute; left: 0; top: 0; z-index: 6;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+  gap: 3px 12px; padding: 9px 13px;
+  background: var(--bg-raise); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 5px rgba(0,0,0,.10), 0 10px 26px rgba(0,0,0,.16);
+  pointer-events: none; white-space: nowrap;
+  opacity: 0; transform: translateY(3px);
+  transition: opacity .12s var(--ease), transform .12s var(--ease);
+}
+.chartip[data-on] { opacity: 1; transform: none; }
+.chartip__sw {
+  width: 11px; height: 11px; border-radius: 2px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 22%, transparent);
+}
+.chartip__name { font-size: var(--fs-fine); color: var(--fg); }
+.chartip__val {
+  font-family: var(--ff-mono); font-size: var(--fs-fine); font-weight: 600; color: var(--fg);
+}
+.chartip__sub {
+  grid-column: 2 / -1; font-family: var(--ff-mono); font-size: var(--fs-meta); color: var(--fg-dim);
+}
+/* the per-task drill-down. The card is nowrap so the headline stays on one
+   line; this row opts back in to wrapping and caps its own width. */
+.chartip__tasks {
+  grid-column: 2 / -1; margin-top: 3px; padding-top: 5px;
+  border-top: 1px solid var(--border-faint);
+  font-family: var(--ff-mono); font-size: var(--fs-meta); color: var(--fg-faint);
+  white-space: normal; max-width: 300px; line-height: 1.7;
+}
+.chartip__sub[hidden], .chartip__tasks[hidden] { display: none; }
 .chart .db-dot--joint { fill: var(--c-ours-d); }
 .chart .db-delta { fill: var(--c-ours); font-family: var(--ff-mono); font-size: var(--fs-meta); font-weight: 500; }
 /* which baseline the grey dot actually is, per row */
@@ -1424,6 +1565,8 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
   fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta);
   letter-spacing: var(--ls-meta); text-transform: uppercase;
 }
+/* must follow .benchgrp: same specificity, so the later rule wins */
+.chart .benchgrp--ours { fill: var(--c-ours); }
 
 /* Bar charts retain their statistical grouping, but enter as a measured flow:
    bars grow from the zero axis and annotations follow them. */
@@ -1450,32 +1593,15 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .pareto__halo { fill: none; stroke: var(--c-ours); stroke-width: 1.5; opacity: 0; transition: opacity .18s var(--ease); }
 .pareto__pt[data-active="true"] .pareto__halo { opacity: .9; }
 
-/* the frontier closes the card across both columns, so it renders near 1:1
-   and every point keeps its name and figures */
-.archviz__frontier {
-  grid-column: 1 / -1; min-width: 0;
-  border-top: 1px solid var(--border-faint); padding-top: clamp(12px, 1.6vw, 18px);
-}
-.archviz__frontier .archviz__label { margin-bottom: 4px; }
 /* the two measured numbers head the control column: the answer, then the
    controls that set it */
 .readout--av { margin-bottom: clamp(20px, 2.4vw, 28px); }
 .readout--av .readout__val { font-size: clamp(23px, 2.5vw, 29px); }
 .readout--av .readout__note { min-height: 3.2em; font-size: 12px; }
-.frontier__read {
-  margin: 4px 0 0; font-family: var(--ff-mono); font-size: 13px; color: var(--fg-dim);
-  min-height: 1.6em; text-align: center;   /* one full line, so the card does
-                                              not breathe as the note appears */
-}
-.frontier__read b { color: var(--c-ours); font-weight: 500; }
 .chart .dlab { fill: var(--fg-muted); font-family: var(--ff-body); font-size: 13px; }
 .chart .dlab--hi { fill: var(--fg); font-weight: 600; }
 .chart .dval { fill: var(--fg); font-family: var(--ff-mono); font-size: 11.5px; transition: opacity .15s var(--ease); }
 .chart .domlab { fill: var(--primary-ink); font-family: var(--ff-body); font-style: italic; font-size: 12px; }
-.chart .fr-dot { transition: opacity .2s var(--ease); }
-.chart .fr-ring { fill: none; stroke-width: 2; opacity: 0; transition: opacity .2s var(--ease); }
-.chart .fr-ring[data-lit="on"] { opacity: 1; }
-.chart .fr-dot[data-lit="off"] { opacity: .3; }
 
 /* pareto entrance: line draws itself, points pop in as it reaches them,
    the Fast-WAM baseline fades in last. Armed via data-anim="wait", fired

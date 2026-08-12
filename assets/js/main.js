@@ -539,6 +539,398 @@
   }
 
   /* ---------------------------------------------------------------------
+     laneChart — the at-a-glance figure, directly under the intro reel
+
+     The reader has just watched a video and knows nothing. A grouped bar
+     chart makes them hold a five-colour legend in their head before the
+     figure means anything; this one prints every method's name beside its
+     own mark, so there is nothing to look up.
+
+     Each row is a lane running the whole length of the task, and the fill is
+     how far that policy got — a progress bar, the most over-learned mark
+     there is. That container is why the numbers can be hidden at all: strip
+     the axis off a bar and it can only be judged against its neighbours,
+     while a lane carries its own referent in the part that stays empty.
+
+     A solid rule marks the best baseline in that panel, and the stretch past
+     it is redrawn at full strength: that bright overhang IS the margin. The
+     margin is also printed once per panel, in the header, because it is the
+     one number the figure exists to deliver.
+
+     The third panel is drawn narrower on purpose. It is one task against the
+     first panel's five, and at equal widths its bright overhang would be the
+     longest mark in the figure — asserting that the lead grows left to
+     right, which is an artifact of ManiFlow degrading on that one task, not
+     a result. Fill *fraction* stays comparable across panels regardless,
+     because each lane is measured against its own container; a bar chart
+     cannot be narrowed this way, a container mark can.
+
+     No mark here carries an `opacity` presentation attribute — the faded
+     half of each Flex-π lane gets its value from a class. That is deliberate:
+     an attribute is what a stylesheet rule can outrank, which is what let the
+     entrance animation flatten the paired charts once already.
+     --------------------------------------------------------------------- */
+  var lanesPlayed = false;
+
+  /* Opening "View as table" also puts the numbers on the figure above it —
+     one control, both views. */
+  function initTableSync() {
+    document.querySelectorAll('details.dtab').forEach(function (d) {
+      d.addEventListener('toggle', function () {
+        document.querySelectorAll('.chart--lanes').forEach(function (svg) {
+          if (d.open) svg.setAttribute('data-nums', 'on');
+          else svg.removeAttribute('data-nums');
+        });
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     chart tooltip — a real card that follows the pointer
+
+     The figures used to hand their numbers to a line of text under the chart,
+     which nobody looks at, and to the browser's own <title> tooltip, which
+     takes about a second to appear. This is an HTML card positioned over the
+     mount: swatch, name, value. The native <title> stays on every mark as the
+     fallback for anyone who never moves a pointer.
+     --------------------------------------------------------------------- */
+  function makeChartTip(mount) {
+    var box = document.createElement('div');
+    box.className = 'chartip';
+    box.setAttribute('aria-hidden', 'true');
+    box.innerHTML = '<span class="chartip__sw"></span>' +
+                    '<span class="chartip__name"></span>' +
+                    '<span class="chartip__val"></span>' +
+                    '<span class="chartip__sub"></span>' +
+                    '<span class="chartip__tasks"></span>';
+    mount.appendChild(box);
+    var sw = box.querySelector('.chartip__sw'),
+        nm = box.querySelector('.chartip__name'),
+        vl = box.querySelector('.chartip__val'),
+        sb = box.querySelector('.chartip__sub'),
+        tk = box.querySelector('.chartip__tasks');
+
+    function at(cx, cy) {
+      var m = mount.getBoundingClientRect();
+      var w = box.offsetWidth, hh = box.offsetHeight;
+      var x = cx - m.left + 16, y = cy - m.top + 18;
+      if (x + w > m.width - 4) x = cx - m.left - w - 16;   /* flip before the edge */
+      if (x < 4) x = 4;
+      /* below the pointer by default, so it does not sit over the panel
+         headers; above only when there is no room underneath */
+      if (y + hh > m.height - 4) y = Math.max(4, cy - m.top - hh - 12);
+      box.style.left = Math.round(x) + 'px';
+      box.style.top = Math.round(y) + 'px';
+    }
+    return {
+      show: function (color, name, value, sub, tasks, ev) {
+        sw.style.background = color;
+        nm.textContent = name; vl.textContent = value;
+        sb.textContent = sub || ''; sb.hidden = !sub;
+        tk.textContent = tasks || ''; tk.hidden = !tasks;
+        box.setAttribute('data-on', 'true');
+        at(ev.clientX, ev.clientY);
+      },
+      /* keyboard has no pointer, so anchor to the mark itself */
+      showAt: function (color, name, value, sub, tasks, svg, ux, uy) {
+        sw.style.background = color;
+        nm.textContent = name; vl.textContent = value;
+        sb.textContent = sub || ''; sb.hidden = !sub;
+        tk.textContent = tasks || ''; tk.hidden = !tasks;
+        box.setAttribute('data-on', 'true');
+        var r = svg.getBoundingClientRect();
+        var vb = svg.viewBox.baseVal, s = r.width / (vb.width || 1);
+        at(r.left + ux * s, r.top + uy * s);
+      },
+      move: function (ev) { at(ev.clientX, ev.clientY); },
+      hide: function () { box.removeAttribute('data-on'); }
+    };
+  }
+
+  function laneChart(mount, cfg) {
+    var rows = cfg.rows, panels = cfg.panels, nP = panels.length;
+    var wF = panels.map(function (p) { return p.wF == null ? 1 : p.wF; });
+
+    /* Below stackAt the panels sit one above the other and the viewBox is set
+       to the mount's own pixel width, so type renders at its nominal size
+       instead of being scaled down by a fixed 1000-unit box. renderCharts()
+       re-runs on a debounced resize, so the layout switches with the window. */
+    var cw = mount.clientWidth || 0;
+    var narrow = cw > 0 && cw < (cfg.stackAt || 700);
+
+    /* The label gutter is sized to the widest row label and no wider — it was
+       196 against a 109-unit label, and those 69 units came straight out of the
+       panels, the narrow third one most of all. It keeps ~19 units of slack so
+       a fallback font cannot push the longest label off the left edge — at 128
+       the clearance was 2.8. Bars are kept well thinner than
+       their row: a length difference reads worse on a squat block than on a
+       slim one, and the overhang past the rule is the whole point. */
+    var W, padL, padR, GAP, h, ROW, GRP, headH, footH;
+    if (narrow) {
+      W = Math.max(320, Math.round(cw)); padL = cfg.narrowPadL || 122; padR = 8;
+      h = 13; ROW = 30; GRP = 24; headH = 50; footH = 10; GAP = 26;
+    } else {
+      W = 1000; padL = cfg.padL || 144; padR = 12; GAP = 36;
+      h = 16; ROW = 34; GRP = 28; headH = 64; footH = 12;
+    }
+    var RX = 1.5;                       /* the corner every other chart uses */
+
+    var rowOff = [], ry = 0;
+    rows.forEach(function (r, i) { rowOff[i] = ry; ry += r.header ? GRP : ROW; });
+    var bodyH = ry;
+
+    var place = [], H;
+    if (narrow) {
+      var full = W - padL - padR, yy = 0;
+      panels.forEach(function (p, pi) {
+        place.push({ x: padL, w: full * wF[pi], top: yy + headH });
+        yy += headH + bodyH + footH + GAP;
+      });
+      H = yy - GAP;
+    } else {
+      var avail = W - padL - padR - GAP * (nP - 1);
+      var sumF = wF.reduce(function (a, b) { return a + b; }, 0);
+      var acc = padL;
+      panels.forEach(function (p, pi) {
+        var w = avail * wF[pi] / sumF;
+        place.push({ x: acc, w: w, top: headH });
+        acc += w + GAP;
+      });
+      H = headH + bodyH + footH;
+    }
+
+    /* Bars are plain rects at the same rx every other chart uses. They were
+       round-capped strokes once, which cost an inset at both ends to stop each
+       bar drawing longer than its value; square ends map straight through. */
+    function X(pi, v) { return place[pi].x + (v / 100) * place[pi].w; }
+    function cyOf(pi, ri) { return place[pi].top + rowOff[ri] + ROW / 2; }
+    function laneRect(cls, pi, from, to, cy) {
+      return el('rect', { 'class': cls, x: X(pi, from), y: cy - h / 2,
+        width: Math.max(1, X(pi, to) - X(pi, from)), height: h, rx: RX });
+    }
+
+    var svg = el('svg', {
+      'class': 'chart chart--lanes', viewBox: '0 0 ' + W + ' ' + H,
+      preserveAspectRatio: 'xMidYMid meet', role: 'group',
+      'aria-label': cfg.ariaLabel || 'results at a glance'
+    });
+
+    /* the reference each panel measures against: the stronger of the baselines
+       shown. The comparison set is deliberately one VLA and one WAM, so this is
+       not the best method in the paper — #taskgap below scores every baseline
+       per task. */
+    panels.forEach(function (p) {
+      var best = null, lead = null;
+      rows.forEach(function (r, ri) {
+        if (r.header || r.ours) return;
+        var v = p.values[ri];
+        if (v !== null && v !== undefined && (best === null || v > best.v)) best = { v: v, name: r.name };
+      });
+      rows.forEach(function (r, ri) {
+        if (lead !== null || !r.headline) return;
+        var v = p.values[ri];
+        if (v !== null && v !== undefined && best) lead = v - best.v;
+      });
+      p._wall = best; p._lead = lead;
+    });
+
+    var chrome = el('g', { 'class': 'lane__chrome', 'aria-hidden': 'true' });
+    panels.forEach(function (p, pi) {
+      var pl = place[pi], xr = pl.x + pl.w;
+      var titleY = pl.top - headH + (narrow ? 18 : 24);
+      var noteY  = pl.top - headH + (narrow ? 38 : 50);
+
+      /* Title alone on the first line, note and margin sharing the second.
+         The margin used to sit beside the title, which collides in the third
+         panel: it is the narrowest and carries the longest title. The notes
+         are short, so the second line always has room. */
+      if (pi === 0 && cfg.metric) {
+        /* the label column's own header. It fills the one dead corner of the
+           figure and is the only place the metric is named outside the caption. */
+        chrome.appendChild(el('text', { 'class': 'benchgrp', x: pl.x - 16, y: titleY,
+          'text-anchor': 'end' }, cfg.metric));
+      }
+      chrome.appendChild(el('text', { 'class': 'lane__title', x: pl.x, y: titleY }, p.title));
+      chrome.appendChild(el('text', { 'class': 'tick', x: pl.x, y: noteY }, p.note));
+      if (p._lead != null) {
+        chrome.appendChild(el('text', { 'class': 'lane__gapv', x: xr, y: noteY,
+          'text-anchor': 'end' }, '+' + p._lead.toFixed(1) + '%'));
+      }
+      if (p._wall) {
+        /* The rule springs from the reference's own bar end. It used to be
+           labelled with the method's name, from when that method was not
+           drawn; every baseline has a bar now, so the rule names itself. */
+        var wx = X(pi, p._wall.v);
+        chrome.appendChild(el('line', { 'class': 'lane__wall', x1: wx, x2: wx,
+          y1: pl.top + 4, y2: pl.top + bodyH - 4 }));
+      }
+
+      rows.forEach(function (r, ri) {
+        if (r.header) return;
+        chrome.appendChild(laneRect('lane__track', pi, 0, 100, cyOf(pi, ri)));
+      });
+      /* the label gutter is shared when the panels are side by side, and
+         repeated per panel once they stack */
+      if (narrow || pi === 0) {
+        rows.forEach(function (r, ri) {
+          if (!r.header) return;
+          chrome.appendChild(el('text', {
+            'class': 'benchgrp' + (r.ours ? ' benchgrp--ours' : ''),
+            x: pl.x - 14, y: pl.top + rowOff[ri] + GRP - 11, 'text-anchor': 'end'
+          }, r.header));
+        });
+      }
+    });
+    svg.appendChild(chrome);
+
+    /* Clear before building, not just before appending: makeChartTip() puts the
+       hover card inside the mount too, so a later wipe would take it with it.
+       renderCharts() re-runs on every theme flip and debounced resize, and
+       without this each run stacked another chart on top of the last. */
+    mount.innerHTML = '';
+    var tip = makeChartTip(mount);
+    /* the open table is the source of truth, so this survives a rebuild without
+       any module state of its own */
+    var det = cfg.numsFrom && document.querySelector(cfg.numsFrom);
+    if (det && det.open) svg.setAttribute('data-nums', 'on');
+    var groups = [];
+    function setHighlight(active) {
+      groups.forEach(function (g, i) {
+        g.setAttribute('data-dim', active !== null && i !== active ? 'true' : 'false');
+        g.setAttribute('data-highlight', active === i ? 'true' : 'false');
+      });
+    }
+
+    var mi = -1;
+    rows.forEach(function (r, ri) {
+      if (r.header) return;
+      mi++;
+      var si = mi, parts = [], ariaParts = [];
+      var g = el('g', {
+        'class': 'lane__series' + (r.ours ? ' lane__series--ours' : ''),
+        tabindex: '0', role: 'group',
+        style: '--c:' + r.color + ';--ad:' + (0.06 + si * 0.07).toFixed(2) + 's'
+      });
+
+      panels.forEach(function (p, pi) {
+        var v = p.values[ri];
+        if (v === null || v === undefined) return;
+        var pl = place[pi], cy = cyOf(pi, ri);
+        parts.push(p.title.toLowerCase() + ' ' + v.toFixed(1));
+
+        g.appendChild(laneRect('lane__fill' + (r.ours ? ' lane__fill--under' : ''), pi, 0, v, cy));
+
+        /* the bright overhang: only the stretch past the reference */
+        if (r.ours && p._wall && v > p._wall.v) {
+          g.appendChild(laneRect('lane__lead', pi, p._wall.v, v, cy));
+        }
+
+        /* Each bar's own figure, revealed together with the table below —
+           opening the table means "show me the numbers", so the figure obeys
+           the same switch. Above the bar, not inside it: five bar colours have
+           no single legible text colour between them. Hidden by a CLASS, never
+           an opacity attribute, which is what a stylesheet rule can outrank. */
+        g.appendChild(el('text', {
+          'class': 'lane__val' + (r.ours ? ' lane__val--hi' : ''),
+          /* clear of the bar end so the rule, which sits exactly on the value
+             of the row that owns it, does not strike the digits */
+          x: X(pi, v) - 4, y: cy - h / 2 - 3, 'text-anchor': 'end'
+        }, v.toFixed(1)));
+
+        /* a run that did not cover every task says so on hover and in the
+           aria-label */
+        var pt = p.partial && p.partial[ri];
+        var gap = p._wall ? v - p._wall.v : null;
+        var sub = p.title + (gap === null || gap === 0 ? '' :
+          gap > 0 ? ' · +' + gap.toFixed(1) + ' over ' + p._wall.name
+                  : ' · ' + Math.abs(gap).toFixed(1) + ' short of ' + p._wall.name) +
+          (pt ? ' · ' + pt : '');
+        /* the drill-down: the per-task scores this panel's mean is made of.
+           The bar and the toggle both show the mean, so without this the
+           tooltip would only repeat what is already on the figure. */
+        var brk = (p.tasks || []).map(function (t) {
+          var tv = t.values[ri];
+          return tv === null || tv === undefined ? null : t.name + ' ' + tv.toFixed(1);
+        }).filter(Boolean).join('   ');
+
+        /* No <title> here on purpose. This chart has its own hover card, and a
+           <title> would put the browser's native tooltip on top of it after a
+           second of dwell — two tooltips saying the same thing. The text it
+           used to carry is in the series aria-label below, which is where a
+           screen reader looks anyway. The other charts on this page keep their
+           <title>, since it IS their tooltip. */
+        ariaParts.push(p.title.toLowerCase() + ' ' + v.toFixed(1) + ' percent' +
+          (gap === null || gap === 0 ? '' :
+            gap > 0 ? ', ' + gap.toFixed(1) + ' above ' + p._wall.name
+                    : ', ' + Math.abs(gap).toFixed(1) + ' below ' + p._wall.name) +
+          (pt ? ', covering ' + pt : ''));
+
+        var hit = el('rect', { 'class': 'lane__hit', x: pl.x, y: cy - ROW / 2,
+          width: pl.w, height: ROW });
+        hit.addEventListener('pointerenter', function (ev) {
+          setHighlight(si); tip.show(r.color, r.name, v.toFixed(1) + '%', sub, brk, ev);
+        });
+        hit.addEventListener('pointermove', function (ev) { tip.move(ev); });
+        hit.addEventListener('pointerleave', function () { setHighlight(null); tip.hide(); });
+        g.appendChild(hit);
+
+        if (narrow || pi === 0) {
+          var lab = el('text', {
+            'class': 'dlab' + (r.ours ? ' dlab--hi' : ''),
+            x: pl.x - 16, y: cy + 5, 'text-anchor': 'end'
+          }, (narrow && r.short) ? r.short : r.name);
+          /* the role, not the family: this figure is one VLA and one WAM
+             against ours, and saying so is what makes it read at a glance */
+          if (r.role) lab.appendChild(el('tspan', { 'class': 'lane__role' }, '  ' + r.role));
+          g.appendChild(lab);
+        }
+      });
+
+      g.setAttribute('aria-label', r.name + (r.role ? ' (' + r.role + ')' : '') +
+        ': ' + ariaParts.join('. ') + '.');
+      g.addEventListener('focus', function () {
+        setHighlight(si);
+        tip.showAt(r.color, r.name, '', parts.join(' · '), '', svg, X(0, 50), cyOf(0, ri));
+      });
+      g.addEventListener('blur', function () { setHighlight(null); tip.hide(); });
+      svg.appendChild(g);
+      groups.push(g);
+    });
+
+    mount.appendChild(svg);
+
+    if (cfg.legendEl) {
+      var lg = document.querySelector(cfg.legendEl);
+      if (lg) {
+        lg.innerHTML = '';
+        (cfg.legend || []).forEach(function (it) {
+          var item = document.createElement('span');
+          item.className = 'legend__item';
+          var sw = document.createElement('span');
+          sw.className = 'legend__sw' + (it.rule ? ' legend__sw--vrule' : '');
+          sw.style.background = it.color;
+          item.appendChild(sw);
+          item.appendChild(document.createTextNode(it.label));
+          lg.appendChild(item);
+        });
+      }
+    }
+
+    /* bars run left to right once, ours first; each bright overhang lights up
+       only after its own bar has finished running */
+    if (!reduceMotion && !lanesPlayed && 'IntersectionObserver' in window) {
+      svg.setAttribute('data-anim', 'wait');
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        io.disconnect();
+        lanesPlayed = true;
+        requestAnimationFrame(function () { svg.setAttribute('data-anim', 'in'); });
+      }, { threshold: 0.35 });
+      io.observe(svg);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      pareto (latency vs success) scatter + line
      --------------------------------------------------------------------- */
   var paretoPts = [];
@@ -839,26 +1231,68 @@
          half   Put Plate on the Rack at half the demonstrations
        Fast-WAM was not run on the bag, so its unseen mean covers two tasks. */
     if ((m = find('summary'))) {
-      barChart(m, {
-        series: [
-          { name: 'π0.5', label: 'π₀.₅', color: C.base },
-          { name: 'ManiFlow', label: 'ManiFlow', color: C.base3 },
-          { name: 'Fast-WAM', label: 'Fast-WAM', color: C.base2 },
-          { name: 'Flex-π (action-only)', label: 'Flex-π (action-only)', color: C.oursL },
-          { name: 'Flex-π (full joint)', label: 'Flex-π (full joint)', color: C.oursD }
+      /* One baseline of each kind — a VLA, a world model, a 3D policy — against
+         our two inference modes. Row order is fixed across panels and never
+         re-sorted, so a method's bar can be followed panel to panel: Fast-WAM's
+         halving from Seen to Unseen is the point, and re-sorting would hide it.
+
+         The rule is the best baseline in each panel, which is ManiFlow, then
+         pi0.5, then ManiFlow. Note that is the max of the per-method means, not
+         the mean of the per-task maxima that #taskgap below uses; the two
+         differ, and naming the owner under the rule keeps this figure exact. */
+      laneChart(m, {
+        /* No group header rows. They took 28 units against a 34-unit data row,
+           so the pitch across the ours/baselines boundary came out 1.8x the
+           pitch inside a group — close enough to 2x to read as a mistake. Ours
+           are bold and green, the baselines are muted and carry a role tag, so
+           the grouping survives without a row of its own. */
+        rows: [
+          { name: 'Flex-π (full joint)',  short: 'Flex-π joint', color: C.oursD,
+            ours: true, headline: true },
+          { name: 'Flex-π (action-only)', short: 'Flex-π fast',  color: C.oursL, ours: true },
+          { name: 'π₀.₅',     role: 'VLA', color: C.base },
+          { name: 'Fast-WAM', role: 'WAM', color: C.base2 },
+          { name: 'ManiFlow', role: '3D',  color: C.base3 }
         ],
-        groups: [
-          { label: 'Seen',     values: [52.1, 58.0, 31.7, 76.4, 83.0] },
-          { label: 'Unseen',   values: [43.2, 31.5, 16.9, 70.8, 76.1] },
-          { label: '50% data', values: [42.5, 60.0, 25.0, 80.0, 95.0] }
+        panels: [
+          { title: 'Seen tasks', note: '5 tasks, in distribution',
+            values: [83.0, 76.4, 52.1, 31.7, 58.0],
+            partial: [null, null, null, '3 of 5 tasks', null],
+            /* #taskgap below, per task. Each column averages to the bar above. */
+            tasks: [
+              { name: 'Plate',  values: [95.0, 84.2, 72.5, 12.5, 75.8] },
+              { name: 'Sort',   values: [75.0, 70.0, 45.0,  5.0, 55.0] },
+              { name: 'Kitchen',values: [98.8, 96.2, 73.8, 77.5, 93.8] },
+              { name: 'Repair', values: [76.0, 66.9, 26.2, null, 33.3] },
+              { name: 'Bag',    values: [70.0, 64.9, 42.8, null, 31.9] }
+            ] },
+          { title: 'Unseen conditions', note: '3 tasks',
+            values: [76.1, 70.8, 43.2, 16.9, 31.5],
+            partial: [null, null, null, '2 of 3 tasks', null],
+            /* #gen's unseen halves plus #softbag's unseen bag */
+            tasks: [
+              { name: 'Plate', values: [95.0, 85.0, 72.5, 33.8, 55.0] },
+              { name: 'Sort',  values: [70.0, 70.0, 40.0,  0.0, 32.5] },
+              { name: 'Bag',   values: [63.3, 57.5, 17.2, null,  6.9] }
+            ] },
+          /* one task, so it is drawn narrower — see the laneChart comment */
+          { title: 'Half the data', note: '1 task',
+            values: [95.0, 80.0, 42.5, 25.0, 60.0], wF: 0.62,
+            tasks: [
+              { name: 'Plate', values: [95.0, 80.0, 42.5, 25.0, 60.0] }
+            ] }
         ],
-        max: 100, yTicks: [0, 20, 40, 60, 80, 100], plotH: 220, padB: 40, maxBarW: 38,
-        tickFmt: function (t) { return t + '%'; },
-        valFmt: function (v) { return v % 1 === 0 ? String(v) : v.toFixed(1); },
-        yLabel: 'Task completion (%)', legendEl: '#lg-summary',
-        ariaLabel: 'Averaged over the real-robot suite, Flex-π full joint reaches 83.0 percent on seen tasks ' +
-          'against 58.0 for the best baseline, 76.1 on unseen conditions against 43.2, and 95.0 when trained ' +
-          'on half the demonstrations against 60.0.'
+        legendEl: '#lg-summary', numsFrom: 'details.dtab', metric: 'Task completion',
+        legend: [
+          { label: 'best baseline', color: 'var(--chart-axis)', rule: true },
+          { label: "Flex-π's margin", color: C.oursD }
+        ],
+        ariaLabel: 'Task completion on the real robot, in three slices. On the five seen tasks: Flex-π full ' +
+          'joint 83.0 percent, action-only 76.4, ManiFlow 58.0, π0.5 52.1, Fast-WAM 31.7. On three unseen ' +
+          'conditions: 76.1, 70.8, 31.5, 43.2, 16.9. On one task trained on half the demonstrations: 95.0, ' +
+          '80.0, 60.0, 42.5, 25.0. Flex-π full joint leads the best baseline by 25.0, 32.9 and 35.0 points. ' +
+          'Fast-WAM was not run on every task, so its seen mean covers three of five and its unseen mean two ' +
+          'of three.'
       });
     }
 
@@ -1068,16 +1502,18 @@
   }
 
   /* ---------------------------------------------------------------------
-     the real-world frontier, inside the configurator card
+     the real-world frontier, its own figure in Part I
      Task completion against single-inference latency, with the region that
-     is both slower and less accurate than the fast path shaded. Compact,
-     because it sits under the mask controls that steer it: setFrontierMode()
-     is called from the configurator so the dot for the chosen output mask
-     lights up. Static otherwise; hover a dot for its figures.
+     is both slower and less accurate than the fast path shaded. A static
+     figure: hover a dot for its figures, and nothing else changes it. It
+     used to sit under the configurator's mask controls and light the dot for
+     whichever output mask was chosen; once the figure moved out of that card
+     the two were screens apart, so the link was cut rather than left firing
+     where nobody could see it. The configurator's own readout is still live —
+     that is setReadoutMode(), below.
      Numbers: real_world_eval/flex_pi_final_results.json — the unweighted
      mean of the five in-distribution scores. Fast-WAM covers 3 of 5 tasks.
      --------------------------------------------------------------------- */
-  var setFrontierMode = function () {};
 
   /* Measured on our own RTX 5090 at the deployed 4 denoise steps.
 
@@ -1102,21 +1538,21 @@
 
      Only the two modes we ship have been scored on the real-robot suite, and
      both were run with all three inputs observed — so `sr` belongs to that exact
-     configuration, not to the output mask alone. setFrontierMode() gates on
+     configuration, not to the output mask alone. setReadoutMode() gates on
      both masks; everything else shows an em dash for task completion. */
   var REAL_MODE = {
-    0: { lat: 60,  sr: 50,
+    0: { lat: 60,  sr: 76.4,
          latNote: 'Faster than every baseline we compare against.',
-         srNote: '1.9× over the strongest baseline.' },
+         srNote: '+18.4 points over the strongest baseline.' },
     1: { lat: 136, latNote: 'The RGB future alone: 2.3× the action-only path.' },
     2: { lat: 138, latNote: 'The DINO future alone: 2.3× the action-only path.' },
-    4: { lat: 136, latNote: 'The pointmap future alone — the cheapest of the three.' },
+    4: { lat: 136, latNote: 'The pointmap future alone: 2.3× the action-only path.' },
     3: { lat: 176, latNote: 'RGB and DINO futures: 2.9× the action-only path.' },
     5: { lat: 171, latNote: 'RGB and pointmap futures: 2.9× the action-only path.' },
     6: { lat: 192, latNote: 'DINO and pointmap — within 1 ms of full joint.' },
-    7: { lat: 193, sr: 63,
+    7: { lat: 193, sr: 83.0,
          latNote: '3.2× the action-only path.',
-         srNote: '2.5× over the strongest baseline.' }
+         srNote: 'The highest of every method we compare against.' }
   };
 
   function initFrontier() {
@@ -1170,11 +1606,8 @@
     svg.appendChild(el('line', { x1: dom.x, x2: dom.x + dom.w, y1: dom.y, y2: dom.y,
       stroke: 'var(--primary-ink)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: .45 }));
 
-    var read = document.getElementById('fr-read');
-    var dots = {};
     M.forEach(function (m) {
       var g = el('g', {});
-      var ring = el('circle', { 'class': 'fr-ring', cx: X(m.lat), cy: Y(m.sr), r: 12, stroke: m.c });
       var dot = el('circle', { 'class': 'fr-dot', cx: X(m.lat), cy: Y(m.sr), r: m.ours ? 8 : 7, fill: m.c,
         stroke: 'var(--bg-raise)', 'stroke-width': 2 });
       /* the name stays on the plot; the figures wait for a hover */
@@ -1188,13 +1621,19 @@
       hit.addEventListener('mouseleave', function () { val.setAttribute('opacity', 0); });
       hit.appendChild(el('title', {}, m.name + ' — ' + m.lat + ' ms, ' + m.sr.toFixed(1) + '%' +
         (m.partial ? ' (3 of 5 tasks)' : '')));
-      g.appendChild(ring); g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
+      g.appendChild(dot); g.appendChild(lab); g.appendChild(val); g.appendChild(hit);
       svg.appendChild(g);
-      dots[m.key] = { m: m, dot: dot, ring: ring, lab: lab, val: val };
     });
 
     mount.appendChild(svg);
+  }
 
+  /* The two measured numbers at the head of the configurator's control column.
+     Driven by the mask buttons; independent of the frontier figure above. */
+  var setReadoutMode = function () {};
+
+  function initReadout() {
+    if (!document.getElementById('av-lat')) return;
     var latEl = document.getElementById('av-lat');
     var srEl = document.getElementById('av-sr');
     var latNoteEl = document.getElementById('av-lat-note');
@@ -1216,19 +1655,12 @@
        two scored modes were both run with all three inputs present — so a score
        is shown only for those two exact configurations and every other one of
        the 56 gets an em dash. */
-    setFrontierMode = function (oMask, iMask) {
+    setReadoutMode = function (oMask, iMask) {
       var r = REAL_MODE[oMask];
       var scored = iMask === 7 && (oMask === 0 || oMask === 7);
-      var lit = !scored ? null : oMask === 0 ? 'ao' : 'joint';
-
-      ['ao', 'joint'].forEach(function (k) {
-        dots[k].dot.setAttribute('data-lit', lit === null ? '' : (k === lit ? 'on' : 'off'));
-        dots[k].ring.setAttribute('data-lit', k === lit ? 'on' : '');
-      });
-      if (read) read.textContent = lit ? '' : 'Timed, but not scored in this configuration';
 
       num(latEl, r ? r.lat : null, 'ms');
-      num(srEl,  scored ? String(r.sr) : null, '%');
+      num(srEl,  scored ? r.sr.toFixed(1) : null, '%');
       if (latNoteEl) latNoteEl.textContent = r ? r.latNote : 'Deployable, but not yet benchmarked on our hardware.';
       if (srNoteEl) {
         srNoteEl.textContent = scored ? r.srNote
@@ -1236,7 +1668,7 @@
           : 'Not yet evaluated on the real-robot suite.';
       }
     };
-    setFrontierMode(0, 7);
+    setReadoutMode(0, 7);
   }
 
   /* ---------------------------------------------------------------------
@@ -2147,8 +2579,7 @@
         name = gen.map(function (k) { return SNAME[k]; }).join(' + ') + ' + action';
         note = 'One of many intermediate regimes. Only the ' +
                gen.map(function (k) { return SNAME[k]; }).join(' and ') +
-               ' future' + (gen.length > 1 ? 's are' : ' is') + ' generated and read, so you pay for exactly the ' +
-               'grounding you want.';
+               ' future' + (gen.length > 1 ? 's are' : ' is') + ' generated and read, so that is all you pay for.';
       }
       if (forced.length) {
         note += ' The ' + forced.map(function (k) { return SNAME[k]; }).join(' and ') + ' stream' +
@@ -2192,7 +2623,7 @@
       if (cEl) cEl.textContent = String((iBits - 1) * 8 + oBits + 1);
       /* latency follows the output mask alone; the completion score needs both,
          since only the fully-observed action-only and full-joint runs are scored */
-      setFrontierMode(oBits, iBits);
+      setReadoutMode(oBits, iBits);
     }
 
     root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {
@@ -2305,7 +2736,9 @@
   function boot() {
     initTheme();
     renderCharts();
-    initFrontier();      /* before initArchviz: the masks drive its highlight */
+    initFrontier();      /* static figure, no longer steered by the masks */
+    initTableSync();     /* opening the table lights the figure's own numbers */
+    initReadout();       /* before initArchviz: the masks drive the readout */
     initSyncedVideos();  /* before initVideos: the leader must not play unheard */
     initAutoStrips();  /* clones strip children, so before initVideos() sees them */
     initVideos();

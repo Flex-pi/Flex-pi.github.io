@@ -172,18 +172,57 @@
 
   <!-- results at a glance: the aggregate figure, then one rollout per task.
        Deliberately coarse — per-task numbers live in the sections below. -->
-  <div class="wrap wrap--wide reveal" style="margin-top:34px">
+  <div class="wrap wrap--full reveal" style="margin-top:34px">
     <div class="chartbox">
       <div class="chartbox__head">
         <div class="legend" id="lg-summary"></div>
       </div>
-      <div data-chart="summary"></div>
-      <p class="figcap" style="margin-top:10px">Task completion (%) on the real robot. <b>Seen</b>: the five
-      in-distribution tasks. <b>Unseen</b>: the three that have an unseen condition. <b>50% data</b>: Put Plate on
-      the Rack at half the demonstrations.</p>
+      <div data-chart="summary" id="sum-chart"></div>
+      <p class="figcap" style="margin-top:4px">Task completion on the real robot, averaged over the tasks in each
+      panel. The line is the best baseline; the dark green is Flex-π's margin over it.</p>
+      <details class="dtab">
+        <summary>View as table</summary>
+        <div class="dtab__scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Task</th>
+              <th scope="col">Flex-&pi; (full joint)</th>
+              <th scope="col">Flex-&pi; (action-only)</th>
+              <th scope="col">ManiFlow</th>
+              <th scope="col">&pi;<sub>0.5</sub></th>
+              <th scope="col">Fast-WAM</th>
+            </tr>
+          </thead>
+      <tbody>
+        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Seen tasks <span>5 tasks, in distribution</span></th></tr>
+        <tr><th scope="row">Put Plate on the Rack</th><td>95.0</td><td>84.2</td><td>75.8</td><td>72.5</td><td>12.5</td></tr>
+        <tr><th scope="row">Sort Utensils</th><td>75.0</td><td>70.0</td><td>55.0</td><td>45.0</td><td>5.0</td></tr>
+        <tr><th scope="row">Kitchen Organization</th><td>98.8</td><td>96.2</td><td>93.8</td><td>73.8</td><td>77.5</td></tr>
+        <tr><th scope="row">Self-Repair Gripper</th><td>76.0</td><td>66.9</td><td>33.3</td><td>26.2</td><td>&mdash;</td></tr>
+        <tr><th scope="row">Soft-Bag Zipping</th><td>70.0</td><td>64.9</td><td>31.9</td><td>42.8</td><td>&mdash;</td></tr>
+        <tr class="dtab__avg"><th scope="row">Average</th><td>83.0</td><td>76.4</td><td>58.0</td><td>52.1</td><td>31.7</td></tr>
+      </tbody>
+      <tbody>
+        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Unseen conditions <span>3 tasks</span></th></tr>
+        <tr><th scope="row">Put Plate on the Rack</th><td>95.0</td><td>85.0</td><td>55.0</td><td>72.5</td><td>33.8</td></tr>
+        <tr><th scope="row">Sort Utensils</th><td>70.0</td><td>70.0</td><td>32.5</td><td>40.0</td><td>0.0</td></tr>
+        <tr><th scope="row">Soft-Bag Zipping</th><td>63.3</td><td>57.5</td><td>6.9</td><td>17.2</td><td>&mdash;</td></tr>
+        <tr class="dtab__avg"><th scope="row">Average</th><td>76.1</td><td>70.8</td><td>31.5</td><td>43.2</td><td>16.9</td></tr>
+      </tbody>
+      <tbody>
+        <tr class="dtab__grp"><th colspan="6" scope="colgroup">Half the data <span>1 task</span></th></tr>
+        <tr><th scope="row">Put Plate on the Rack</th><td>95.0</td><td>80.0</td><td>60.0</td><td>42.5</td><td>25.0</td></tr>
+      </tbody>
+        </table>
+        </div>
+        <p class="dtab__foot">Task completion (%). Fast-WAM was not run on Self-Repair Gripper or Soft-Bag
+        Zipping, so its averages cover 3 of 5 seen tasks and 2 of 3 unseen conditions.</p>
+      </details>
+
     </div>
 
-    <p class="figcap">Click on any video below to expand it.</p>
+    <p class="figcap" style="margin-top:26px">Click on any video below to expand it.</p>
 
     <!-- drifts on its own so all five tasks are seen without a scroll.
          initAutoStrips() recycles the leading card to the end as it passes,
@@ -262,7 +301,7 @@
                  aria-label="Bimanual robot arms working on a tabletop, shown as a normal color image"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-rgb)"></span>RGB &middot; appearance</b>The RGB image, encoded by a frozen Wan-2.2 VAE into latent tokens that inherit spatiotemporal priors from internet-scale video pre-training.</figcaption>
+        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-rgb)"></span>RGB &middot; appearance</b>The RGB image, encoded by a frozen Wan-2.2 VAE.</figcaption>
       </figure>
       <figure>
         <div class="player" data-player data-caption="The same observation as a patch-resolution feature map — the semantics stream. Placeholder footage; an illustrative rendering, not model output.">
@@ -271,7 +310,7 @@
                  aria-label="The same scene as a patch-resolution PCA feature map, illustrating object-level semantics"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-dino)"></span>DINO &middot; object semantics</b>Object-centric / semantic representations coming from a frozen DINOv3 encoder.</figcaption>
+        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-dino)"></span>DINO &middot; object semantics</b>Object-centric semantics, from a frozen DINOv3 encoder.</figcaption>
       </figure>
       <figure>
         <div class="player" data-player data-caption="The same observation as a false-color depth map — the geometry stream. Placeholder footage; an illustrative rendering, not model output.">
@@ -280,12 +319,10 @@
                  aria-label="The same scene as a false-color depth map, illustrating the 3D pointmap stream"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
-        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-3d)"></span>Pointmap &middot; 3D geometry</b>3D geometry representations coming from the same frozen Wan-2.2 VAE encoder as used for RGB, reconstructing pointmaps effectively.</figcaption>
+        <figcaption class="vcard__cap"><b><span class="capdot" style="--dot:var(--s-3d)"></span>Pointmap &middot; 3D geometry</b>3D geometry, encoded by the same frozen Wan-2.2 VAE as the RGB.</figcaption>
       </figure>
       <div class="actionstrip" id="av-strip" aria-label="The action chunk: fourteen real joint-and-gripper trajectories from one episode, left arm above and right arm below, always predicted"></div>
     </div>
-    <p class="archviz__note archviz__note--fine" style="margin-top:14px">The <b>action</b> strip beside them plots the real 14-DoF trajectories of one
-    recorded episode. The visual panels are encodings, not model generations. See <a href="#predictions">predictions</a> for model generation examples.</p>
   </div>
 
   <!-- the configurator: which streams the model reads and generates -->
@@ -396,9 +433,9 @@
               <div class="readout__note" id="av-lat-note">Faster than every baseline we compare against.</div>
             </div>
             <div class="readout__cell readout__cell--sr">
-              <div class="readout__lab">Success rates</div>
-              <div class="readout__val" id="av-sr">50<span class="unit">%</span></div>
-              <div class="readout__note" id="av-sr-note">1.9× over the strongest baseline.</div>
+              <div class="readout__lab">Task completion</div>
+              <div class="readout__val" id="av-sr">76.4<span class="unit">%</span></div>
+              <div class="readout__note" id="av-sr-note">+18.4 points over the strongest baseline.</div>
             </div>
           </div>
           <div class="maskline maskline--quick">
@@ -440,14 +477,6 @@
           </div>
 
       </div>
-
-      <!-- where the chosen mask lands on the real robot; the dot for the
-           current output mask lights up as you change it -->
-      <div class="archviz__frontier">
-        <div class="archviz__label">Where that lands on the real robot</div>
-        <div id="frontier"></div>
-        <p class="frontier__read" id="fr-read"></p>
-      </div>
       </div>
     </div>
   </div>
@@ -481,14 +510,31 @@
     </div>
   </div>
 
+  <!-- The latency-success frontier. It used to close the configurator card in
+       #streams and light the point for the mask selected there; out here that
+       link fired where nobody could see it, so the figure is now static. -->
+  <div class="wrap wrap--wide reveal" style="margin-top:22px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Where that lands on the real robot</div>
+          <div class="chartbox__sub">Averaged over the five tasks above</div>
+        </div>
+      </div>
+      <div id="frontier"></div>
+      <p class="figcap" style="margin-top:6px">Task completion against inference latency. The shaded region is
+      everything both slower and less accurate than the action-only path; hover a point for its numbers.</p>
+    </div>
+  </div>
+
 </div>
 
 <!-- ====================== precision & long horizon ====================== -->
 <section class="sec" id="precision">
   <div class="wrap reveal">
     <h3 class="sec__title"><span class="sec__no">01</span>Precision and long horizon</h3>
-    <p class="sec__sub">The evaluation opens with its hardest task: an eight-stage repair that ends in a
-    sub-millimeter insertion and electric screwdriver held between two moving arms.</p>
+    <p class="sec__sub">The hardest task in the suite: an eight-stage repair whose tightest stage is a
+    sub-millimeter insertion, made with an electric screwdriver held between two moving arms.</p>
   </div>
 
   <!-- long horizon -->
@@ -521,9 +567,9 @@
   </div>
 
   <div class="wrap reveal" style="margin-top:56px">
-    <h4 class="sub__title">Where the baselines lose the run</h4>
-    <p class="sub__lede">Two insertions and the screwing — the three stages the baselines rarely get past. Each is
-    shown twice: a baseline attempting the stage on the left, Flex-π completing it on the right. Stage 7 is the
+    <h4 class="sub__title">Where π<sub>0.5</sub> and ManiFlow lose the run</h4>
+    <p class="sub__lede">Two insertions and the screwing — the three stages they rarely get past. Each is
+    shown twice: the baseline attempting the stage on the left, Flex-π completing it on the right. Stage 7 is the
     tightest of the eight, a 4&nbsp;mm bit into a 4.5&nbsp;mm socket.</p>
   </div>
 
@@ -593,20 +639,10 @@
     </div>
   </div>
 
-  <div class="wrap wrap--wide reveal" style="margin-top:38px">
-    <div class="chartbox">
-      <div class="chartbox__head">
-        <div>
-          <div class="chartbox__title">Self-repair gripper</div>
-          <div class="chartbox__sub">20 rollouts per method, identical training data</div>
-        </div>
-        <div class="legend" id="lg-selfrepair"></div>
-      </div>
-      <div data-chart="selfrepair"></div>
-      <p class="figcap" style="margin-top:10px">Eight stages in order, so partial credit alone cannot separate a
-      policy that nearly finishes from one that does. Flex-π (full joint) completes the <b>whole</b> sequence in
-      11 of 20 rollouts; the best baseline manages it once.</p>
-    </div>
+  <div class="wrap reveal" style="margin-top:56px">
+    <h4 class="sub__title">Recovery behavior</h4>
+    <p class="sub__lede">What the policy does after a failed attempt, on the two stages with the least clearance
+    to spare.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:26px">
@@ -623,7 +659,7 @@
       </figure>
       <figure>
         <h5 class="acompare__name">Retrying the screwing</h5>
-        <div class="player" data-player data-caption="Flex-π retrying the screwing — lifting the bit, re-centring, and re-engaging the socket.">
+        <div class="player" data-player data-caption="Flex-π retrying the screwing — lifting the bit, re-centering, and re-engaging the socket.">
           <span class="player__badge player__badge--ours player__badge--bl">Retry</span>
           <video src="assets/videos/selfrepair-screw-in-retry.mp4" poster="assets/videos/selfrepair-screw-in-retry.jpg" loop muted playsinline preload="none" data-autoplay aria-label="Flex-π lifting the driver bit and re-engaging the screw socket after a glancing contact"></video>
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
@@ -634,6 +670,22 @@
     </div>
   </div>
 
+  <div class="wrap wrap--wide reveal" style="margin-top:38px">
+    <div class="chartbox">
+      <div class="chartbox__head">
+        <div>
+          <div class="chartbox__title">Self-repair gripper</div>
+          <div class="chartbox__sub">20 rollouts per method, identical training data</div>
+        </div>
+        <div class="legend" id="lg-selfrepair"></div>
+      </div>
+      <div data-chart="selfrepair"></div>
+      <p class="figcap" style="margin-top:10px">Eight stages in order, so we score both partial progress and the
+      full sequence. Flex-π (full joint) finishes all eight in 11 of 20 rollouts; the best baseline manages it
+      once.</p>
+    </div>
+  </div>
+
 </section>
 
 <hr class="rule">
@@ -641,10 +693,9 @@
 <!-- ====================== real robot: dexterity ====================== -->
 <section class="sec" id="real-robot">
   <div class="wrap reveal">
-    <h3 class="sec__title"><span class="sec__no">02</span>Dexterity under sustained contact</h3>
-    <p class="sec__sub">Zipping a soft bag: the fabric moves under every grasp, so the zip has to be found by
-    geometry and contact rather than by where it looked a moment ago. Five bags the policy was trained on, and
-    one it was never shown.</p>
+    <h3 class="sec__title"><span class="sec__no">02</span>Dexterity on deformable objects</h3>
+    <p class="sec__sub">Zipping a soft bag: the fabric shifts under every grasp, so the zip never stays in one
+    place. Five bags the policy was trained on, and one it was never shown.</p>
   </div>
 
 
@@ -783,12 +834,12 @@
         <div class="legend" id="lg-softbag"></div>
       </div>
       <div data-chart="softbag"></div>
-      <p class="figcap" style="margin-top:10px">On bags of unseen color and pattern the baselines lose most of
-      what they had: π<sub>0.5</sub> falls from 42.8% to 17.2%, ManiFlow from 31.9% to 6.9%. Flex-π (full joint)
-      only loses 6.7%.</p>
+      <p class="figcap" style="margin-top:10px">On the unseen bag π<sub>0.5</sub> falls from 42.8% to 17.2% and
+      ManiFlow from 31.9% to 6.9%. Flex-π (full joint) goes from 70.0% to 63.3%.</p>
     </div>
   </div>
 
+  <!-- TEMPORARILY HIDDEN: both players are placeholders, no footage yet.
   <div class="wrap reveal" style="margin-top:56px">
     <h4 class="sub__title">The workcell</h4>
     <p class="sub__lede">Two 6-DoF YAM arms on a stationary workcell, three calibrated stereo cameras. Every
@@ -813,6 +864,8 @@
       </figure>
     </div>
   </div>
+  -->
+
 </section>
 
 <hr class="rule">
@@ -946,10 +999,10 @@
           <div>
             <h4 class="vfeature__name">Sort Utensils</h4>
             <p class="vfeature__desc">
-            <span data-condpane="seen" hidden>Thin, near-flat objects that must be singulated from a cluttered surface and
-            routed to the right destination — where you grasp matters as much as where you place.</span>
+            <span data-condpane="seen" hidden>Thin, near-flat objects, singulated from a cluttered surface and
+            routed to the right destination.</span>
             <span data-condpane="unseen">The same sort, with objects never seen during fine-tuning scattered
-            among the utensils — every singulation has to survive an unfamiliar neighbour.</span>
+            among the utensils.</span>
             <span class="demos">300 teleoperated demonstrations</span></p>
           </div>
           <div class="vfeature__scores">
@@ -971,8 +1024,8 @@
             <span data-condpane="seen" hidden>A bowl and then a plate, seated in the kitchen rack in that order.
             The most forgiving task in the suite: Flex-π finishes cleanly in 19 of 20 rollouts,
             π<sub>0.5</sub> in 7.</span>
-            <span data-condpane="unseen">Unfamiliar tableware and an unfamiliar wire rack — shown as a
-            qualitative result; this condition is not part of the scored study.</span>
+            <span data-condpane="unseen">Unfamiliar tableware and an unfamiliar wire rack. This condition was
+            not scored.</span>
             <span class="demos">360 teleoperated demonstrations</span></p>
           </div>
           <div class="vfeature__scores">
@@ -1100,9 +1153,9 @@
         <div class="legend" id="lg-gen"></div>
       </div>
       <div data-chart="gen"></div>
-      <p class="figcap" style="margin-top:10px">The advantage is most pronounced exactly where RGB-only cues
-      become unreliable and success demands <b>geometric and object-centric rather than appearance-based</b>
-      generalization. ManiFlow has 3D inputs but still drops heavily.</p>
+      <p class="figcap" style="margin-top:10px">Flex-π (full joint) holds 95.0% on Put Plate and 70.0% on Sort
+      Utensils under the unseen conditions, 2.5 and 5.0 points below its in-distribution scores. ManiFlow has 3D
+      inputs and drops 32.5 and 22.5 points.</p>
     </div>
   </div>
 
@@ -1133,7 +1186,7 @@
         <div class="part__n">Part II</div>
         <h2 class="part__t">How it works</h2>
       </div>
-      <p class="part__d">What is behind the diagram above: the shared latent space that carries appearance, geometry and semantics together, and the two masks that let one set of weights cover every input/output combination.</p>
+      <p class="part__d">The shared latent space behind all of it, and the two masks that let one set of weights cover every input/output combination.</p>
     </div>
   </div>
 </div>
@@ -1151,8 +1204,7 @@
     <p class="sub__lede">RGB and 3D pointmaps go through the <em>same</em> frozen video-generation VAE. DINOv3
     semantics come from a separate frozen encoder and are projected into the same backbone by a linear adapter.
     Proprioception and the language instruction condition every stream. The
-    <a href="#archviz">diagram at the top of the page</a> runs that path live &mdash; its two masks are the ones
-    described below.</p>
+    <a href="#archviz">diagram at the top of the page</a> runs that path live, with the same two masks.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:34px">
@@ -1160,22 +1212,20 @@
       <div class="stream" style="--dot:var(--s-rgb)">
         <div class="stream__key"><span class="swatch"></span>Stream V</div>
         <h5 class="stream__name">RGB &mdash; appearance</h5>
-        <p class="stream__desc">The observation image, encoded to latent tokens that inherit spatiotemporal priors
-        from internet-scale video pre-training.</p>
+        <p class="stream__desc">Latent tokens that carry priors from internet-scale video pre-training.</p>
         <p class="stream__src">Enc(o<sub>t</sub>) &middot; frozen Wan-2.2 VAE</p>
       </div>
       <div class="stream" style="--dot:var(--s-dino)">
         <div class="stream__key"><span class="swatch"></span>Stream D</div>
         <h5 class="stream__name">DINO &mdash; object semantics</h5>
-        <p class="stream__desc">Object-level semantic tokens that ground appearance and geometry. Patch grids are
-        folded 2&times;2 into the channel dimension, removing 75% of the tokens losslessly.</p>
+        <p class="stream__desc">Object-level semantic tokens that ground appearance and geometry.</p>
         <p class="stream__src">DINO(o<sub>t</sub>) &middot; frozen DINOv3</p>
       </div>
       <div class="stream" style="--dot:var(--s-3d)">
         <div class="stream__key"><span class="swatch"></span>Stream P</div>
         <h5 class="stream__name">Pointmap &mdash; 3D geometry</h5>
-        <p class="stream__desc">A 3D pointmap pushed through the <em>same</em> frozen VAE. An encoder trained only
-        on RGB already reconstructs pointmaps well (Figure&nbsp;3), so no geometry-specific encoder is needed.</p>
+        <p class="stream__desc">A 3D pointmap pushed through the <em>same</em> frozen VAE, so no geometry-specific
+        encoder is needed.</p>
         <p class="stream__src">Enc(p<sub>t</sub>) &middot; shared VAE weights</p>
       </div>
     </div>
@@ -1188,11 +1238,11 @@
 
   <div class="wrap reveal" style="margin-top:60px">
     <h4 class="sub__title">Why latents?</h4>
-    <p class="sub__lede">Flex-π uses a joint flow-matching prediction objective, but runs it on a shared space of future
-    <em>latent</em> observations, coming from pre-trained encoders, in the same space.
-    This allows inherting priors from each modality, learn a stronger joint representation, and reduce inference time.
-    Because actions are generated jointly with those latents under shared
-    self-attention, the policy still reads the model's evolving picture of the future, with no pixels decoded.</p>
+    <p class="sub__lede">Flex-π uses a joint flow-matching prediction objective, but predicts future observations as
+    <em>latents</em> from the pre-trained encoders rather than as pixels, all three streams in one space. Each
+    encoder's priors carry over, the joint representation is stronger, and inference is faster. Actions are
+    generated jointly with those latents under shared self-attention, so the policy reads the predicted future
+    without decoding it.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:34px">
@@ -1233,23 +1283,23 @@
       Drag the divider: left of it is the ground-truth pointmap, right of it the frozen Wan-2.2 VAE&rsquo;s
       reconstruction of it &mdash; sweep across a moving episode and almost nothing changes
       (PSNR 31.1&nbsp;dB, MSE 3.1&times;10<sup>&minus;3</sup> in the normalised space the VAE sees; 4.9&nbsp;cm
-      z-RMSE in metres). One unseen plate-rack episode, 997 frames of head-camera video at 4&times; speed;
-      the RGB panel is the scene the pointmap encodes.</figcaption>
+      z-RMSE in metres).</figcaption>
     </figure>
   </div>
 
   <div class="wrap reveal" style="margin-top:60px">
     <h4 class="sub__title">Cross-modality forcing</h4>
     <p class="sub__lede">
-      Flex-π's trains to predict future observations for each modality, <em>even when one stream is missing</em>.
-      This alone adds <b>21.2%</b> success rate in RoboTwin.</p>
+      Flex-π trains to predict future observations for each modality, <em>even when one stream is missing</em>.
+      This alone raises RoboTwin success by <b>47% relative</b>.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:18px">
     <div class="prose">
-      <p>The benefit is not merely robustness to missing sensors. Requiring each modality to be predictable from the
-      others prevents the shared backbone from degenerating into three weakly-coupled channels, and instead demands
-      a representation in which appearance, geometry and semantics are <em>mutually predictive</em>.</p>
+      <p>Robustness to a missing sensor is not the only reason we train this way. Requiring each modality to be
+      predictable from the others keeps the shared backbone from splitting into three weakly-coupled channels, and
+      pushes it toward a representation in which appearance, geometry and semantics are <em>mutually
+      predictive</em>.</p>
     </div>
   </div>
 
@@ -1275,8 +1325,7 @@
   <div class="wrap reveal">
     <h3 class="sec__title">The futures behind the actions</h3>
     <p class="sec__sub">Every action chunk is generated jointly with a latent future in each stream. Control never
-    decodes those latents — but decoding them afterwards shows what the policy imagined while acting. Watch the real
-    rollouts first, then reveal the futures Flex-π imagined for each episode.</p>
+    decodes those latents; decoding them afterwards shows what the policy predicted while it was acting.</p>
   </div>
 
   <div class="wrap wrap--wide reveal" style="margin-top:32px">
@@ -1388,8 +1437,7 @@
           </button>
         </div>
       </div>
-      <p class="figcap" id="pred-note" style="margin:12px auto 0">What did the policy imagine while it acted? Press to
-      find out — the decoded future appears under each rollout, in whichever stream you pick.</p>
+      <p class="figcap" id="pred-note" style="margin:12px auto 0">The decoded future appears under each rollout, in whichever stream you pick.</p>
     </div>
   </div>
 </section>
@@ -1445,19 +1493,15 @@
       <p>Flex-π embeds RGB, 3D and DINO semantics into a shared latent space, yielding a single checkpoint that
       supports any combination of input and output streams at inference. It matches or beats the strongest VLA in
       fast action-only mode and the strongest WAM at full joint generation across RoboTwin, LIBERO and a real
-      bimanual YAM robot. Inference compute flexibility emerges as a natural consequence of multi-stream latent
+      bimanual YAM robot. Compute flexibility at inference comes from multi-stream latent
       dropout.</p>
     </div>
     <div class="limits">
-      <div class="limit"><b>Still data-hungry</b><span>Although markedly more demonstration-efficient than the
-      baselines we compare against, Flex-π remains data-hungry in absolute terms.</span></div>
+      <div class="limit"><b>Still data-hungry</b><span>Flex-π gets more out of each demonstration than the
+      baselines we compare against, but the absolute number it still needs is large.</span></div>
       <div class="limit"><b>Joint generation trades latency for accuracy</b><span>Full joint generation costs about
       3&times; the latency of the action-only path (193 vs. 60&nbsp;ms on an RTX 5090). The action-only path is
       faster than every baseline we compare against, but the two operating points cannot be had at once.</span></div>
-      <div class="limit"><b>Synchronous inference client</b><span>Our current client is synchronous, so the arms hold
-      position at each chunk boundary while the next chunk is computed. Reported wall-clock episode times therefore
-      include this idle time and give an upper bound; overlapping inference with execution of the preceding chunk
-      would remove the pause without touching the checkpoint.</span></div>
     </div>
   </div>
 </section>
