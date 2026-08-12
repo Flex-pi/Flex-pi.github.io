@@ -724,7 +724,7 @@
       </div>
       <div class="scoreboard">
         <div class="score score--base"><div class="score__v">42.8<span class="unit">%</span></div><div class="score__k">π<sub>0.5</sub></div></div>
-        <div class="score score--ours"><div class="score__v">70<span class="unit">%</span></div><div class="score__k">Flex-π joint</div></div>
+        <div class="score score--ours"><div class="score__v">70<span class="unit">%</span></div><div class="score__k">Flex-π Task Completion</div></div>
       </div>
     </div>
   </div>
@@ -785,7 +785,7 @@
       <div data-chart="softbag"></div>
       <p class="figcap" style="margin-top:10px">On bags of unseen color and pattern the baselines lose most of
       what they had: π<sub>0.5</sub> falls from 42.8% to 17.2%, ManiFlow from 31.9% to 6.9%. Flex-π (full joint)
-      gives up 6.7 points. Fast-WAM was not run on this task.</p>
+      only loses 6.7%.</p>
     </div>
   </div>
 
@@ -1100,9 +1100,9 @@
         <div class="legend" id="lg-gen"></div>
       </div>
       <div data-chart="gen"></div>
-      <p class="figcap" style="margin-top:10px">The advantage is most pronounced exactly where appearance cues
-      become unreliable and success demands <b>geometric and physical rather than appearance-based</b>
-      generalization.</p>
+      <p class="figcap" style="margin-top:10px">The advantage is most pronounced exactly where RGB-only cues
+      become unreliable and success demands <b>geometric and object-centric rather than appearance-based</b>
+      generalization. ManiFlow has 3D inputs but still drops heavily.</p>
     </div>
   </div>
 
@@ -1120,8 +1120,8 @@
       </div>
       <div data-chart="dataeff"></div>
       <p class="figcap" style="margin-top:10px">Faded bars are the full training set, solid bars half of it.
-      Flex-&pi; (full joint) drops 2.5 points and &pi;<sub>0.5</sub> drops 37.5. On half the data it still scores
-      above every baseline trained on all of it.</p>
+      Flex-&pi; with half the data, action only, performs similarly to &pi;<sub>0.5</sub> with all the data. 
+      With full joint prediction, Flex-&pi; half data outperforms every baseline with full data.</p>
     </div>
   </div>
 </section>
@@ -1187,10 +1187,11 @@
        same content, so the still is gone and the lede above links to it. -->
 
   <div class="wrap reveal" style="margin-top:60px">
-    <h4 class="sub__title">Why latents instead of pixels</h4>
-    <p class="sub__lede">The strongest WAMs predict future <em>images</em>, spending capacity and inference time on
-    pixel-level detail that does not aid control. Flex-π keeps the joint prediction objective but runs it on future
-    <em>latent</em> observations — and because actions are generated jointly with those latents under shared
+    <h4 class="sub__title">Why latents?</h4>
+    <p class="sub__lede">Flex-π uses a joint flow-matching prediction objective, but runs it on a shared space of future
+    <em>latent</em> observations, coming from pre-trained encoders, in the same space.
+    This allows inherting priors from each modality, learn a stronger joint representation, and reduce inference time.
+    Because actions are generated jointly with those latents under shared
     self-attention, the policy still reads the model's evolving picture of the future, with no pixels decoded.</p>
   </div>
 
@@ -1239,20 +1240,16 @@
 
   <div class="wrap reveal" style="margin-top:60px">
     <h4 class="sub__title">Cross-modality forcing</h4>
-    <p class="sub__lede">Dropping a stream from the input does not stop the model generating its future — and
-    being forced to do so is worth <b>21.2 points</b> of RoboTwin success.</p>
+    <p class="sub__lede">
+      Flex-π's trains to predict future observations for each modality, <em>even when one stream is missing</em>.
+      This alone adds <b>21.2%</b> success rate in RoboTwin.</p>
   </div>
 
   <div class="wrap reveal" style="margin-top:18px">
     <div class="prose">
-      <p>Because the two masks are drawn independently, a stream dropped from the input is still denoised at the
-      output: the model must synthesize that modality's future from whatever streams remain — imagining future
-      pointmaps from RGB and DINO with no 3D input at all, or DINO semantics from RGB and geometry.</p>
       <p>The benefit is not merely robustness to missing sensors. Requiring each modality to be predictable from the
       others prevents the shared backbone from degenerating into three weakly-coupled channels, and instead demands
-      a representation in which appearance, geometry and semantics are <em>mutually predictive</em>. Ablating it —
-      while holding the mask distribution fixed, so both models observe the same streams — costs
-      <strong>21.2 points</strong> of RoboTwin success.</p>
+      a representation in which appearance, geometry and semantics are <em>mutually predictive</em>.</p>
     </div>
   </div>
 
@@ -1278,7 +1275,7 @@
   <div class="wrap reveal">
     <h3 class="sec__title">The futures behind the actions</h3>
     <p class="sec__sub">Every action chunk is generated jointly with a latent future in each stream. Control never
-    decodes those latents — but decoding them afterwards shows what the policy read while acting. Watch the real
+    decodes those latents — but decoding them afterwards shows what the policy imagined while acting. Watch the real
     rollouts first, then reveal the futures Flex-π imagined for each episode.</p>
   </div>
 
@@ -1397,7 +1394,6 @@
   </div>
 </section>
 
-<hr class="rule">
 
 <!-- ====================== part III ====================== -->
 <div class="part" id="part-3">
@@ -1405,7 +1401,7 @@
     <div class="part__in">
       <div class="part__head">
         <div class="part__n">Part III</div>
-        <h2 class="part__t">How it compares</h2>
+        <h2 class="part__t">How it compares to other VLAs and WAMs in simulation</h2>
       </div>
       <p class="part__d">RoboTwin and LIBERO benchmarks — and what the design costs.</p>
     </div>
