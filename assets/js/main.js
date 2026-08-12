@@ -1442,9 +1442,11 @@
        renders correctly if it is ever wanted — benchChart is generic over
        cfg.panels, so it is one panel entry plus one key per row.
 
-       π0 has no RoboTwin entry in any version of the paper — the 62.2 this
-       figure used to carry traces to nothing in v17 through v22 — so its
-       RoboTwin cell is empty rather than carrying an unsourced number.
+       π0's RoboTwin 62.2 is Table 1's Average column, which is the mean of the
+       Clean and Randomized columns: (65.92 + 58.40) / 2. That reading is
+       confirmed by π0.5 on the same row pair, (82.74 + 76.76) / 2 = 79.8, the
+       figure it already carried. This cell sat empty for a while because the
+       number could not be traced in v17–v22.
 
        Left out: Motus and LingBot-VA 2.0 (RoboTwin only), GR00T-N1,
        OpenVLA-OFT and MolmoAct2-Think (LIBERO only), and Qwen-RobotManip.
@@ -1461,7 +1463,7 @@
         ],
         groups: [
           { label: 'Vision-language-action', rows: [
-            { name: 'π₀',                    rt: null, lb: 94.1 },
+            { name: 'π₀',                    rt: 62.2, lb: 94.1 },
             { name: 'π₀.₅',                  rt: 79.8, lb: 96.9 },
             { name: 'X-VLA',                 rt: 72.9, lb: 98.1 },
             { name: 'Flex-π (action-only)',  ours: 'l', rt: 94.6, lb: 98.4 },
@@ -1475,10 +1477,10 @@
           ]}
         ],
         ariaLabel: 'Simulation results. On RoboTwin Flex-π reaches 94.6% in both modes, ahead of LingBot-VA at ' +
-          '92.2, Fast-WAM at 91.8, π0.5 at 79.8 and X-VLA at 72.9. On LIBERO the methods sit between 94.1 and ' +
-          '99.2: Flex-π reaches 98.4 action-only and 98.5 at full joint generation, and the fixed-mode Flex-π* ' +
-          'reaches 98.7 and 99.2, level with the best published result. π0 has no RoboTwin result, and Flex-π* ' +
-          'is reported on LIBERO only.'
+          '92.2, Fast-WAM at 91.8, π0.5 at 79.8, X-VLA at 72.9 and π0 at 62.2. On LIBERO the methods sit between ' +
+          '94.1 and 99.2: Flex-π reaches 98.4 action-only and 98.5 at full joint generation, and the fixed-mode ' +
+          'Flex-π* reaches 98.7 and 99.2, level with the best published result. Flex-π* is reported on LIBERO ' +
+          'only.'
       });
     }
 

@@ -1020,9 +1020,6 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   font-weight: 600; letter-spacing: -.01em; line-height: 1.3; margin-bottom: 5px;
 }
 .vfeature__desc { font-size: 15px; line-height: 1.62; color: var(--fg-dim); max-width: var(--measure); }
-.vfeature__desc .demos {
-  display: block; margin-top: 8px; font-size: 13.5px; color: var(--fg-faint);
-}
 .scoreboard { display: flex; gap: 22px; align-items: flex-start; }
 .score { text-align: right; min-width: 74px; }
 .score__v {
