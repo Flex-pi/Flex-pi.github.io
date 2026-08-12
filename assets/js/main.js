@@ -629,8 +629,12 @@
      --------------------------------------------------------------------- */
   function resultBoard(mount, cfg) {
     var rows = cfg.rows, panels = cfg.panels;
-    var heroI = -1;
-    rows.forEach(function (r, i) { if (r.headline && heroI < 0) heroI = i; });
+    var heroI = -1, lastOurs = -1, firstBase = -1;
+    rows.forEach(function (r, i) {
+      if (r.headline && heroI < 0) heroI = i;
+      if (r.ours) lastOurs = i;
+      else if (firstBase < 0) firstBase = i;
+    });
     if (heroI < 0) return;
 
     /* the reference each panel measures against: the strongest baseline drawn
@@ -645,7 +649,7 @@
       });
       p._wall = best;
       p._head = p.values[heroI];
-      p._lead = (best && p._head != null) ? p._head - best.v : null;
+      p._mult = (best && best.v > 0 && p._head != null) ? p._head / best.v : null;
     });
 
     mount.innerHTML = '';
@@ -681,6 +685,12 @@
       return n;
     }
 
+    function rowCls(ri, r) {
+      return (r.ours ? 'rb__c--ours' : 'rb__c--base') +
+             (ri === lastOurs ? ' rb__c--lastours' : '') +
+             (ri === firstBase ? ' rb__c--first' : '');
+    }
+
     var cellsByMethod = [];
 
     /* One rule across the whole grid, gutter included, rather than a segment
@@ -688,15 +698,15 @@
     var rule = document.createElement('div');
     rule.className = 'rb__rule';
     rule.style.gridColumn = '1 / -1';
-    rule.style.gridRow = String(heroI + 2);
+    rule.style.gridRow = String(lastOurs + 2);
     board.appendChild(rule);
 
     /* the gutter: one label per row, right-ranged against the panels */
     var gut = document.createElement('div');
     gut.className = 'rb__gut';
-    cell(gut, 1, 1, 'rb__c--stat');
+    cell(gut, 1, 1, 'rb__c--lab');
     rows.forEach(function (r, ri) {
-      var c = cell(gut, 1, ri + 2, r.ours ? 'rb__c--ours' : 'rb__c--base');
+      var c = cell(gut, 1, ri + 2, rowCls(ri, r));
       c.appendChild(nameNode(r, r.ours ? 'rb__name--ours' : ''));
       if (!r.ours) {
         c.tabIndex = 0;
@@ -708,7 +718,8 @@
             return v === null || v === undefined ? null : p.title.toLowerCase() + ' ' + fmt(v);
           }).filter(Boolean).join('   ');
           var br = board.getBoundingClientRect(), cr = c.getBoundingClientRect();
-          tip.showAt(r.hoverColor || r.color, r.name, '', line, '', board,
+          tip.showAt(r.hoverColor || r.color, r.name + (r.role ? ' (' + r.role + ')' : ''),
+                     '', line, '', board,
                      cr.right - br.left, cr.bottom - br.top);
         });
         c.addEventListener('blur', function () { setHi(null); tip.hide(); });
@@ -721,26 +732,16 @@
       var g = document.createElement('div');
       g.className = 'rb__p';
 
-      /* Two lines: one metadata line naming the slice and the baseline the
-         margin is over, then the margin. The baseline used to have a line of
-         its own under the number, which put the word "over" in the card three
-         times and made every stat block a three-line paragraph. */
-      var stat = cell(g, col, 1, 'rb__c--stat');
-      var eb = span('rb__eyebrow', p.title);
-      if (p._wall) eb.appendChild(span('rb__vs', ' · vs. ' + p._wall.name));
-      stat.appendChild(eb);
-      if (p._lead != null) {
-        var d = span('rb__delta');
-        d.appendChild(span('rb__sign', p._lead < 0 ? '−' : '+'));
-        d.appendChild(document.createTextNode(fmt(Math.abs(p._lead))));
-        d.appendChild(span('rb__unit', '%'));
-        stat.appendChild(d);
-      }
+      /* Just the slice. The ratio it used to carry reads out in the caption
+         now: it wanted a row of its own under the bars, where it was orphaned,
+         and then a slot on this line, where it ran into the next panel's label.
+         It is a sentence's worth of meaning either way, so it went to the
+         sentence. */
+      cell(g, col, 1, 'rb__c--lab').appendChild(span('rb__eyebrow', p.title));
 
       rows.forEach(function (r, ri) {
         var v = p.values[ri];
-        var c = cell(g, col, ri + 2,
-          (r.ours ? 'rb__c--ours' : 'rb__c--base') + (ri === heroI + 1 ? ' rb__c--first' : ''));
+        var c = cell(g, col, ri + 2, rowCls(ri, r));
         if (p._wall && p._wall.i === ri) c.className += ' rb__c--best';
         c.appendChild(nameNode(r, 'rb__name--in' + (r.ours ? ' rb__name--ours' : '')));
 
@@ -750,29 +751,45 @@
           var fill = span('rb__fill');
           fill.style.setProperty('--w', v + '%');
           meter.appendChild(fill);
-          /* the stretch past the best baseline, at full strength. This segment
-             is the number at the top of the column, drawn to scale. */
-          if (r.ours && p._wall && v > p._wall.v) {
-            var lead = span('rb__lead');
-            lead.style.setProperty('--x', p._wall.v + '%');
-            lead.style.setProperty('--w', (v - p._wall.v) + '%');
-            meter.appendChild(lead);
+          /* Where the same policy reached on the full set, drawn as ground the
+             bar has given up. Without it the row printed a drop the bar had no
+             sign of — Flex-π showing the longest bar and the smallest number,
+             the two reading against each other. The printed figure is now the
+             length of this tail. */
+          var ref0 = p.deltaFrom && p.deltaFrom[ri];
+          if (ref0 != null && ref0 > v) {
+            var gh = span('rb__ghost');
+            gh.style.setProperty('--x', v + '%');
+            gh.style.setProperty('--w', (ref0 - v) + '%');
+            meter.appendChild(gh);
           }
         }
         c.appendChild(meter);
 
+        /* A panel whose absolute scores have no reference on the board prints
+           the change instead. The 50% data column is the only one: its bars are
+           the half-data scores, but the figure that means something without the
+           full-data scores beside it is what halving cost each policy. */
+        var ref = p.deltaFrom && p.deltaFrom[ri];
         var val = span('rb__val');
         if (v === null || v === undefined) { val.textContent = '—'; val.className += ' rb__val--none'; }
         else {
-          val.appendChild(document.createTextNode(fmt(v)));
-          if (r.ours) val.appendChild(span('rb__valunit', '%'));
+          val.appendChild(document.createTextNode(ref != null
+            ? (v - ref < 0 ? '\u2212' : '+') + fmt(Math.abs(v - ref))
+            : fmt(v)));
+          /* every figure in the column carries its unit, ours and baselines
+             alike — the % used to sit on the Flex-π rows only, which read as
+             two different quantities down one column */
+          val.appendChild(span('rb__valunit', '%'));
         }
         c.appendChild(val);
 
         var partial = p.partial && p.partial[ri];
-        c.setAttribute('aria-label', r.name + ', ' + p.title.toLowerCase() + ': ' +
-          (v === null || v === undefined ? 'not run' : fmt(v) + ' percent') +
-          (r.ours && p._lead != null ? ', ' + fmt(p._lead) + ' over ' + p._wall.name : '') +
+        var full = r.name + (r.role ? ' (' + r.role + ')' : '');
+        c.setAttribute('aria-label', full + ', ' + p.title.toLowerCase() + ': ' +
+          (v === null || v === undefined ? 'not run' : fmt(v) + ' percent' +
+            (ref != null ? ', ' + fmt(v - ref) + ' against ' + fmt(ref) + ' on the full set' : '')) +
+          (r.ours && p._mult != null ? ', ' + p._mult.toFixed(1) + ' times ' + p._wall.name : '') +
           (partial ? ', covering ' + partial : ''));
 
         /* the drill-down: the per-task scores this column's mean is made of.
@@ -783,15 +800,21 @@
         }).filter(Boolean).join('   ');
         /* no "0.0 short of ManiFlow" on ManiFlow's own row */
         var sub = p.title +
+          (ref != null && v != null ? ' · ' + fmt(ref) + ' on the full set' : '') +
           (r.ours || !p._wall || p._wall.i === ri || v === null || v === undefined ? '' :
             ' · ' + fmt(p._wall.v - v) + ' short of ' + p._wall.name) +
           (p._wall && p._wall.i === ri ? ' · best baseline here' : '') +
           (partial ? ' · ' + partial : '');
         var hoverC = r.hoverColor || r.color;
         c.__c = hoverC;
+        /* Baselines rest on the shared neutral, which .rb__fill falls back to
+           when --c is unset. Flex-π rests on its own green, so its cells carry
+           --c from the start and setHi() restores it rather than clearing. */
+        c.__base = r.ours ? r.color : '';
+        if (c.__base) c.style.setProperty('--c', c.__base);
         c.addEventListener('pointerenter', function (ev) {
           setHi(ri);
-          if (v !== null && v !== undefined) tip.show(hoverC, r.name, fmt(v) + '%', sub, brk, ev);
+          if (v !== null && v !== undefined) tip.show(hoverC, full, fmt(v) + '%', sub, brk, ev);
         });
         c.addEventListener('pointermove', function (ev) { tip.move(ev); });
         c.addEventListener('pointerleave', function () { setHi(null); tip.hide(); });
@@ -812,12 +835,21 @@
         cells.forEach(function (c) {
           var on = mi !== null && i === mi;
           c.setAttribute('data-hi', on ? 'true' : 'false');
-          c.style.setProperty('--c', on && c.__c ? c.__c : '');
+          c.style.setProperty('--c', (on && c.__c) ? c.__c : (c.__base || ''));
         });
       });
     }
 
     mount.appendChild(board);
+
+    /* The ratios live in the caption but are still derived here — a caption
+       with the figures typed into it goes stale the first time a value moves. */
+    if (cfg.multsInto) {
+      [].forEach.call(document.querySelectorAll(cfg.multsInto), function (n) {
+        var pp = panels[+n.getAttribute('data-rb-mult')];
+        n.textContent = pp && pp._mult != null ? pp._mult.toFixed(2) + '\u00d7' : '';
+      });
+    }
 
     /* Entrance: the meters run out from the left, panel by panel. Transform and
        opacity only — no rule here sets a colour, so nothing it does can be
@@ -1159,50 +1191,54 @@
         /* `hoverColor` is the method's own colour from the paper's legend,
            which the board shows only under the pointer; see setHi(). */
         rows: [
-          { name: 'Flex-π', role: 'full joint', color: C.oursD,
-            ours: true, headline: true },
+          { name: 'Flex-π', role: 'full joint',  color: C.oursD, ours: true, headline: true },
+          { name: 'Flex-π', role: 'action-only', color: C.oursL, ours: true },
           { name: 'π₀.₅',     role: 'VLA', color: C.laneBase, hoverColor: C.base },
           { name: 'Fast-WAM', role: 'WAM', color: C.laneBase, hoverColor: C.base2 },
           { name: 'ManiFlow', role: '3D',  color: C.laneBase, hoverColor: C.base3 }
         ],
         panels: [
           { title: 'In distribution',
-            values: [83.0, 52.1, 31.7, 58.0],
-            partial: [null, null, '3 of 5 tasks', null],
+            values: [83.0, 76.4, 52.1, 31.7, 58.0],
+            partial: [null, null, null, '3 of 5 tasks', null],
             /* #taskgap below, per task. Each column averages to the bar above. */
             tasks: [
-              { name: 'Plate',  values: [95.0, 72.5, 12.5, 75.8] },
-              { name: 'Sort',   values: [75.0, 45.0,  5.0, 55.0] },
-              { name: 'Kitchen',values: [98.8, 73.8, 77.5, 93.8] },
-              { name: 'Repair', values: [76.0, 26.2, null, 33.3] },
-              { name: 'Bag',    values: [70.0, 42.8, null, 31.9] }
+              { name: 'Plate',  values: [95.0, 84.2, 72.5, 12.5, 75.8] },
+              { name: 'Sort',   values: [75.0, 70.0, 45.0,  5.0, 55.0] },
+              { name: 'Kitchen',values: [98.8, 96.2, 73.8, 77.5, 93.8] },
+              { name: 'Repair', values: [76.0, 66.9, 26.2, null, 33.3] },
+              { name: 'Bag',    values: [70.0, 64.9, 42.8, null, 31.9] }
             ] },
           { title: 'Out of distribution',
-            values: [76.1, 43.2, 16.9, 31.5],
-            partial: [null, null, '2 of 3 tasks', null],
+            values: [76.1, 70.8, 43.2, 16.9, 31.5],
+            partial: [null, null, null, '2 of 3 tasks', null],
             /* #gen's unseen halves plus #softbag's unseen bag */
             tasks: [
-              { name: 'Plate', values: [95.0, 72.5, 33.8, 55.0] },
-              { name: 'Sort',  values: [70.0, 40.0,  0.0, 32.5] },
-              { name: 'Bag',   values: [63.3, 17.2, null,  6.9] }
+              { name: 'Plate', values: [95.0, 85.0, 72.5, 33.8, 55.0] },
+              { name: 'Sort',  values: [70.0, 70.0, 40.0,  0.0, 32.5] },
+              { name: 'Bag',   values: [63.3, 57.5, 17.2, null,  6.9] }
             ] },
           /* one task, so its column is drawn narrower — see the resultBoard comment */
+          /* Same numbers #dataeff pairs: `values` is its half-data row and
+             `deltaFrom` its full-data row, so the drops printed here and the
+             bars drawn there cannot disagree. */
           { title: '50% data',
-            values: [95.0, 42.5, 25.0, 60.0], wF: 0.74,
+            values:    [95.0, 80.0, 42.5, 25.0, 60.0],
+            deltaFrom: [97.5, 90.0, 80.0, 37.5, 87.5], wF: 0.74,
             tasks: [
-              { name: 'Plate', values: [95.0, 42.5, 25.0, 60.0] }
+              { name: 'Plate', values: [95.0, 80.0, 42.5, 25.0, 60.0] }
             ] }
         ],
-        /* No legend. Nothing on the board is encoded in a colour a reader has
-           to look up: every row prints its own name, and the one colour there
-           is marks the stretch the headline number above already names. */
-        ariaLabel: 'Task completion on the real robot, in three slices. In distribution, over five tasks: ' +
-          'Flex-π full joint 83.0 percent, 25.0 points over ManiFlow, the best baseline there; ManiFlow 58.0, ' +
-          'π0.5 52.1, Fast-WAM 31.7. Out of distribution, over three conditions: Flex-π 76.1, 32.9 points ' +
-          'over π0.5; π0.5 43.2, ManiFlow 31.5, Fast-WAM 16.9. On one task trained on 50 percent of the ' +
-          'data: Flex-π 95.0, 35.0 points over ManiFlow; ManiFlow 60.0, π0.5 42.5, Fast-WAM 25.0. Fast-WAM ' +
-          'was not run on every task, so its in-distribution mean covers three of five tasks and its ' +
-          'out-of-distribution mean two of three.'
+        /* No legend: every row prints its own name and the one colour on the
+           board belongs to the two rows the figure is about. */
+        multsInto: '[data-rb-mult]',
+        ariaLabel: 'Task completion on the real robot, in three slices, with Flex-π run action-only and at ' +
+          'full joint generation. In distribution, over five tasks: Flex-π 83.0 and 76.4 percent, π0.5 52.1, ' +
+          'Fast-WAM 31.7, ManiFlow 58.0 — full joint is 1.43 times ManiFlow, the strongest baseline there. Out ' +
+          'of distribution, over three conditions: 76.1 and 70.8, π0.5 43.2, Fast-WAM 16.9, ManiFlow 31.5 — ' +
+          '1.76 times π0.5. On one task trained on 50 percent of the data: 95.0 and 80.0, π0.5 42.5, Fast-WAM ' +
+          '25.0, ManiFlow 60.0 — 1.58 times ManiFlow. Fast-WAM was not run on every task, so its ' +
+          'in-distribution mean covers three of five tasks and its out-of-distribution mean two of three.'
       });
     }
 

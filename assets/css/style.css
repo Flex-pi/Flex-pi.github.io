@@ -52,6 +52,7 @@
      not — one ink for all three, and the only colour in the figure is ours. */
   --c-lane-base:  #625e56;
   --lane-track:   rgba(255,255,255,.075);
+  --lane-ghost:   rgba(255,255,255,.12);
   --chart-grid: rgba(255,255,255,.075);
   --chart-axis: rgba(255,255,255,.28);
   /* Error whiskers sit on top of saturated bars, so they need more presence
@@ -130,6 +131,7 @@
   --c-ours-d: #2e7d3e;   /* Flex-π full joint  */
   --c-lane-base:  #b0aba1;
   --lane-track:   rgba(12,12,12,.07);
+  --lane-ghost:   rgba(12,12,12,.11);
   --chart-grid: rgba(12,12,12,.10);
   --chart-axis: rgba(12,12,12,.34);
   --chart-err:  rgba(12,12,12,.46);
@@ -1428,8 +1430,11 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 
 /* ---------- resultBoard (the at-a-glance figure, #overview)
    Lives in a .chartbox like every other figure here, and borrows the site's
-   own scales rather than inventing any: --fs-meta labels, --fs-fine names,
-   .readout__val for the one big number, 4px radii, hairlines at --border-faint.
+   own scales rather than inventing any: the body face for anything read as
+   words, mono for metadata and figures, 4px radii, hairlines at --border-faint.
+   Sized a step above #taskgap's 13px row labels rather than level with them:
+   this card sits at wrap--full against that one's wrap--wide, and matching the
+   number would have read smaller across the extra 200px.
 
    The grid is the lane chart's: a label gutter sized to its widest name, then
    three panels at 1 : 1 : 0.72. The narrow third panel is not decoration — it
@@ -1443,8 +1448,12 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
      value reserved ~24px more than the 12px baseline values and the meter above
      came out that much shorter than the meters under it — which put the
      pale/solid boundary out of line with the baseline it is supposed to mark. */
-  --rb-valw: 50px;
-  --rb-namew: 108px;
+  --rb-valw: 60px;
+  --rb-namew: 122px;
+  /* one bar height for every row. Flex-π is marked by colour and by the rule
+     it sits above, which is enough — a bar 2.4x the thickness of the ones it is
+     being compared against also makes it look measured differently. */
+  --rb-meter: 7px;
   margin-top: 12px; display: grid;
   grid-template-columns: auto var(--cols, 1fr 1fr 1fr);
   column-gap: clamp(18px, 2.2vw, 34px);
@@ -1452,95 +1461,99 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 }
 .rb__gut, .rb__p { display: contents; }
 .rb__c { min-width: 0; }
-.rb__c--stat { padding-bottom: clamp(14px, 1.6vw, 20px); }
+/* The panel's label, centred over the bars it heads — not over the cell, which
+   also holds the value column and would have pushed the label right of the
+   thing it names. The ratio it used to carry reads out in the caption. */
+.rb__c--lab {
+  padding-bottom: clamp(16px, 1.8vw, 22px);
+  text-align: center; padding-inline-end: calc(var(--rb-valw) + 12px);
+}
 /* the one rule inside the card, doing the work a group header row used to:
    these four are not four of a kind. Its own grid item, spanning every column,
    so the column gaps do not punch holes through it. */
-.rb__c--ours { padding-bottom: 16px; }
+.rb__c--ours { padding-bottom: 11px; }
+.rb__c--lastours { padding-bottom: 16px; }
 .rb__rule { align-self: end; height: 1px; background: var(--border-faint); }
 .rb__c--first { padding-top: 16px; }
 .rb__c--base { padding-bottom: 11px; }
 
+/* the slice this panel scores. Set in the body face, sentence case, at full
+   reading weight — these name the three demands the figure is built on, and
+   11px uppercase mono at --fg-faint filed them as fine print. */
 .rb__eyebrow {
-  display: block; font-family: var(--ff-mono); font-size: var(--fs-meta);
-  letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--fg-faint);
+  display: block; font-size: 17px; font-weight: 600; letter-spacing: -.008em;
+  color: var(--fg);
 }
 /* the site's largest number, in the site's display face, at the site's own
    scale — .readout__val, verbatim. Green is the only colour on the board. */
-/* Hung a hair left so the digits, not the plus sign's side bearing, line up
-   with the meter and the label above them.
-
-   600, the weight every other headline number on this site is set in
-   (.readout__val, .metricflow__value). It was briefly 700 to win against the
-   score beside it; a bold serif numeral in green reads as a price tag, and the
-   fix for that contest is to quiet the score, not to shout over it. */
-.rb__delta {
-  display: block; margin-top: 10px; margin-inline-start: -2px;
-  font-family: var(--ff-display); font-weight: 600; font-size: clamp(28px, 3.6vw, 40px);
-  line-height: 1; letter-spacing: -.025em; font-variant-numeric: tabular-nums;
-  color: var(--c-ours);
-}
-.rb__sign { font-size: .66em; margin-inline-end: .03em; opacity: .82; }
-.rb__unit { font-family: var(--ff-mono); font-size: .42em; font-weight: 500; opacity: .72; }
-/* the baseline the margin is over, hung off the slice label. Not uppercased —
-   it is a method's name, not a category. */
-.rb__vs { text-transform: none; letter-spacing: 0; color: var(--fg-faint); opacity: .82; }
-
 /* a row is a name, a meter and a value; the gutter carries the name on wide
    screens and the in-panel copy of it takes over once the gutter is gone */
 .rb__c--ours, .rb__c--base { display: flex; align-items: center; gap: 12px; }
-.rb__c--stat { display: block; }
-.rb__name { font-size: var(--fs-fine); color: var(--fg-dim); white-space: nowrap; }
-.rb__name--ours { font-size: 15px; font-weight: 600; color: var(--fg); }
+/* the row-label treatment #taskgap uses for "Put Plate on the Rack": body face,
+   600, full ink. Muted grey at 13px was the thing that read as fine print. */
+.rb__name {
+  font-size: 15px; font-weight: 600; color: var(--fg); white-space: nowrap;
+}
+.rb__name--ours { font-size: 17px; }
 .rb__name--in { display: none; }
 .rb__role {
-  margin-inline-start: 7px; font-family: var(--ff-mono); font-size: var(--fs-meta);
-  letter-spacing: var(--ls-meta); color: var(--fg-faint);
+  margin-inline-start: 7px; font-family: var(--ff-mono); font-size: 12px;
+  letter-spacing: var(--ls-meta); color: var(--fg-dim);
 }
 .rb__name--ours .rb__role { color: var(--fg-dim); }
-.rb__c--best .rb__name, .rb__c--best .rb__val { color: var(--fg-muted); }
+.rb__c--best .rb__name, .rb__c--best .rb__val { color: var(--fg); }
 /* the gutter is ranged right, so the names end on the same edge the panels
    begin on — the lane chart's own treatment, and the only straight line the
    left half of the card has */
 .rb__gut .rb__c { justify-content: flex-end; text-align: end; }
 
-/* 6px, not 3px. Against 14px for Flex-π the hierarchy is still better than 2:1,
-   and at 3px on this ground the baselines had receded past reading — they are
-   the comparison, not decoration. */
+/* Better than 2:1 between the subject and the field, and no baseline thin
+   enough to disappear — at 3px they had receded past reading, and they are the
+   comparison the figure is for. */
 .rb__meter {
-  position: relative; flex: 1 1 auto; height: 6px;
+  position: relative; flex: 1 1 auto; height: var(--rb-meter);
   background: var(--lane-track); border-radius: 2px;
 }
-.rb__c--ours .rb__meter { height: 14px; border-radius: 2px; }
-/* its bar ends where the green on the Flex-π meter begins. Once the baselines
-   are legible that alignment reads on its own, so the row is marked in type
-   only and the block of bars stays even. */
 .rb__fill {
   position: absolute; inset-block: 0; inset-inline-start: 0; width: var(--w);
   background: var(--c, var(--c-lane-base)); border-radius: inherit;
   transition: background-color .2s var(--ease);
 }
-/* ours is one object in two strengths: held back to the best baseline, full
-   strength past it */
-.rb__c--ours .rb__fill { background: color-mix(in srgb, var(--c-ours) 38%, transparent); }
-.rb__lead {
+/* The ground between where a policy reached on half the data and where it
+   reached on all of it — the tail the printed drop measures. Neutral in every
+   row: it is what was lost, not another series.
+
+   The alpha is picked against the two things it touches, not by eye. At .20 it
+   composited to L=181 on cream, against L=171 for the baseline fill it butts
+   into — a 10-point step, which is no seam at all and read as one bar. It now
+   sits roughly midway between the fill and the empty track, so both edges of
+   the tail are legible. */
+.rb__ghost {
   position: absolute; inset-block: 0; inset-inline-start: var(--x); width: var(--w);
-  background: var(--c-ours); border-radius: 0 2px 2px 0;
+  background: var(--lane-ghost); border-radius: 0 2px 2px 0;
 }
+/* One flat fill, not two strengths. The split marked where the best baseline
+   fell, which the row of baselines under it already shows — and it made the
+   subject's own bar look like two things. The accent deepens under the pointer
+   instead, which is where the reader is asking about that row anyway. */
+.rb__c--ours .rb__fill { background: color-mix(in srgb, var(--c) 45%, transparent); }
+.rb__c--ours[data-hi="true"] .rb__fill { background: var(--c); }
 
 .rb__val {
   flex: none; width: var(--rb-valw); text-align: end;
-  font-family: var(--ff-mono); font-size: 12px; color: var(--fg-faint);
+  font-family: var(--ff-mono); font-size: 14px; color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
 }
 .rb__c--ours .rb__val {
-  font-family: var(--ff-display); font-size: 19px; font-weight: 600; line-height: 1;
-  letter-spacing: -.02em; color: var(--fg-muted);
+  font-family: var(--ff-display); font-size: 18px; font-weight: 600; line-height: 1;
+  letter-spacing: -.02em; color: var(--fg);
 }
+/* the unit, set down and dimmed off whichever figure it belongs to */
 .rb__valunit {
-  font-family: var(--ff-mono); font-size: .44em; font-weight: 500;
-  color: var(--fg-dim); margin-inline-start: 1px;
+  font-family: var(--ff-mono); font-size: .74em; font-weight: 500;
+  color: var(--fg-faint); margin-inline-start: 1px;
 }
+.rb__c--ours .rb__valunit { font-size: .44em; color: var(--fg-dim); }
 .rb__val--none { opacity: .5; }
 
 .rb__c { transition: opacity .2s var(--ease); }
@@ -1549,14 +1562,14 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .rb__c--base:focus { outline: none; }
 .rb__c--base:focus-visible .rb__name { text-decoration: underline; text-underline-offset: 3px; }
 
-.rb[data-anim] .rb__eyebrow, .rb[data-anim] .rb__delta,
+.rb[data-anim] .rb__eyebrow,
 .rb[data-anim] .rb__name, .rb[data-anim] .rb__val {
   opacity: 0; transform: translateY(7px);
 }
-.rb[data-anim] .rb__fill, .rb[data-anim] .rb__lead {
+.rb[data-anim] .rb__fill, .rb[data-anim] .rb__ghost {
   transform: scaleX(0); transform-origin: left center;
 }
-.rb[data-anim="in"] .rb__eyebrow, .rb[data-anim="in"] .rb__delta,
+.rb[data-anim="in"] .rb__eyebrow,
 .rb[data-anim="in"] .rb__name, .rb[data-anim="in"] .rb__val {
   opacity: 1; transform: none;
   transition: opacity .5s var(--ease), transform .5s var(--ease);
@@ -1564,7 +1577,7 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .rb[data-anim="in"] .rb__fill {
   transform: none; transition: transform .62s var(--ease) .1s, background-color .2s var(--ease);
 }
-.rb[data-anim="in"] .rb__lead { transform: none; transition: transform .4s var(--ease) .56s; }
+.rb[data-anim="in"] .rb__ghost { transform: none; transition: transform .45s var(--ease) .5s; }
 
 /* Once the panels are too narrow to hold a meter each they stack, the gutter
    goes with them, and the copy of each name that has been sitting inside every
@@ -1581,6 +1594,8 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
   .rb__name--in { display: inline; }
   .rb__name--in.rb__name--ours { flex: none; }
   .rb__c--ours .rb__name--in, .rb__c--base .rb__name--in { width: var(--rb-namew); flex: none; }
+  /* stacked, the name column sits inside every row, so the bars start after it */
+  .rb__c--lab { padding-inline-start: calc(var(--rb-namew) + 12px); }
 }
 
 /* ---------- the numbers behind a figure, collapsed

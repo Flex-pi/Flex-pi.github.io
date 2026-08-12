@@ -181,14 +181,18 @@
   <div class="wrap wrap--full reveal" style="margin-top:34px">
     <div class="chartbox">
       <div class="chartbox__head">
-        <div class="chartbox__title">Task completion across the bimanual suite</div>
+        <div class="chartbox__title chartbox__title--lead">Flex-&pi; overall performance</div>
       </div>
       <div data-chart="summary" id="sum-chart"></div>
       <!-- ranged left on the card's own edge, under the title, rather than
            centred: the grid it describes is left-ranged and a centred line
            under it reads as placed by formula rather than by eye -->
-      <p class="figcap figcap--left" style="margin-top:18px">Pale green reaches the panel's best baseline; solid
-      green is the margin past it.</p>
+      <!-- the multiples are written in by resultBoard from the same numbers the
+           bars are drawn from, so they cannot drift from the figure -->
+      <p class="figcap figcap--left" style="margin-top:18px">Flex-&pi; (full joint) scores
+      <b data-rb-mult="0"></b> the strongest baseline in distribution, <b data-rb-mult="1"></b> out of
+      distribution and <b data-rb-mult="2"></b> on 50% of the data, where each grey tail is what halving the
+      demonstrations cost that policy.</p>
       <details class="dtab">
         <summary>View as table</summary>
         <div class="dtab__scroll">
@@ -225,9 +229,7 @@
       </tbody>
         </table>
         </div>
-        <p class="dtab__foot">Task completion (%). The figure above draws Flex-&pi; at full joint generation
-        only; the action-only column is kept here as the record, and what it trades for its speed is the
-        subject of the latency figure below. Fast-WAM was not run on Self-Repair Gripper or Soft-Bag
+        <p class="dtab__foot">Task completion (%). Fast-WAM was not run on Self-Repair Gripper or Soft-Bag
         Zipping, so its averages cover 3 of 5 in-distribution tasks and 2 of 3 out-of-distribution
         conditions.</p>
       </details>
@@ -530,8 +532,7 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Where that lands on the real robot</div>
-          <div class="chartbox__sub">Averaged over the five tasks above</div>
+          <div class="chartbox__title chartbox__title--lead">Performance latency frontier</div>
         </div>
       </div>
       <div id="frontier"></div>
@@ -686,7 +687,7 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Self-repair gripper</div>
+          <div class="chartbox__title chartbox__title--lead">Self-repair gripper</div>
           <div class="chartbox__sub">20 rollouts per method, identical training data</div>
         </div>
         <div class="legend" id="lg-selfrepair"></div>
@@ -840,7 +841,7 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Soft-Bag Zipping</div>
+          <div class="chartbox__title chartbox__title--lead">Soft-Bag Zipping</div>
           <div class="chartbox__sub">20 rollouts per method per condition</div>
         </div>
         <div class="legend" id="lg-softbag"></div>
@@ -1156,7 +1157,7 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Robustness in cluttered scenes</div>
+          <div class="chartbox__title chartbox__title--lead">Robustness in cluttered scenes</div>
           <div class="chartbox__sub">Number above each pair = the drop</div>
         </div>
         <div class="legend" id="lg-gen"></div>
@@ -1176,7 +1177,7 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Put Plate on the Rack</div>
+          <div class="chartbox__title chartbox__title--lead">Put Plate on the Rack</div>
         </div>
         <div class="legend" id="lg-dataeff"></div>
       </div>
@@ -1477,16 +1478,15 @@
     <div class="chartbox">
       <div class="chartbox__head">
         <div>
-          <div class="chartbox__title">Success rate on RoboTwin and LIBERO</div>
+          <div class="chartbox__title chartbox__title--lead">Success rate on RoboTwin and LIBERO</div>
           <div class="chartbox__sub">Flex-&pi; is one flexible checkpoint run action-only or jointly &middot;
           Flex-&pi;* is fine-tuned for a single fixed mode</div>
         </div>
       </div>
       <div data-chart="bench"></div>
-      <p class="figcap" style="margin-top:12px">Flex-&pi; leads both categories on RoboTwin, at 94.6% whether or
-      not it generates futures. On LIBERO everything but &pi;<sub>0</sub> lands within two and a half points, so it
-      reads as saturation rather than a ranking; the fixed-mode Flex-&pi;* reaches 99.2%, level with the best published result there.
-      Dashes are numbers nobody has published, not zeros: Flex-&pi;* is reported on LIBERO only.</p>
+      <p class="figcap" style="margin-top:12px">Flex-&pi; leads both RoboTwin categories at 94.6%, in either mode.
+      LIBERO is saturated &mdash; everything but &pi;<sub>0</sub> lands within 2.5 points. Dashes are unpublished,
+      not zero.</p>
     </div>
   </div>
 
