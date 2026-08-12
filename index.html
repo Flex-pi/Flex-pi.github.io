@@ -300,7 +300,7 @@
       <div class="archviz__diagram">
         <div class="archviz__figrow">
         <svg viewBox="0 0 400 320" role="img" id="av-svg"
-             aria-label="Architecture diagram. Three observed input streams on the left — RGB and pointmap through one shared frozen Wan-2.2 VAE, DINO through a frozen DINOv3 encoder — feed a shared Multi-Stream Mixture-of-Transformers trunk in the centre. The trunk emits one future latent per stream on the right, mirroring the inputs, and drives an action expert below it that outputs the action chunk. Streams that are not observed, and futures that are not generated, are drawn dashed.">
+             aria-label="Architecture diagram. Three observed input streams on the left — RGB and pointmap through one shared frozen Wan-2.2 VAE, DINO through a frozen DINOv3 encoder — feed a shared Multi-Stream Mixture-of-Transformers trunk in the center. The trunk emits one future latent per stream on the right, mirroring the inputs, and drives an action expert below it that outputs the action chunk. Streams that are not observed, and futures that are not generated, are drawn dashed.">
 
           <path id="av-p-rgb"  class="av-path av-path--s" style="--dot:var(--s-rgb)"  d="M100,64 C126,64 130,92 152,92"/>
           <path id="av-p-dino" class="av-path av-path--s" style="--dot:var(--s-dino)" d="M100,132 L152,132"/>
@@ -397,8 +397,8 @@
             </div>
             <div class="readout__cell readout__cell--sr">
               <div class="readout__lab">Success rates</div>
-              <div class="readout__val" id="av-sr">50-63<span class="unit">%</span></div>
-              <div class="readout__note" id="av-sr-note">1.9x-2.5x over the strongest baseline.</div>
+              <div class="readout__val" id="av-sr">50<span class="unit">%</span></div>
+              <div class="readout__note" id="av-sr-note">1.9× over the strongest baseline.</div>
             </div>
           </div>
           <div class="maskline maskline--quick">
@@ -461,7 +461,7 @@
         <div class="part__n">Part I</div>
         <h2 class="part__t">What Flex-π does</h2>
       </div>
-      <p class="part__d">One checkpoint on a bimanual YAM workcell: an eight-stage self-repair, five contact-rich tasks scored against three baselines, and three conditions it was never fine-tuned on.</p>
+      <p class="part__d">An eight-stage self-repair, five contact-rich tasks scored against three baselines, and three conditions it was never fine-tuned on.</p>
     </div>
   </div>
 
@@ -477,7 +477,7 @@
       </div>
       <div data-chart="taskgap"></div>
       <p class="figcap" style="margin-top:10px">One row per task, against whichever baseline was strongest on
-      it. The action-only path clears every one of them before joint generation adds the rest.</p>
+      it. The action-only inference mode of Flex-π beats every baseline; joint future generation mode adds additional gains to every task.</p>
     </div>
   </div>
 
@@ -486,9 +486,9 @@
 <!-- ====================== precision & long horizon ====================== -->
 <section class="sec" id="precision">
   <div class="wrap reveal">
-    <h3 class="sec__title"><span class="sec__no">01</span>Precision and long horizons</h3>
+    <h3 class="sec__title"><span class="sec__no">01</span>Precision and long horizon</h3>
     <p class="sec__sub">The evaluation opens with its hardest task: an eight-stage repair that ends in a
-    sub-millimeter insertion held between two moving hands.</p>
+    sub-millimeter insertion and electric screwdriver held between two moving arms.</p>
   </div>
 
   <!-- long horizon -->
@@ -509,14 +509,13 @@
     <div class="vfeature__meta">
       <div>
         <h4 class="vfeature__name">Driving the screw — the tightest stage</h4>
-        <p class="vfeature__desc">A 4&nbsp;mm bit must enter a 4.5&nbsp;mm socket &mdash; ±0.25&nbsp;mm of lateral
-        clearance. Grasping the driver depresses its trigger, so the bit is <em>already turning</em> as the
-        arm approaches — there is no separate actuation channel to learn and no torque to regulate.
-        <span class="demos">802 demonstrations (11.8 h) + 660 ManiFlow-derived corrections</span></p>
+        <p class="vfeature__desc">A 4&nbsp;mm bit must enter a 4.5&nbsp;mm socket: ±0.25&nbsp;mm of lateral
+        clearance. 
+        <span class="demos">802 demonstrations (11.8 h) + 660 ManiFlow-derived DAGGER corrections</span></p>
       </div>
       <div class="scoreboard">
         <div class="score score--base"><div class="score__v">5<span class="unit">%</span></div><div class="score__k">ManiFlow</div></div>
-        <div class="score score--ours"><div class="score__v">55<span class="unit">%</span></div><div class="score__k">Flex-π full task</div></div>
+        <div class="score score--ours"><div class="score__v">55<span class="unit">%</span></div><div class="score__k">Flex-π success rate</div></div>
       </div>
     </div>
   </div>
@@ -551,7 +550,7 @@
   </div>
 
   <div class="wrap wrap--wide reveal acompare-block">
-    <h5 class="acompare__name"><span class="stageno">STAGE 5</span>Insert screw <span class="tol">— 4.5 mm M5 shank into an 8 mm hole, ±1.75 mm</span></h5>
+    <h5 class="acompare__name"><span class="stageno">STAGE 5</span>Insert screw <span class="tol">— 4.5 mm M5 screw into an 8 mm hole, ±1.75 mm</span></h5>
     <div class="acompare">
       <div class="acompare__side acompare__side--mf">
         <div class="player" data-player data-caption="ManiFlow attempting to start the screw in its hole. Autonomous, 2× speed.">
@@ -630,7 +629,7 @@
           <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
         </div>
         <figcaption class="vcard__cap">The bit glances off the socket instead of dropping in. The arm lifts the
-        driver clear, re-centres it over the screw head and comes back down.</figcaption>
+        driver clear, re-centers it over the screw head and comes back down.</figcaption>
       </figure>
     </div>
   </div>

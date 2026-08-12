@@ -1105,18 +1105,18 @@
      configuration, not to the output mask alone. setFrontierMode() gates on
      both masks; everything else shows an em dash for task completion. */
   var REAL_MODE = {
-    0: { lat: 60,  sr: 76.4,
+    0: { lat: 60,  sr: 50,
          latNote: 'Faster than every baseline we compare against.',
-         srNote: '+18.4 points over the strongest baseline.' },
+         srNote: '1.9× over the strongest baseline.' },
     1: { lat: 136, latNote: 'The RGB future alone: 2.3× the action-only path.' },
     2: { lat: 138, latNote: 'The DINO future alone: 2.3× the action-only path.' },
     4: { lat: 136, latNote: 'The pointmap future alone — the cheapest of the three.' },
     3: { lat: 176, latNote: 'RGB and DINO futures: 2.9× the action-only path.' },
     5: { lat: 171, latNote: 'RGB and pointmap futures: 2.9× the action-only path.' },
     6: { lat: 192, latNote: 'DINO and pointmap — within 1 ms of full joint.' },
-    7: { lat: 193, sr: 83.0,
+    7: { lat: 193, sr: 63,
          latNote: '3.2× the action-only path.',
-         srNote: 'The highest of every method we compare against.' }
+         srNote: '2.5× over the strongest baseline.' }
   };
 
   function initFrontier() {
@@ -1228,7 +1228,7 @@
       if (read) read.textContent = lit ? '' : 'Timed, but not scored in this configuration';
 
       num(latEl, r ? r.lat : null, 'ms');
-      num(srEl,  scored ? r.sr.toFixed(1) : null, '%');
+      num(srEl,  scored ? String(r.sr) : null, '%');
       if (latNoteEl) latNoteEl.textContent = r ? r.latNote : 'Deployable, but not yet benchmarked on our hardware.';
       if (srNoteEl) {
         srNoteEl.textContent = scored ? r.srNote
