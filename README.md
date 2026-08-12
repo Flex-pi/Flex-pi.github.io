@@ -160,5 +160,8 @@ Kitchen Organization has held-out footage but no held-out score, and that is
 deliberate: the task is easy enough that the number would not be informative, so
 the clip stands as a qualitative result.
 
-The `Paper` and `Code` buttons are rendered as disabled "soon" chips; wire them
-up in the `.links` block of `index.html` once there is an arXiv ID and a repo.
+The `Paper` button points at arXiv:2608.10860 and the `Code` button at
+github.com/geyan21/flex-pi, each wired in two places: the nav actions and the
+`.links` block of `index.html`. The hero buttons are bare labels — the icon and
+the destination are redundant at that size — while the nav keeps its small
+chips, where the label alone is easy to miss.
