@@ -162,5 +162,6 @@ the clip stands as a qualitative result.
 
 The `Paper` button points at arXiv:2608.10860 and the `Code` button at
 github.com/geyan21/flex-pi, each wired in two places: the nav actions and the
-`.links` block of `index.html`. Both chips now name the destination rather than
-a "soon" state; the repo itself carries the release notice.
+`.links` block of `index.html`. The hero buttons are bare labels — the icon and
+the destination are redundant at that size — while the nav keeps its small
+chips, where the label alone is easy to miss.

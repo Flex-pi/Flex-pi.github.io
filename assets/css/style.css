@@ -497,11 +497,6 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 }
 .btn:hover { background: var(--surface-3); border-color: var(--fg-dim); transform: translateY(-1px); }
 .btn svg { width: 14px; height: 14px; flex: none; }
-.btn__meta {
-  font-family: var(--ff-mono); font-size: 10px; letter-spacing: var(--ls-meta);
-  text-transform: uppercase; padding: 2px 6px;
-  border: 1px solid var(--border-soft); border-radius: var(--radius-pill); color: var(--fg-faint);
-}
 .btn--ghost { color: var(--fg-faint); border-style: dashed; cursor: not-allowed; }
 .btn--ghost:hover { transform: none; background: var(--surface); border-color: var(--border); }
 .btn--ghost .soon {
