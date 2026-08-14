@@ -1439,27 +1439,15 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* stacked, this one ranges left with the rest of them — see .scoreboard above */
 @media (max-width: 720px) { .scoreboard--none .score { text-align: left; } }
 
-svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 /* Every figure here is an inline SVG on a fixed 1000-unit viewBox, so a column
    narrower than that scales the type down along with the drawing: in the 305px
-   text column of a phone the scale is 0.30 and an 11px label lands at 3.4px,
-   which is a grey smudge rather than a number. Below the point where that
-   starts to bite, the chart keeps a legible minimum and scrolls sideways
-   inside its own box instead — the treatment [data-chart="scaling"] already
-   uses, at the width it already chose.
-
-   #frontier is named because it is the one figure whose mount is not a
-   [data-chart] — initFrontier() finds it by id. The :has() keeps the scroller
-   off mounts holding no SVG: [data-chart="summary"] is the at-a-glance board,
-   which is DOM precisely so that it does not have this problem. */
-@media (max-width: 720px) {
-  [data-chart]:has(> svg.chart), #frontier {
-    overflow-x: auto; overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-  }
-  [data-chart] > svg.chart, #frontier > svg.chart { min-width: 720px; }
-}
+   column of a phone an 11px label lands at 3.4px. Holding the chart at a
+   legible minimum and scrolling it sideways was tried and reverted: a chart
+   wider than the screen shows no row labels and no axis at the same time, and
+   the value labels — drawn outside the viewBox, on the `overflow: visible`
+   here — end up clipped by the scroller with no way to reach them. A whole
+   chart the reader can pinch-zoom beats a legible slice of one. */
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
 .chart .axis { stroke: var(--chart-axis); stroke-width: 1; }
 .chart .tick { fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta); }
