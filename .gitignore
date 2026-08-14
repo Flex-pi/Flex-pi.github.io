@@ -3,3 +3,7 @@
 *.pdf
 
 .DS_Store
+
+# device screenshots used to check the mobile layout — working material, not
+# part of the published page
+phone/
