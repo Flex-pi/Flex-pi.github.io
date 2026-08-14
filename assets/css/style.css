@@ -2091,7 +2091,16 @@ table.data .cite { color: var(--fg-faint); font-size: 12.5px; font-weight: 400; 
 .vaefig__cell { position: relative; flex: 1 1 0; min-width: 0; }
 .vaefig__rgb { width: 100%; height: auto; display: block; border-radius: 3px; }
 .vaefig .juxta { flex: 1 1 0; }
-@media (max-width: 560px) { .vaefig { flex-direction: column; } }
+/* Stacked, `flex: 1 1 0` stops dividing a row and starts setting a basis of 0
+   in the block direction. .vaefig__cell survives that on its automatic minimum
+   height, but .juxta carries `overflow: hidden` for the wipe, which resolves
+   its `min-height: auto` to 0 — so the whole comparison collapsed to nothing
+   and Figure 3 showed only the RGB clip beside a caption describing a divider
+   that was not there. Neither cell needs to flex once they are stacked. */
+@media (max-width: 560px) {
+  .vaefig { flex-direction: column; }
+  .vaefig__cell, .vaefig .juxta { flex: 0 0 auto; }
+}
 
 /* corner tags replacing the labels burned into the source figure (those clash
    where the wipe crosses them, so the crops exclude them) */
