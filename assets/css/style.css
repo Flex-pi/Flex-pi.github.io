@@ -413,6 +413,14 @@ section[id], .part[id] { scroll-margin-top: 80px; }
   height: min(86vh, 820px); min-height: 380px;
   background: var(--stage-bg); overflow: hidden;
 }
+/* On a phone `vh` is the LARGE viewport — the one with the browser toolbar
+   already retracted — so 86vh is taller than what is actually on screen and
+   the stage resizes under the reader the moment the toolbar moves. `svh` is
+   the small viewport, which is stable. Identical to `vh` on a desktop, where
+   there is no retracting toolbar, so nothing there changes. */
+@supports (height: 1svh) {
+  .stage { height: min(86svh, 820px); }
+}
 .stage__video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .stage__scrim {
   position: absolute; inset: 0; pointer-events: none;
@@ -619,6 +627,13 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .player:hover .player__expand, .player__expand:focus-visible { opacity: 1; }
 .player__expand:hover { background: rgba(12,12,12,.9); }
 .player__expand svg { width: 14px; height: 14px; }
+/* A touch screen never hovers, so the one mark that says a clip opens would
+   never appear on the device where the whole tile is the tap target. It stays
+   up, and ::after grows the hit area to 44px without growing the button. */
+@media (hover: none) {
+  .player__expand { opacity: 1; }
+  .player__expand::after { content: ""; position: absolute; inset: -7px; }
+}
 .player__badge {
   position: absolute; left: 8px; top: 8px; z-index: 2;
   font-size: 12.5px; padding: 2px 8px; border-radius: var(--radius);
@@ -798,6 +813,8 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .lb[data-open="true"] { display: grid; place-items: center; }
 .lb__stage { max-width: 1200px; width: 100%; }
 .lb__stage video { width: 100%; max-height: 78vh; border-radius: var(--radius); background: #000; }
+/* same reason as .stage: on a phone the toolbar is part of the viewport maths */
+@supports (height: 1svh) { .lb__stage video { max-height: 78svh; } }
 .lb__bar {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   margin-top: 14px; font-family: var(--ff-mono); font-size: 12px;
@@ -1056,6 +1073,18 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 .score__k {
   margin-top: 7px; font-family: var(--ff-mono); font-size: 10px;
   letter-spacing: var(--ls-meta); color: var(--fg-faint); white-space: nowrap;
+}
+/* Stacked (see .vfeature__meta above), the scoreboard stops being the right-hand
+   column and becomes a row of its own under the description. Each .score box is
+   only as wide as its label, so ranging right parks the number at the right edge
+   of that box — which is neither edge of the column, and on a phone the two
+   figures read as dropped at random into the middle of the line. Ranged left
+   they sit on the same edge as the prose above them, and each number sits
+   directly over the label naming it. Must stay after the .score rule it
+   overrides: same specificity, so the later one wins. */
+@media (max-width: 720px) {
+  .scoreboard { gap: clamp(24px, 8vw, 40px); }
+  .score { text-align: left; }
 }
 
 /* ==========================================================================
@@ -1407,8 +1436,30 @@ section[id], .part[id] { scroll-margin-top: 80px; }
 /* a held-out condition we show footage for but have not scored */
 .scoreboard--none .score { text-align: right; max-width: 150px; }
 .scoreboard--none .score__k { color: var(--fg-faint); }
+/* stacked, this one ranges left with the rest of them — see .scoreboard above */
+@media (max-width: 720px) { .scoreboard--none .score { text-align: left; } }
 
 svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+/* Every figure here is an inline SVG on a fixed 1000-unit viewBox, so a column
+   narrower than that scales the type down along with the drawing: in the 305px
+   text column of a phone the scale is 0.30 and an 11px label lands at 3.4px,
+   which is a grey smudge rather than a number. Below the point where that
+   starts to bite, the chart keeps a legible minimum and scrolls sideways
+   inside its own box instead — the treatment [data-chart="scaling"] already
+   uses, at the width it already chose.
+
+   #frontier is named because it is the one figure whose mount is not a
+   [data-chart] — initFrontier() finds it by id. The :has() keeps the scroller
+   off mounts holding no SVG: [data-chart="summary"] is the at-a-glance board,
+   which is DOM precisely so that it does not have this problem. */
+@media (max-width: 720px) {
+  [data-chart]:has(> svg.chart), #frontier {
+    overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  [data-chart] > svg.chart, #frontier > svg.chart { min-width: 720px; }
+}
 .chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
 .chart .axis { stroke: var(--chart-axis); stroke-width: 1; }
 .chart .tick { fill: var(--fg-faint); font-family: var(--ff-mono); font-size: var(--fs-meta); }
@@ -1583,7 +1634,12 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
    goes with them, and the copy of each name that has been sitting inside every
    cell all along takes over. */
 @media (max-width: 900px) {
-  .rb { grid-template-columns: 1fr; column-gap: 0; }
+  /* --rb-namew has to hold the longest name the board carries once the name is
+     in the row rather than the gutter, and 122px was measured against the
+     baselines: "Flex-π action-only" is 145px in the display face at 17px plus
+     its mono role, so it ran 11px into the meter beside it. The gutter this
+     replaces was auto-sized to the widest name; this is that width. */
+  .rb { --rb-namew: 146px; grid-template-columns: 1fr; column-gap: 0; }
   .rb__gut { display: none; }
   .rb__p { display: block; }
   .rb__p + .rb__p {
@@ -1596,6 +1652,16 @@ svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
   .rb__c--ours .rb__name--in, .rb__c--base .rb__name--in { width: var(--rb-namew); flex: none; }
   /* stacked, the name column sits inside every row, so the bars start after it */
   .rb__c--lab { padding-inline-start: calc(var(--rb-namew) + 12px); }
+}
+
+/* On a phone the row is ~320px wide, and a 146px name column leaves under 100px
+   of meter — the bars are the comparison the board is for, so it is the name
+   that moves. It takes its own line and the meter gets the width back; the
+   panel label re-centres over the bars, which now start at the row's edge. */
+@media (max-width: 560px) {
+  .rb__c--ours, .rb__c--base { flex-wrap: wrap; row-gap: 6px; }
+  .rb__c--ours .rb__name--in, .rb__c--base .rb__name--in { width: 100%; }
+  .rb__c--lab { padding-inline-start: 0; }
 }
 
 /* ---------- the numbers behind a figure, collapsed
