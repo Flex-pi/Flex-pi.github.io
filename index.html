@@ -23,9 +23,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- ?v= is a cache key, not decoration: Pages serves both this file and the
-     stylesheet with max-age=600, so a reader can hold a 10-minute-stale CSS
-     against fresh markup. Bump it whenever style.css changes shape. -->
+<!-- ?v= is a cache key, not decoration: Pages serves this file, the stylesheet
+     and the script with max-age=600, so a reader can hold a 10-minute-stale
+     asset against fresh markup. The script needs one for the same reason the
+     stylesheet does -- behaviour keyed to new markup breaks against an old
+     main.js. Both carry the same number: bump it when either changes shape. -->
 <link rel="stylesheet" href="assets/css/style.css?v=6">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236e1f35'/%3E%3Ctext x='16' y='24' font-size='23' font-weight='700' font-family='Georgia,serif' fill='%23ffffff' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
 <script>
@@ -166,7 +168,7 @@
   <div class="wrap wrap--wide reveal introvid" style="margin-top:30px">
     <div class="player" data-player data-caption="Overview reel across the real-robot task suite.">
       <video src="assets/videos/intro-final.mp4" poster="assets/videos/intro-final.jpg"
-             loop muted playsinline preload="none" data-autoplay
+             loop muted playsinline preload="none" data-autoplay data-restart
              aria-label="An overview reel of Flex-π autonomously performing manipulation tasks on the bimanual YAM workcell"></video>
       <button class="player__expand" type="button" aria-label="Expand video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
     </div>
@@ -1556,6 +1558,6 @@
   </div>
 </div>
 
-<script src="assets/js/main.js" defer></script>
+<script src="assets/js/main.js?v=6" defer></script>
 </body>
 </html>

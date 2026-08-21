@@ -1739,8 +1739,17 @@
 
   /* ---------------------------------------------------------------------
      videos: warm up shortly before they enter the viewport, then play only
-     while they are nearby. This keeps the full video library off the initial
+     while they are on it. This keeps the full video library off the initial
      loading path without making the next row feel late.
+
+     Warming and playing need separate observers, because they want different
+     bands. A clip that is merely *near* should fetch; only a clip the reader
+     can actually see should run. One observer with a 700px margin did both,
+     so four task clips more than a screen below the fold played unseen while
+     the intro reel was on screen -- five streams splitting one connection,
+     and the reel, the biggest file on the page, got a fifth of it and
+     stuttered. Off-screen playback costs bandwidth and decode and shows
+     nobody anything.
      --------------------------------------------------------------------- */
   function initVideos() {
     var vids = Array.prototype.slice.call(document.querySelectorAll('video[data-autoplay]'));
@@ -1748,7 +1757,19 @@
       vids.forEach(function (v) { v.play().catch(function () {}); });
       return;
     }
-    var io = new IntersectionObserver(function (entries) {
+    /* Fetch ahead of the viewport so the next row is not late -- but only the
+       container and the first frames. These clips run 4-7 Mbps, so warming a
+       row to 'auto' hands several of them a full share of the connection and
+       starves the one the reader is looking at. 'metadata' costs a range
+       request each and still saves the round trip that shows a poster. */
+    var warm = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && e.target.preload === 'none') e.target.preload = 'metadata';
+      });
+    }, { threshold: 0, rootMargin: '700px 0px' });
+
+    /* play only what is on screen */
+    var play = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         var v = e.target;
         if (e.isIntersecting) {
@@ -1758,7 +1779,59 @@
           v.pause();
         }
       });
-    }, { threshold: 0.01, rootMargin: '700px 0px' });
+    }, { threshold: 0.01 });
+
+    /* [data-restart] runs on its own terms below */
+    vids.forEach(function (v) {
+      warm.observe(v);
+      if (!v.hasAttribute('data-restart')) play.observe(v);
+    });
+
+    initRestartOnReach();
+  }
+
+  /* ---------------------------------------------------------------------
+     [data-restart]: rewind to the first frame when the reader reaches it
+
+     Only the intro reel carries this. It is the one clip with an opening
+     worth catching, and the ordinary rule -- start as soon as a sliver
+     clears the viewport edge, resume where you left off -- means that by
+     the time it is in front of you it is already seconds in, and that
+     coming back to it drops you into the middle. Every other clip keeps
+     the ordinary rule: those are loops of a single motion, so where they
+     resume does not matter.
+
+     The band is the middle 60% of the viewport rather than a ratio of the
+     video, because a ratio depends on how tall the window is: half of a
+     16:9 reel is most of a short laptop window and a third of a tall one,
+     so the same threshold would fire at visibly different moments.
+     --------------------------------------------------------------------- */
+  function initRestartOnReach() {
+    var vids = Array.prototype.slice.call(document.querySelectorAll('video[data-restart]'));
+    if (!vids.length || !('IntersectionObserver' in window)) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var v = e.target;
+        if (!e.isIntersecting) { v.pause(); return; }
+        if (v.preload !== 'auto') v.preload = 'auto';
+        rewind(v);
+        v.play().catch(function () {});
+      });
+    }, { threshold: 0, rootMargin: '-20% 0px -20% 0px' });
+
+    /* before metadata arrives there is nothing to seek against and the seek
+       is discarded -- but the clip has not played yet either, so it starts
+       at the first frame regardless */
+    function rewind(v) {
+      if (!v.currentTime) return;
+      if (v.readyState) { v.currentTime = 0; return; }
+      v.addEventListener('loadedmetadata', function once() {
+        v.removeEventListener('loadedmetadata', once);
+        v.currentTime = 0;
+      });
+    }
+
     vids.forEach(function (v) { io.observe(v); });
   }
 
