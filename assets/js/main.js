@@ -2665,6 +2665,7 @@
 
     root.querySelectorAll('.maskbtn[data-mask]').forEach(function (b) {
       b.addEventListener('click', function () {
+        takeOver();
         var which = b.getAttribute('data-mask'), k = b.getAttribute('data-s');
         var set = which === 'in' ? mIn : mOut;
         /* rejection sampling in the paper guarantees at least one visual input */
@@ -2683,21 +2684,71 @@
 
     root.querySelectorAll('.regimechip[data-preset]').forEach(function (b) {
       b.addEventListener('click', function () {
-        var pr = PRESETS[b.getAttribute('data-preset')];
-        if (!pr) return;
-        SKEYS.forEach(function (k) { mIn[k] = !!pr.i[k]; mOut[k] = !!pr.o[k]; });
-        paintMasks();
+        takeOver();
+        applyPreset(b.getAttribute('data-preset'));
       });
     });
 
     var drawBtn = document.getElementById('av-draw');
     if (drawBtn) {
       drawBtn.addEventListener('click', function () {
+        takeOver();
         do { SKEYS.forEach(function (k) { mIn[k] = Math.random() < 0.5; }); }
         while (!SKEYS.some(function (k) { return mIn[k]; }));
         SKEYS.forEach(function (k) { mOut[k] = Math.random() < 0.5; });
         paintMasks();
       });
+    }
+
+    /* --- the card demonstrates itself ------------------------------------
+       The four regimes are what the section is about, but a reader who does
+       not click anything sees only the one it opens on, and the diagram --
+       which is drawn to change -- never changes. So the presets run on a
+       loop while the card is on screen.
+
+       It stops for good the first time the reader touches any control. A
+       panel that keeps rearranging itself under someone who is driving it
+       is worse than one that never moved, and there is no way to tell "the
+       reader is done" from "the reader paused to read", so we do not guess:
+       control, once taken, is theirs for the rest of the visit.
+
+       Chip order, so the loop reads as the argument the section makes:
+       cheapest path first, then what each added stream costs and buys. --- */
+    var CYCLE = ['action', 'p3d', 'joint', 'xmod'];
+    var cycleAt = 0;
+    var cycleTimer = null;
+    var taken = false;
+
+    function applyPreset(name) {
+      var pr = PRESETS[name];
+      if (!pr) return;
+      SKEYS.forEach(function (k) { mIn[k] = !!pr.i[k]; mOut[k] = !!pr.o[k]; });
+      paintMasks();
+    }
+
+    function stopCycle() {
+      if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+    }
+
+    function startCycle() {
+      if (taken || reduceMotion || cycleTimer) return;
+      /* long enough to read the regime note, which is the part that changes
+         most between configurations */
+      cycleTimer = setInterval(function () {
+        cycleAt = (cycleAt + 1) % CYCLE.length;
+        applyPreset(CYCLE[cycleAt]);
+      }, 4200);
+    }
+
+    function takeOver() { taken = true; stopCycle(); }
+
+    /* on screen only -- the same band the intro reel uses, and for the same
+       reason: a share of the viewport is stable across window heights where
+       a share of the element is not */
+    if (!reduceMotion && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { startCycle(); } else { stopCycle(); } });
+      }, { threshold: 0, rootMargin: '-15% 0px -15% 0px' }).observe(root);
     }
 
     if (reduceMotion) {
