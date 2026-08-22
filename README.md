@@ -168,3 +168,7 @@ github.com/geyan21/flex-pi, each wired in two places: the nav actions and the
 `.links` block of `index.html`. The hero buttons are bare labels — the icon and
 the destination are redundant at that size — while the nav keeps its small
 chips, where the label alone is easy to miss.
+
+`Thread` is the exception: it links the announcement post and sits in the hero
+row only. The nav is the persistent set, and a link that is read once does not
+earn a place that follows the reader down the page.
